@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapState, mapActions} from 'vuex'
 import ChangeLang from "@/components/changeLang.vue"
 import {replaceTitle, replaceIcon} from "@/utils/util";
 import { getCommonInfo } from '@/api/user'
@@ -35,29 +35,12 @@ export default {
   components: {ChangeLang},
   data() {
     return {
-      commonInfo: {
-        login: {
-          logo: {},
-          loginButtonColor: '#384BF7',
-        },
-        home: {},
-        tab: {},
-        register: {
-          email: {
-            status: false,
-          },
-        },
-        resetPassword: {
-          email: {
-            status: false,
-          },
-        },
-      },
       backgroundSrc: require('@/assets/imgs/auth_bg.png'),
       basePath: this.$basePath
     }
   },
   computed: {
+    ...mapState('login', ['commonInfo']),
     ...mapState('user', ['lang'])
   },
   watch: {
@@ -72,17 +55,19 @@ export default {
     }
   },
   created() {
-    getCommonInfo().then(res => {
-      if(res.code === 0) {
-        this.commonInfo = res.data
-        this.setAuthBg(this.commonInfo.login.background.path)
-        replaceTitle(this.commonInfo.tab.title)
-        replaceIcon(this.commonInfo.tab.logo.path)
-        this.$emit('getCommonInfo', res.data)
-      }
+    this.getCommonInfo().then(() => {
+      const { tab = {}, login = {} } = this.commonInfo || {}
+      const { logo = {}, title = '' } = tab || {}
+      const { background = {} } = login || {}
+
+      background.path && this.setAuthBg(background.path)
+      title && replaceTitle(title)
+      logo.path && replaceIcon(logo.path)
+      this.$emit('getCommonInfo', this.commonInfo)
     })
   },
   methods: {
+    ...mapActions('login', ['getCommonInfo']),
     setDefaultImage() {
       this.backgroundSrc = require('@/assets/imgs/auth_bg.png')
     },
