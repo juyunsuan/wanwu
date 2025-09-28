@@ -78,6 +78,7 @@ export default {
         this.setAuthBg(this.commonInfo.login.background.path)
         replaceTitle(this.commonInfo.tab.title)
         replaceIcon(this.commonInfo.tab.logo.path)
+        this.$emit('getCommonInfo', res.data)
       }
     })
   },
