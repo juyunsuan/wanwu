@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import VuexPersistence from 'vuex-persist'
-import { user } from '@/store/module/user'
+import { login } from './module/login'
+import { user } from './module/user'
 import { app } from './module/app'
 import { workflow } from './module/workflow'
 
@@ -16,6 +17,7 @@ const vuexLocal = new VuexPersistence({
 
 export const store = new Vuex.Store({
     modules: {
+        login,
         user,
         app,
         workflow
