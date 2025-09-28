@@ -50,6 +50,7 @@
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item command="edit">{{$t('common.button.edit')}}</el-dropdown-item>
                 <el-dropdown-item command="delete">{{$t('common.button.delete')}}</el-dropdown-item>
+                <el-dropdown-item command="power">权限</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </div>

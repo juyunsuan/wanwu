@@ -16,35 +16,37 @@
             <span class="score-value">{{ formatScore(parentSegment.score) }}</span>
           </div>
         </div>
-        <div class="parent-content">
-          {{ parentSegment.content }}
+        <div class="parent-content" v-html="parentSegment.content ? md.render(parentSegment.content) : '暂无内容'">
         </div>
       </div>
 
       <!-- 子分段区域 -->
-      <div class="sub-segments" v-if="segmentList.length > 0">
+          <div class="sub-segments" v-if="segmentList.length > 0">
         <div class="segment-header">
           <span class="sub-badge">命中{{ segmentList.length }}个子分段</span>
         </div>
+      </div>
+      <div class="collapse-wrapper" v-if="segmentList.length > 0">
         <el-collapse 
           v-model="activeNames" 
           class="section-collapse"
+          :accordion="false"
         >
-          <el-collapse-item 
-            v-for="(segment, index) in segmentList" 
-            :key="index"
-            :name="index"
-            class="segment-collapse-item"
-          >
-            <template slot="title">
-              <span class="segment-badge">C-{{ index + 1 }}</span>
-              <span class="segment-score">
-                <span class="score-label">命中得分:</span>
-                <span class="score-value">{{ formatScore(childscore[index]) }}</span>
-              </span>
-            </template>
-            {{ segment.content }}
-          </el-collapse-item>
+        <el-collapse-item 
+          v-for="(segment, index) in segmentList" 
+          :key="index"
+          :name="index"
+          class="segment-collapse-item"
+        >
+          <template slot="title">
+            <span class="segment-badge">C-{{ index + 1 }}</span>
+            <span class="segment-score">
+              <span class="score-label">命中得分:</span>
+              <span class="score-value">{{ formatScore(childscore[index]) }}</span>
+            </span>
+          </template>
+          <div class="segment-content" v-html="segment.content ? md.render(segment.content) : '暂无内容'"></div> 
+        </el-collapse-item>
         </el-collapse>
       </div>
     </div>
@@ -52,10 +54,13 @@
 </template>
 
 <script>
+import { formatScore } from '@/utils/util'
+import { md } from "@/mixins/marksown-it";
 export default {
   name: 'SectionShow',
   data() {
     return {
+      md: md,
       dialogVisible: false,
       activeNames: [],
       parentSegment: {},
@@ -64,15 +69,7 @@ export default {
     }
   },
   methods: {
-    formatScore(score) {
-      // 格式化得分，保留5位小数
-      if (typeof score !== 'number') {
-        return '0.00000';
-      }
-      return score.toFixed(5);
-    },
-    
-    
+    formatScore,
     // 显示弹框
     showDiaglog(data) {
       if (data) {
@@ -122,7 +119,6 @@ export default {
     padding: 20px 20px 0 20px;
     background: #fff;
     border-radius: 8px;
-    
     .segment-header {
       display: flex;
       align-items: center;
@@ -164,6 +160,7 @@ export default {
       padding: 15px;
       border-radius: 6px;
       border: 1px solid #384BF7;
+      line-height: 1.6;
       
       .parent-item {
         margin-bottom: 10px;
@@ -182,7 +179,7 @@ export default {
   }
   
   .sub-segments {
-    padding: 20px;
+    padding: 20px 20px 0 20px;
     
     .segment-header {
       margin-bottom: 15px;
@@ -196,114 +193,91 @@ export default {
         font-weight: 500;
       }
     }
+  }
+  
+  .collapse-wrapper {
+    border: 1px solid #384BF7;
+    background: #f7f8fa;
+    border-radius: 6px;
+    margin: 0 20px 20px 20px;
+    overflow: hidden;
+  }
+  
+  .section-collapse {
+    padding: 0;
+    background: transparent;
     
-    .section-collapse {
-      background-color: #f7f8fa;
-      border-radius: 6px;
-      border: 1px solid #384BF7;
-      overflow: hidden;
+    /deep/ .el-collapse {
+      border: none !important;
+      border-top: none !important;
+      border-bottom: none !important;
+      border-left: none !important;
+      border-right: none !important;
+      background: transparent !important;
+      border-radius: 0 !important;
+    }
+    
+    /deep/ .el-collapse-item {
+      border: none !important;
+      margin-bottom: 0 !important;
+      background: transparent !important;
+    }
+    
+    
+    /deep/ .el-collapse-item__header {
+      background: transparent;
+      border: none;
+      padding: 0 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       
-      /deep/ .el-collapse {
-        border: none;
-        border-radius: 6px;
+      &:hover {
+        background: #f0f2f5;
       }
-      
-      /deep/ .el-collapse-item__header {
-        background-color: #f7f8fa;
-        border-bottom: 1px solid #e4e7ed;
-        padding: 12px 20px;
-        font-weight: normal;
-        border-left: none;
-        border-right: none;
-        border-top: none;
-        
-        &:hover {
-          background-color: #f0f2f5;
-        }
-      }
-      
-      /deep/ .el-collapse-item__content {
-        padding: 15px 20px;
-        background-color: #fff;
-        border-bottom: 1px solid #e4e7ed;
-        border-left: none;
-        border-right: none;
-        border-top: none;
-      }
-      
-      /deep/ .el-collapse-item:last-child .el-collapse-item__content {
-        border-bottom: none;
-      }
-      
-      /deep/ .el-collapse-item__header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        padding: 12px 20px;
-        position: relative;
-      }
-      
-      /deep/ .el-collapse-item__arrow {
-        display: none !important;
-      }
-      
+    }
+    
+    /deep/ .el-collapse-item__content {
+      padding: 0;
+      background: transparent;
+    }
+    
+    /deep/ .el-collapse-item__arrow {
+      display: none !important;
+    }
+    
+    .segment-collapse-item {
       .segment-badge {
-        // background-color: #eee;
         color: #384BF7;
-        // padding: 6px 12px;
-        // border-radius: 6px;
-        font-size: 12px;
-        min-width: 40px;
-        text-align: center;
-        font-weight: 500;
-        margin-right: 120px; // 为右边的得分留出空间
+        font-size: 14px;
+        font-weight: 600;
+        margin-right: 15px;
       }
       
       .segment-score {
         display: flex;
         align-items: center;
-        position: absolute;
-        right: 20px;
-        top: 50%;
-        transform: translateY(-50%);
         
         .score-label {
           font-size: 12px;
           color: #384BF7;
-          font-weight: bold;
           margin-right: 5px;
         }
         
         .score-value {
-          font-size: 14px;
+          font-size: 12px;
           color: #384BF7;
-          font-weight: bold;
+          font-weight: 600;
           font-family: 'Courier New', monospace;
         }
       }
       
-      /deep/ .el-collapse-item__content {
+      .segment-content {
         font-size: 14px;
         color: #333;
-        line-height: 1.5;
+        line-height: 1.6;
         text-align: left;
-        word-wrap: break-word;
-        word-break: break-all;
-        overflow-wrap: break-word;
-        
-        .segment-action {
-          color: #999;
-          font-size: 12px;
-          margin-left: 8px;
-        }
-        
-        .auto-save {
-          color: #666;
-          font-size: 12px;
-          margin-left: 8px;
-          font-style: italic;
-        }
+        padding:10px;
       }
     }
   }
