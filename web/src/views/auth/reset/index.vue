@@ -1,5 +1,5 @@
 <template>
-  <overview>
+  <overview @getCommonInfo="handleCommonInfo">
     <template #default="{ commonInfo }">
       <div class="auth-box">
         <p class="auth-header">
@@ -147,6 +147,12 @@ export default {
     }
   },
   methods: {
+    handleCommonInfo(commonInfo) {
+      // 如果功能未开启，重定向到登录页
+      if (!commonInfo.resetPassword.email.status) {
+        this.$router.push({path: `/login`})
+      }
+    },
     addByEnterKey(e) {
       if (e.keyCode === 13) {
         this.doReset()
