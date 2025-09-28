@@ -208,7 +208,6 @@ export default {
             this.loading = false;
             this.keyOptions = res.data.knowledgeMetaList || []
               if(this.type === 'create'){
-                console.log(res.data.knowledgeMetaList);
                 this.docMetaData = (res.data.knowledgeMetaList || []).map(item => ({
                   ...item,
                   metaValueType:item.metaValueType || 'string',
