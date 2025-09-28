@@ -43,6 +43,7 @@ import CreateTotalDialog from "@/components/createTotalDialog.vue"
 import UploadFileDialog from "@/components/uploadFileDialog.vue"
 import { getAppSpaceList,agnetTemplateList } from "@/api/appspace"
 import { mapGetters} from 'vuex'
+import {fetchPermFirPath} from "@/utils/util";
 
 export default {
   components: { SearchInput, CreateTotalDialog, UploadFileDialog, AppList },
@@ -77,6 +78,7 @@ export default {
         this.listData = []
         this.type = type
         this.$refs.searchInput.value = ''
+        this.justifyRenderPage(type)
         // this.getTypeData();
         this.getTableData()
       },
@@ -99,10 +101,17 @@ export default {
   mounted() {
     const {type} = this.$route.params || {}
     this.type = type
+    this.justifyRenderPage(type)
     // this.getTypeData();
     this.getTableData();
   },
   methods: {
+    justifyRenderPage(type) {
+      if (!['workflow', 'agent', 'rag'].includes(type)) {
+        const {path} = fetchPermFirPath()
+        this.$router.push({path})
+      }
+    },
     getTypeData(){
       if(this.type === 'agent'){
       this.agnet_type = 'template'
