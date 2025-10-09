@@ -314,6 +314,7 @@ import { md } from "@/mixins/marksown-it";
 import { marked } from "marked";
 var highlight = require("highlight.js");
 import "highlight.js/styles/atom-one-dark.css";
+import commonMixin from "@/mixins/common";
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -330,6 +331,7 @@ marked.setOptions({
 });
 
 export default {
+  mixins: [commonMixin],
   props: ["sessionStatus", "defaultUrl", "type"],
   data() {
     return {
@@ -402,41 +404,18 @@ export default {
   },
   methods: {
     handleCitationClick(e) {
-      if (this.sessionStatus === 0) return;
-
-      const citationElement = e.target.closest(".citation");
-      if (!citationElement) return;
-
-      const tagIndex = parseInt(citationElement.textContent, 10);
-      if (isNaN(tagIndex) || tagIndex <= 0) return;
-
-      const allSubTag = document.querySelectorAll(".subTag");
-      if (allSubTag.length === 0) return;
-
-      if (tagIndex > allSubTag.length) return;
-
-      const targetElement = allSubTag[tagIndex - 1];
-      if (!targetElement) return;
-
-      const parentsIndex = targetElement.dataset.parentsIndex;
-      const collapse = targetElement.dataset.collapse;
-
-      // 第445行改为：
-      if (!this.session_data || !this.session_data.history || !this.session_data.history[parentsIndex] || !this.session_data.history[parentsIndex].searchList || !this.session_data.history[parentsIndex].searchList[tagIndex - 1]) return;
-
-      if (collapse === "false") {
-        this.$set(
-          this.session_data.history[parentsIndex].searchList[tagIndex - 1],
-          "collapse",
-          true
-        );
-      }
-
-      const timeScrollElement = document.getElementById("timeScroll");
-      if (timeScrollElement) {
-        timeScrollElement.scrollTop = timeScrollElement.scrollHeight;
-      }
-      e.stopPropagation();
+      // 调用 common.js 中的通用方法
+      this.$handleCitationClick(e, {
+        sessionStatus: this.sessionStatus,
+        sessionData: this.session_data,
+        citationSelector: '.citation',
+        subTagSelector: '.subTag',
+        scrollElementId: 'timeScroll',
+        onToggleCollapse: (item, collapse) => {
+          // 使用 Vue.set 确保响应式更新
+          this.$set(item, 'collapse', collapse);
+        }
+      });
     },
     showSearchList(j, qa_type, citations) {
       return qa_type === 1 ? citations.includes(j + 1) : true;

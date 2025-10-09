@@ -89,9 +89,9 @@
                           class="child-item"
                         >
                           <div class="child-header">
-                            <span>
+                            <span class="child-header-content">
                               <span class="segment-badge">C-{{ childIndex + 1 }}</span>
-                              <span class="segment-content">{{child.childSnippet.slice(0,50)}}...</span>
+                              <span class="segment-content">{{child.childSnippet}}</span>
                             </span>
                             <span class="segment-score">
                               <span class="score-value">命中得分: {{ formatScore(item.childScore[childIndex]) }}</span>
@@ -398,7 +398,23 @@ export default {
                         justify-content: space-between;
                         align-items: center;
                         margin-bottom: 8px;
-                        
+                        .child-header-content {
+                          flex: 1;
+                          display: flex;
+                          align-items: center;
+                          min-width: 0;
+                          
+                          .segment-content {
+                            flex: 1;
+                            min-width: 0;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                            font-size: 14px;
+                            color: #333;
+                            line-height: 1.4;
+                          }
+                        }
                         .segment-badge {
                           background-color: #eaecf9;
                           padding: 6px 12px;
@@ -408,14 +424,19 @@ export default {
                           min-width: 40px;
                           text-align: center;
                           font-weight: 500;
-                          margin-right: 5px;
+                          margin-right: 8px;
+                          flex-shrink: 0;
                         }
                         
                         .segment-score {
+                          flex-shrink: 0;
+                          margin-left: 12px;
+                          
                           .score-value {
                             color: #384BF7;
                             font-weight: 500;
                             font-size: 12px;
+                            white-space: nowrap;
                           }
                         }
                       }
