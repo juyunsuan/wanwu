@@ -216,14 +216,35 @@
                   >
                     <template slot="title">
                       <span class="segment-badge">C-{{ index + 1 }}</span>
+                      <div class="segment-actions">
+                        <span v-if="!editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn edit-btn" @click.stop="editSegment(scope.row, index)">
+                          <i class="el-icon-edit-outline"></i>编辑
+                        </span>
+                        <span v-if="!editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn delete-btn" @click.stop="deleteSegment(scope.row, index)">
+                          <i class="el-icon-delete"></i>删除
+                        </span>
+                        <span v-if="editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn save-btn" @click.stop="confirmEdit(scope.row, index)">
+                          <i class="el-icon-check"></i>保存
+                        </span>
+                        <span v-if="editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn cancel-btn" @click.stop="cancelEdit(scope.row, index)">
+                          <i class="el-icon-close"></i>取消
+                        </span>
+                      </div>
                     </template>
                     <div class="segment-content">
-                      {{ index + 1 }}、{{ segment.content }}
+                      <div v-if="!editingSegments[`${scope.row.contentId}-${index}`]" class="content-display">
+                        {{ segment.content }}
+                      </div>
+                      <div v-else class="content-edit">
+                        <el-input
+                          v-model="editingContent[`${scope.row.contentId}-${index}`]"
+                          type="textarea"
+                          :rows="3"
+                          placeholder="请输入内容"
+                          class="edit-input"
+                        />
+                      </div>
                     </div>
-                    <!-- <div class="segment-actions">
-                      <i class="el-icon-edit-outline edit-icon" @click="editSegment(scope.row, index)"></i>
-                      <i class="el-icon-delete delete-icon" @click="deleteSegment(scope.row, index)"></i>
-                    </div> -->
                   </el-collapse-item>
                 </el-collapse>
               </div>
@@ -244,7 +265,7 @@
   </div>
 </template>
 <script>
-import { getSectionList,setSectionStatus,sectionLabels,delSegment,editSegment,getSegmentChild } from "@/api/knowledge";
+import { getSectionList,setSectionStatus,sectionLabels,delSegment,editSegment,getSegmentChild,delSegmentChild,updateSegmentChild } from "@/api/knowledge";
 import dataBaseDialog from './dataBaseDialog';
 import tagDialog from './tagDialog.vue';
 import createChunk from './createChunk.vue'
@@ -256,6 +277,8 @@ export default {
       oldContent:'',
       title:'创建关键词',
       dialogVisible: false,
+      editingSegments: {}, // 记录正在编辑的分段
+      editingContent: {}, // 记录编辑中的内容
       obj: {}, // 路由参数对象
       cardObj: [
         {
@@ -309,7 +332,57 @@ export default {
     },
      editSegment(row, index) {
       // 编辑分段的逻辑
-      console.log('编辑分段:', row, index);
+      const key = `${row.contentId}-${index}`;
+      this.$set(this.editingSegments, key, true);
+      this.$set(this.editingContent, key, row.childContent[index].content);
+      
+      // 确保当前折叠项保持展开状态
+      this.$nextTick(() => {
+        if (!this.activeNames.includes(index)) {
+          this.activeNames.push(index);
+        }
+      });
+    },
+    cancelEdit(row, index) {
+      // 取消编辑
+      const key = `${row.contentId}-${index}`;
+      this.$set(this.editingSegments, key, false);
+      this.$delete(this.editingContent, key);
+    },
+    confirmEdit(row, index) {
+      // 确认编辑
+      const key = `${row.contentId}-${index}`;
+      const newContent = this.editingContent[key];
+      
+      if (!newContent || newContent.trim() === '') {
+        this.$message.warning('内容不能为空');
+        return;
+      }
+      
+      // 调用API更新内容
+      updateSegmentChild({
+       
+        childChunk:{
+          content: newContent.trim(),
+          chunkNo:index
+        },
+        docId: this.obj.id,
+        parentChunkNo: this.cardObj.contentNum,
+        parentId: row.contentId
+      }).then(res => {
+        if (res.code === 0) {
+          this.$message.success('更新成功');
+          // 更新本地数据
+          this.handleParse();
+          // 退出编辑状态
+          this.$set(this.editingSegments, key, false);
+          this.$delete(this.editingContent, key);
+        } else {
+          this.$message.error('更新失败');
+        }
+      }).catch(() => {
+        this.$message.error('更新失败');
+      });
     },
     handleParse(){
       getSegmentChild({contentId:this.cardObj[0]['contentId'],docId:this.obj.id}).then(res =>{
@@ -322,13 +395,17 @@ export default {
     },
     deleteSegment(row, index) {
       // 删除分段的逻辑
-      this.$confirm('确定要删除这个分段吗？', '提示', {
+      this.$confirm('确定要删除这个子分段吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        row.segments.splice(index, 1);
-        this.$message.success('删除成功');
+        delSegmentChild({docId:this.obj.id,parentId:row.parentId,parentChunkNo:this.cardObj.contentNum,ChildChunkNoList:[index]}).then(res =>{
+          if(res.code === 0){
+            this.$message.success('删除成功');
+            this.handleParse();
+          }
+        })
       });
     },
     updateDataBatch(){
@@ -611,6 +688,11 @@ export default {
       border-left: none;
       border-right: none;
       border-top: none;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      width: 100%;
+      position: relative;
       
       &:hover {
         background-color: #f0f2f5;
@@ -625,24 +707,22 @@ export default {
       border-right: none;
       border-top: none;
     }
-    
+
+    /deep/ .el-collapse-item__header .el-collapse-item__arrow,
+    .el-collapse-item__arrow,
+    [class*="el-collapse-item__arrow"] {
+      display: none !important;
+    }
+
     /deep/ .el-collapse-item:last-child .el-collapse-item__content {
       border-bottom: none;
     }
     
-    /deep/ .el-collapse-item__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 12px 20px;
-      position: relative;
-    }
     
-    /deep/ .el-collapse-item__arrow {
+    /deep/ .el-collapse-item__header::after {
       display: none !important;
     }
-    
+     
     .segment-badge {
       color: #384BF7;
       font-size: 12px;
@@ -651,6 +731,60 @@ export default {
       font-weight: 500;
       margin-right: 120px; // 为右边的得分留出空间
     }
+    .segment-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex: 1;
+        justify-content: flex-end;
+        margin-right: 10px;
+        .action-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 8px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
+          transition: all 0.3s ease;
+          
+          i {
+            font-size: 14px;
+          }
+          
+          &.edit-btn {
+            color: #384BF7;
+            
+            &:hover {
+              color: #2a3cc7;
+            }
+          }
+          
+          &.delete-btn {
+            color: #384BF7;
+            
+            &:hover {
+              color: #2a3cc7;
+            }
+          }
+          
+          &.save-btn {
+            color: #384BF7;
+            
+            &:hover {
+              color: #2a3cc7;
+            }
+          }
+          
+          &.cancel-btn {
+            color: #909399;
+            
+            &:hover {
+              color: #606266;
+            }
+          }
+        }
+      }
     
     .segment-score {
       display: flex;
@@ -678,6 +812,21 @@ export default {
     .segment-content {
       padding: 10px;
       text-align: left;
+      
+      .content-display {
+        word-wrap: break-word;
+        line-height: 1.5;
+      }
+      
+      .content-edit {
+        .edit-input {
+          /deep/ .el-textarea__inner {
+            border: 1px solid #384BF7;
+            border-radius: 4px;
+            resize: vertical;
+          }
+        }
+      }
     }
     
     /deep/ .el-collapse-item__content {
@@ -702,26 +851,6 @@ export default {
         font-style: italic;
       }
       
-      .segment-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-        
-        .edit-icon,
-        .delete-icon {
-          font-size: 16px;
-          color: #666;
-          cursor: pointer;
-          
-          &:hover {
-            color: #409eff;
-          }
-        }
-        
-        .delete-icon:hover {
-          color: #f56c6c;
-        }
-      }
     }
   }
 }
@@ -803,9 +932,6 @@ export default {
 
     .card {
       flex-wrap: wrap;
-      // display: flex;
-      // justify-content: space-between;
-
       .el-row {
         margin: 0 !important;
       }

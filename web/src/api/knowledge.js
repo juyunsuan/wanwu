@@ -413,3 +413,32 @@ export const getSegmentChild = (params)=>{
         params
     })
 };
+
+export const createSegmentChild = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/doc/segment/child/create`,
+        method: 'post',
+        data
+    })
+};
+export const batchSegmentChild = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/doc/segment/batch/create`,
+        method: 'post',
+        data
+    })
+};
+export const delSegmentChild = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/doc/segment/child/delete`,
+        method: 'delete',
+        data
+    })
+};
+export const updateSegmentChild = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/doc/segment/child/update`,
+        method: 'post',
+        data
+    })
+};
