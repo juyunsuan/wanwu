@@ -63,10 +63,45 @@
                   <span class="segment-type">{{item.childContentList && item.childContentList.length > 0 ? '#父子分段' : '#通用分段'}}</span>
                   <span class="segment-length" v-if="item.childContentList && item.childContentList.length > 0" @click="showSectionDetail(index)">#{{item.childContentList.length || 0}}个子分段</span>
                 </span>
-                <span class="score">{{$t('knowledgeManage.hitScore')}}: {{score[index]}}</span>
+                <span class="score">{{$t('knowledgeManage.hitScore')}}: {{(formatScore(score[index]))}}</span>
               </div>
               <div>
-                <div v-html="md.render(item.snippet)" class="resultContent"></div>
+                <div class="resultContent">
+                  {{item.snippet.slice(0,100)}}...
+                </div>
+                <div class="resultChildContent" v-if="item.childContentList.length > 0">
+                  <el-collapse 
+                    v-model="activeNames" 
+                    class="section-collapse"
+                    :accordion="false"
+                  >
+                    <el-collapse-item 
+                      :name="`${index}`"
+                      class="segment-collapse-item"
+                    >
+                      <template slot="title">
+                        <span class="sub-badge">命中{{ item.childContentList.length }}个子分段</span>
+                      </template>
+                      <div class="segment-content">
+                        <div 
+                          v-for="(child, childIndex) in item.childContentList" 
+                          :key="childIndex"
+                          class="child-item"
+                        >
+                          <div class="child-header">
+                            <span class="child-header-content">
+                              <span class="segment-badge">C-{{ childIndex + 1 }}</span>
+                              <span class="segment-content">{{child.childSnippet}}</span>
+                            </span>
+                            <span class="segment-score">
+                              <span class="score-value">命中得分: {{ formatScore(item.childScore[childIndex]) }}</span>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </el-collapse-item>
+                  </el-collapse>
+                </div>
                 <div class="file_name">文件名称：{{item.title}}</div>
               </div>
             </div>
@@ -88,6 +123,7 @@
 <script>
 import { hitTest } from "@/api/knowledge";
 import { md } from "@/mixins/marksown-it";
+import { formatScore } from "@/utils/util";
 import searchConfig from '@/components/searchConfig.vue';
 import LinkIcon from "@/components/linkIcon.vue";
 import metaSet from "@/components/metaSet";
@@ -104,10 +140,12 @@ export default {
       score: [],
       formInline:null,
       knowledgeId:this.$route.query.knowledgeId,
-      name:this.$route.query.name
+      name:this.$route.query.name,
+      activeNames: []
     };
   },
   methods: {
+    formatScore,
     goBack() {
       this.$router.go(-1);
     },
@@ -157,11 +195,15 @@ export default {
       hitTest(data).then((res) => {
         if (res.code === 0) {
           this.searchList = res.data !== null ? res.data.searchList : [];
-          if (res.data) {
-            this.score = res.data.score.map((item) => item.toFixed(5));
-          } else {
-            this.score = [];
-          }
+          this.score = res.data !== null ? res.data.score : [];
+          // 设置所有子分段默认展开
+          this.activeNames = [];
+          this.searchList.forEach((item, index) => {
+            if (item.childContentList && item.childContentList.length > 0) {
+              this.activeNames.push(`${index}`);
+            }
+          });
+
           this.resultLoading = false;
         } else {
           this.searchList = [];
@@ -174,6 +216,7 @@ export default {
     
     // 显示分段详情弹框
     showSectionDetail(index) {
+      console.log('showSectionDetail',index);
       const currentItem = this.searchList[index];
       const currentScore = parseFloat(this.score[index]) || 0;
       const data = {
@@ -297,12 +340,6 @@ export default {
                 color: #999;
                 font-size: 12px;
               }
-              .checkDetail{
-                color: #384bf7;
-                cursor: pointer;
-                margin-left: 10px;
-                font-size:12px;
-              }
               .score {
                 color: #384bf7;
                 font-weight: bold;
@@ -313,6 +350,101 @@ export default {
               margin: 10px 0;
               padding-top: 10px;
               font-weight: bold;
+            }
+            .resultChildContent {
+              margin-top: 10px;
+              
+              
+              .section-collapse {
+                border: none !important;
+                background: transparent !important;
+                
+                /deep/ .el-collapse-item__arrow {
+                  display: none !important;
+                }
+                
+                /deep/ .el-collapse-item__header {
+                  background: transparent !important;
+                  border: none !important;
+                  padding: 0 !important;
+                }
+                
+                /deep/ .el-collapse-item__wrap {
+                  background: transparent !important;
+                  border: none !important;
+                }
+                
+                /deep/ .el-collapse-item__content {
+                  background: transparent !important;
+                  border: none !important;
+                  padding: 0 !important;
+                }
+                
+                .segment-collapse-item {
+                  .sub-badge {
+                    color: #666666;
+                    font-size: 14px;
+                    font-weight: 800;
+                  }
+                  
+                  .segment-content {
+                    .child-item {
+                      padding: 10px 0;
+                      background: #f9f9f9;
+                      border-radius: 4px;
+                      
+                      .child-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 8px;
+                        .child-header-content {
+                          flex: 1;
+                          display: flex;
+                          align-items: center;
+                          min-width: 0;
+                          
+                          .segment-content {
+                            flex: 1;
+                            min-width: 0;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                            font-size: 14px;
+                            color: #333;
+                            line-height: 1.4;
+                          }
+                        }
+                        .segment-badge {
+                          background-color: #eaecf9;
+                          padding: 6px 12px;
+                          border-radius: 4px;
+                          color: #384BF7;
+                          font-size: 12px;
+                          min-width: 40px;
+                          text-align: center;
+                          font-weight: 500;
+                          margin-right: 8px;
+                          flex-shrink: 0;
+                        }
+                        
+                        .segment-score {
+                          flex-shrink: 0;
+                          margin-left: 12px;
+                          
+                          .score-value {
+                            color: #384BF7;
+                            font-weight: 500;
+                            font-size: 12px;
+                            white-space: nowrap;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              
             }
           }
         }

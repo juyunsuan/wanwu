@@ -10,9 +10,14 @@ VueRouter.prototype.push = function(location){
 
 Vue.use(VueRouter)
 
-const orgPermission = localStorage.getItem('access_cert')
-    ? JSON.parse(localStorage.getItem('access_cert')).user.permission.orgPermission
-    : []
+let orgPermission = []
+
+try{
+    orgPermission = JSON.parse(localStorage.getItem('access_cert')).user.permission.orgPermission || []
+}catch(e){
+    // console.log(e)
+    orgPermission = []
+}
 
 const constantRoutes = [
     {

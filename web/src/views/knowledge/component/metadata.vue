@@ -7,7 +7,7 @@
       @click="createMetaData"
       v-if="type !== 'create'"
     >创建</el-button>
-    <div class="docMetaData">
+    <div class="docMetaData" v-loading="loading">
       <div
         v-for="(item,index) in docMetaData"
         class="docItem"
@@ -167,6 +167,7 @@ export default {
   },
   data() {
     return {
+      loading:false,
       debounceTimer: null,
       docMetaData: [],
       typeOptions: [
@@ -201,19 +202,24 @@ export default {
   },
   methods: {
     getList(){
+      this.loading = true;
       metaSelect({knowledgeId:this.knowledgeId}).then(res =>{
           if(res.code === 0){
-              this.keyOptions = res.data.knowledgeMetaList || []
+            this.loading = false;
+            this.keyOptions = res.data.knowledgeMetaList || []
               if(this.type === 'create'){
                 this.docMetaData = (res.data.knowledgeMetaList || []).map(item => ({
                   ...item,
+                  metaValueType:item.metaValueType || 'string',
                   showEdit:false,
                   option: ''
                 }));
               }
               
           }
-      }).catch(() =>{})
+      }).catch(() =>{
+        this.loading = false;
+      })
     },
     keyChange(val,item){
       item.metaValue = ''
