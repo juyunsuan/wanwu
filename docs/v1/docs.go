@@ -3481,6 +3481,84 @@ const docTemplate = `{
                 }
             }
         },
+        "/knowledge/doc/segment/child/create": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "新增文档子分片",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "新增文档子分片",
+                "parameters": [
+                    {
+                        "description": "新增文档子切片请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateDocChildSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/child/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "删除文档子切片",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "删除文档子切片",
+                "parameters": [
+                    {
+                        "description": "删除文档切片请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.DeleteDocChildSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/knowledge/doc/segment/child/list": {
             "get": {
                 "security": [
@@ -3527,6 +3605,45 @@ const docTemplate = `{
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            }
+        },
+        "/knowledge/doc/segment/child/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新文档子切片",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "更新文档子切片",
+                "parameters": [
+                    {
+                        "description": "更新文档子切片请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateDocChildSegmentReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
                         }
                     }
                 }
@@ -9709,6 +9826,19 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ChildChunk": {
+            "type": "object",
+            "properties": {
+                "chunkNo": {
+                    "description": "子分段序列号",
+                    "type": "integer"
+                },
+                "content": {
+                    "description": "子分段内容",
+                    "type": "string"
+                }
+            }
+        },
         "request.CleanFileReq": {
             "type": "object",
             "required": [
@@ -9782,6 +9912,31 @@ const docTemplate = `{
                 },
                 "trial": {
                     "type": "boolean"
+                }
+            }
+        },
+        "request.CreateDocChildSegmentReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "docId",
+                "parentId"
+            ],
+            "properties": {
+                "content": {
+                    "description": "分段内容",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "parentId": {
+                    "description": "父分段id",
+                    "type": "string"
                 }
             }
         },
@@ -10114,6 +10269,36 @@ const docTemplate = `{
                 },
                 "appType": {
                     "description": "应用类型",
+                    "type": "string"
+                }
+            }
+        },
+        "request.DeleteDocChildSegmentReq": {
+            "type": "object",
+            "required": [
+                "ChildChunkNoList",
+                "docId",
+                "parentChunkNo",
+                "parentId"
+            ],
+            "properties": {
+                "ChildChunkNoList": {
+                    "description": "子分段序列号列表",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "parentChunkNo": {
+                    "description": "父分段序列号",
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "父分段id",
                     "type": "string"
                 }
             }
@@ -11300,6 +11485,37 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdateDocChildSegmentReq": {
+            "type": "object",
+            "required": [
+                "childChunk",
+                "docId",
+                "parentChunkNo",
+                "parentId"
+            ],
+            "properties": {
+                "childChunk": {
+                    "description": "子分段序列号列表",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/request.ChildChunk"
+                        }
+                    ]
+                },
+                "docId": {
+                    "description": "文档id",
+                    "type": "string"
+                },
+                "parentChunkNo": {
+                    "description": "父分段序列号",
+                    "type": "integer"
+                },
+                "parentId": {
+                    "description": "父分段id",
+                    "type": "string"
+                }
+            }
+        },
         "request.UpdateDocSegmentReq": {
             "type": "object",
             "required": [
@@ -12447,6 +12663,19 @@ const docTemplate = `{
                 }
             }
         },
+        "response.CustomResetPassword": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "注册邮箱",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.CustomEmail"
+                        }
+                    ]
+                }
+            }
+        },
         "response.CustomTab": {
             "type": "object",
             "properties": {
@@ -13200,6 +13429,14 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.CustomRegister"
+                        }
+                    ]
+                },
+                "resetPassword": {
+                    "description": "重置密码信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.CustomResetPassword"
                         }
                     ]
                 },

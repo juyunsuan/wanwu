@@ -109,6 +109,9 @@ rag-server:
   doc-segment-create-uri: '/rag/batch-add-chunks'
   doc-segment-update-uri: '/rag/update-chunk'
   doc-segment-delete-uri: '/rag/batch-delete-chunks'
+  doc-child-segment-create-uri: '/rag/batch-add-child-chunks'
+  doc-child-segment-update-uri: '/rag/update-child-chunk'
+  doc-child-segment-delete-uri: '/rag/batch-delete-child-chunks'
   batch-delete-meta-key-uri: '/rag/delete-meta-by-keys'
   batch-rename-meta-key-uri: '/rag/rename-meta-keys'
   timeout: 60

@@ -321,3 +321,66 @@ func GetDocChildSegmentList(ctx *gin.Context) {
 	resp, err := service.GetDocChildSegmentList(ctx, userId, orgId, &req)
 	gin_util.Response(ctx, resp, err)
 }
+
+// CreateDocChildSegment
+//
+//	@Tags			knowledge
+//	@Summary		新增文档子分片
+//	@Description	新增文档子分片
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.CreateDocChildSegmentReq	true	"新增文档子切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/child/create [post]
+func CreateDocChildSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.CreateDocChildSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.CreateDocChildSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// UpdateDocChildSegment
+//
+//	@Tags			knowledge
+//	@Summary		更新文档子切片
+//	@Description	更新文档子切片
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.UpdateDocChildSegmentReq	true	"更新文档子切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/child/update [post]
+func UpdateDocChildSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.UpdateDocChildSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.UpdateDocChildSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}
+
+// DeleteDocChildSegment
+//
+//	@Tags			knowledge
+//	@Summary		删除文档子切片
+//	@Description	删除文档子切片
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			data	body		request.DeleteDocChildSegmentReq	true	"删除文档切片请求参数"
+//	@Success		200		{object}	response.Response
+//	@Router			/knowledge/doc/segment/child/delete [delete]
+func DeleteDocChildSegment(ctx *gin.Context) {
+	userId, orgId := getUserID(ctx), getOrgID(ctx)
+	var req request.DeleteDocChildSegmentReq
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.DeleteDocChildSegment(ctx, userId, orgId, &req)
+	gin_util.Response(ctx, nil, err)
+}

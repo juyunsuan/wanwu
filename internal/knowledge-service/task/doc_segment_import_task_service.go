@@ -193,12 +193,14 @@ func buildLineProcessor(importTask *model.DocSegmentImportTask, importParams *mo
 		})
 
 		return orm.CreateOneDocSegment(ctx, importTask, &service.RagCreateDocSegmentParams{
-			UserId:          importTask.UserId,
-			KnowledgeBase:   importParams.KnowledgeName,
-			KnowledgeId:     importParams.KnowledgeId,
-			FileName:        importParams.FileName,
-			MaxSentenceSize: importParams.MaxSentenceSize,
-			Chunks:          chunks,
+			UserId:           importTask.UserId,
+			KnowledgeBase:    importParams.KnowledgeName,
+			KnowledgeId:      importParams.KnowledgeId,
+			FileName:         importParams.FileName,
+			MaxSentenceSize:  importParams.MaxSentenceSize,
+			Chunks:           chunks,
+			SplitType:        service.RebuildSplitType(importParams.SegmentMethod),
+			ChildChunkConfig: service.RebuildChildChunkConfig(importParams.SegmentMethod, importParams.SubMaxSplitter, importParams.SubSplitter),
 		})
 	}
 }
