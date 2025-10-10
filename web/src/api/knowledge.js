@@ -421,13 +421,6 @@ export const createSegmentChild = (data)=>{
         data
     })
 };
-export const batchSegmentChild = (data)=>{
-    return service({
-        url: `${BASE_URL}/knowledge/doc/segment/batch/create`,
-        method: 'post',
-        data
-    })
-};
 export const delSegmentChild = (data)=>{
     return service({
         url: `${BASE_URL}/knowledge/doc/segment/child/delete`,

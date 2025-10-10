@@ -69,7 +69,7 @@
       <div class="btn">
          <el-button
           type="primary"
-          @click="createChunk"
+          @click="createChunk(false)"
           size="mini"
           v-if="res.segmentMethod === '0'"
           :loading="loading.start"
@@ -159,7 +159,6 @@
       </div>
     </div>
 
-    <!-- 详情弹框 -->
     <el-dialog
       v-if="dialogVisible"
       :title="$t('knowledgeManage.detailView')"
@@ -255,20 +254,20 @@
 
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="handleSubmit" :loading="submitLoading" v-if="!cardObj[0]['isParent']">确定</el-button>
-        <!-- <el-button type="primary" @click="handleParse" v-if="cardObj[0]['isParent']">保存并重新解析子分段</el-button> -->
+        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent']">新增子分段</el-button>
         <el-button type="primary" @click="handleClose">{{$t('knowledgeManage.close')}}</el-button>
       </span>
     </el-dialog>
     <dataBaseDialog ref="dataBase" @updateData="updateData" :knowledgeId="obj.knowledgeId" :name="obj.knowledgeName"/>
     <tagDialog ref="tagDialog" type="section" :title="title" :currentList="currentList" @sendList="sendList" />
-    <createChunk ref="createChunk"  @updateDataBatch="updateDataBatch" @updateData="updateData"/>
+    <createChunk ref="createChunk"  @updateDataBatch="updateDataBatch" @updateData="updateData" :parentId="cardObj[0]['contentId']"/>
   </div>
 </template>
 <script>
 import { getSectionList,setSectionStatus,sectionLabels,delSegment,editSegment,getSegmentChild,delSegmentChild,updateSegmentChild } from "@/api/knowledge";
 import dataBaseDialog from './dataBaseDialog';
 import tagDialog from './tagDialog.vue';
-import createChunk from './createChunk.vue'
+import createChunk from './chunk/createChunk.vue'
 export default {
   components:{dataBaseDialog,tagDialog,createChunk},
   data() {
@@ -277,9 +276,9 @@ export default {
       oldContent:'',
       title:'创建关键词',
       dialogVisible: false,
-      editingSegments: {}, // 记录正在编辑的分段
-      editingContent: {}, // 记录编辑中的内容
-      obj: {}, // 路由参数对象
+      editingSegments: {},
+      editingContent: {},
+      obj: {},
       cardObj: [
         {
           available: false,
@@ -288,10 +287,10 @@ export default {
           contentId: "",
           len: 20,
         },
-      ], // 单独卡片存储对象
+      ],
       value: true,
       activeStatus: false,
-      activeNames: [], // 用于控制 el-collapse 的展开状态
+      activeNames: [], 
       page: {
         pageNo: 1,
         pageSize: 8,
@@ -323,20 +322,23 @@ export default {
     this.clearTimer()
   },
   methods: {
+    createChunk(isChildChunk){
+      this.$refs.createChunk.showDiglog(this.obj.id,isChildChunk)
+    },
+    updateChildData(){
+      this.handleParse();
+    },
     formatScore(score) {
-      // 格式化得分，保留5位小数
       if (typeof score !== 'number') {
         return '0.00000';
       }
       return score.toFixed(5);
     },
      editSegment(row, index) {
-      // 编辑分段的逻辑
       const key = `${row.contentId}-${index}`;
       this.$set(this.editingSegments, key, true);
       this.$set(this.editingContent, key, row.childContent[index].content);
       
-      // 确保当前折叠项保持展开状态
       this.$nextTick(() => {
         if (!this.activeNames.includes(index)) {
           this.activeNames.push(index);
@@ -344,13 +346,11 @@ export default {
       });
     },
     cancelEdit(row, index) {
-      // 取消编辑
       const key = `${row.contentId}-${index}`;
       this.$set(this.editingSegments, key, false);
       this.$delete(this.editingContent, key);
     },
     confirmEdit(row, index) {
-      // 确认编辑
       const key = `${row.contentId}-${index}`;
       const newContent = this.editingContent[key];
       
@@ -359,9 +359,7 @@ export default {
         return;
       }
       
-      // 调用API更新内容
       updateSegmentChild({
-       
         childChunk:{
           content: newContent.trim(),
           chunkNo:index
@@ -372,9 +370,7 @@ export default {
       }).then(res => {
         if (res.code === 0) {
           this.$message.success('更新成功');
-          // 更新本地数据
           this.handleParse();
-          // 退出编辑状态
           this.$set(this.editingSegments, key, false);
           this.$delete(this.editingContent, key);
         } else {
@@ -388,13 +384,11 @@ export default {
       getSegmentChild({contentId:this.cardObj[0]['contentId'],docId:this.obj.id}).then(res =>{
         if(res.code === 0){
           this.cardObj[0].childContent = res.data.contentList || [];
-          // 设置所有折叠项为展开状态
           this.activeNames = this.cardObj[0].childContent.map((_, index) => index);
         }
       }).catch(() =>{})
     },
     deleteSegment(row, index) {
-      // 删除分段的逻辑
       this.$confirm('确定要删除这个子分段吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -430,7 +424,6 @@ export default {
       }
     },
     handleSubmit(){
-      // 检查是否有修改
       const hasChanges = this.oldContent !== this.cardObj[0]['content'];
       
       if(!hasChanges){
@@ -438,7 +431,6 @@ export default {
         return false;
       }
       
-      // 只处理有修改的内容
       this.submitLoading = true;
       editSegment({content:this.cardObj[0]['content'],contentId:this.cardObj[0]['contentId'],docId:this.obj.id}).then(res =>{
         if(res.code === 0){
@@ -466,9 +458,6 @@ export default {
           this.getList();
         }
       }).catch(() =>{})
-    },
-    createChunk(){
-      this.$refs.createChunk.showDiglog(this.obj.id)
     },
     sendList(data){
       const labels = data.map(item => item.tagName)
@@ -514,7 +503,6 @@ export default {
     filterData(data){
       return data.map(item => {
         let value = item.metaValue;
-        // 如果是时间类型且值为时间戳，转换为日期字符串
         if (item.metaValueType === 'time') {
           value = this.formatTimestamp(value);
         }
@@ -564,7 +552,6 @@ export default {
           this.handleParse();
         }
         this.activeStatus = obj.available;
-        // 默认展开所有折叠项
         this.activeNames = [];
       });
     },
@@ -640,7 +627,6 @@ export default {
         });
     },
     renderHeader(h, { column, $index }) {
-      // column列数据 $index当前列索引
       const columnHtml =
         this.$t('knowledgeManage.section') +
         this.cardObj[0].contentNum +
@@ -729,7 +715,7 @@ export default {
       min-width: 40px;
       text-align: center;
       font-weight: 500;
-      margin-right: 120px; // 为右边的得分留出空间
+      margin-right: 120px;
     }
     .segment-actions {
         display: flex;
@@ -897,7 +883,6 @@ export default {
   padding: 20px 20px 30px 20px;
   margin: auto;
   overflow: auto;
-  //background: #fafafa;
 
   .el-divider--horizontal {
     margin: 30px 0;
@@ -923,7 +908,6 @@ export default {
         width: 25%;
       }
       padding: 10px;
-      // font-size: 12px;
     }
     .btn {
       padding: 10px 0;
