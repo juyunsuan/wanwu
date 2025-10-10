@@ -15,7 +15,7 @@
                 </div>
                 <el-button size="small" @click="openApiDialog" plain class="apikeyBtn" >
                     <img :src="require('@/assets/imgs/apikey.png')" />
-                    API秘钥
+                    API密钥
                 </el-button>
             </div>
         </div> -->
