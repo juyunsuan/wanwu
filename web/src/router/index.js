@@ -81,8 +81,19 @@ const constantRoutes = [
                 meta:{perm: [PERMS.TOOL]},
             },
             {
-                path: '/tool/detail/:type',
+                path: '/tool/detail/builtIn',
                 component:resolve =>require(['@/views/tool/toolDetail'],resolve),
+                meta:{perm: [PERMS.TOOL]},
+            },
+            {
+                path: '/tool/detail/custom',
+                component:resolve =>require(['@/views/mcpManagementPublic/detail'],resolve),
+                meta:{perm: [PERMS.TOOL]},
+                props: { type: 'custom' }
+            },
+            {
+                path: '/tool/detail/server',
+                component:resolve =>require(['@/views/tool/serverDetail'],resolve),
                 meta:{perm: [PERMS.TOOL]},
             },
             {
@@ -91,9 +102,10 @@ const constantRoutes = [
                 meta:{perm: [PERMS.MCP]},
             },
             {
-                path: '/mcp/detail/:type',
+                path: '/mcp/detail/square',
                 component:resolve =>require(['@/views/mcpManagementPublic/detail'],resolve),
                 meta:{perm: [PERMS.MCP]},
+                props: { type: 'square' }
             },
             {
                 path: '/explore',
