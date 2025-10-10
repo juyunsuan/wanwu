@@ -13,7 +13,7 @@
         </div>
         <el-button @click="openApiDialog" plain class="apikeyBtn" size="small" >
           <img :src="require('@/assets/imgs/apikey.png')" />
-          API秘钥
+          API密钥
         </el-button>
         <el-button size="small" type="primary" @click="handlePublish" style="padding:13px 12px;">发布<span class="el-icon-arrow-down" style="margin-left:5px;"></span></el-button>
         <div class="popover-operation" v-if="showOperation">
