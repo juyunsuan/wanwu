@@ -158,6 +158,12 @@ import { getRecommendsList, getPublicMcpInfo, getDetail, getTools } from "@/api/
 import { formatTools } from "@/utils/util"
 
 export default {
+  props: {
+    type: {
+      type: String,
+      required: true
+    }
+  },
   data() {
     return {
       basePath: this.$basePath,
@@ -190,7 +196,7 @@ export default {
     initData(){
       this.mcpSquareId = this.$route.query.mcpSquareId
       this.mcpId = this.$route.query.mcpId
-      this.isFromSquare = this.$route.params.type === 'square'
+      this.isFromSquare = this.type === 'square'
       this.tabActive = 0
       this.getDetailData()
 

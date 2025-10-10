@@ -98,8 +98,8 @@ export default {
         })
     },
     handleClick(val) {
-      // smcpSquareId 有值 MCP广场, 否则自定义
-      this.$router.push({path: `/mcp/detail/custom?mcpId=${val.mcpId}&mcpSquareId=${val.mcpSquareId}`})
+      // mcpSquareId 有值 MCP广场, 否则自定义
+      this.$router.push({path: `/tool/detail/custom?mcpId=${val.mcpId}&mcpSquareId=${val.mcpSquareId}`})
     },
     handleAddMCP() {
       this.addOpen = true;
