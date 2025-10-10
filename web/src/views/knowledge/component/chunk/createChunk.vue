@@ -192,6 +192,11 @@ export default {
       this.$refs[formName].validate((valid) => {
         if (valid) {
           this.btnLoading = true;
+          if (this.isChildChunk) {
+            this.createChildChunk();
+          } else {
+            this.createParentChunk();
+          }
         } else {
           return false;
         }
@@ -225,7 +230,7 @@ export default {
     },
     createChildChunk() {
       const data = {
-        content: this.ruleForm.content,
+        content: [this.ruleForm.content],
         docId: this.ruleForm.docId,
         parentId: this.parentId
       };
