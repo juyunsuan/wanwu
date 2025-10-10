@@ -35,7 +35,6 @@ def add_file(user_id, kb_name, file_name, file_meta, kb_id=""):
 
 
 def allocate_chunks(user_id, kb_name, file_name, count, kb_id=""):
-    response_info = {'code': 0, "message": "成功"}
     url = ES_BASE_URL + '/api/v1/rag/es/allocate_chunks'
     headers = {'Content-Type': 'application/json'}
 
@@ -51,6 +50,32 @@ def allocate_chunks(user_id, kb_name, file_name, count, kb_id=""):
         return final_response
     except Exception as e:
         return {'code': 1, "message": f"{e}"}
+
+
+def allocate_child_chunks(user_id, kb_name, file_name, chunk_id, count, kb_id=""):
+    url = ES_BASE_URL + '/api/v1/rag/es/allocate_child_chunks'
+    headers = {'Content-Type': 'application/json'}
+
+    req_data = {
+        'user_id': user_id,
+        'kb_name': kb_name,
+        'kb_id': kb_id,
+        'file_name': file_name,
+        'chunk_id': chunk_id,
+        'count': count
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=req_data, timeout=TIME_OUT)
+        logger.info(repr(file_name) + 'allocate_child_chunks请求结果：' + repr(response.text))
+        if response.status_code != 200:  # 抛出报错
+            err = str(response.text)
+            return {'code': 1, "message": f"{err}"}
+        final_response = json.loads(response.text)
+        return final_response
+    except Exception as e:
+        return {'code': 1, "message": f"{e}"}
+
 
 def add_es(user_id, kb_name, docs, file_name, kb_id=""):
     batch_size = 1000

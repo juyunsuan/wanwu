@@ -442,6 +442,24 @@ def list_file_names_after_filtering(user_id, kb_name, filtering_conditions, kb_i
 
     return make_request(url, data)
 
+
+def update_child_chunk(user_id, kb_name, chunk_id, chunk_current_num, child_chunk, kb_id=""):
+    """
+        更新知识库子段
+    """
+    url = MILVUS_BASE_URL + '/rag/kn/update_child_chunk'
+
+    data = {
+        'userId': user_id,
+        'kb_name': kb_name,
+        'chunk_id': chunk_id,
+        'chunk_current_num': chunk_current_num,
+        'child_chunk': child_chunk
+    }
+
+    return make_request(url, data)
+
+
 def update_file_metas(user_id, kb_name, update_datas, kb_id=""):
     """
         更新知识库元数据
@@ -506,6 +524,27 @@ def batch_delete_chunks(user_id, kb_name, file_name, chunk_ids, kb_id=""):
     }
 
     return make_request(url, data)
+
+
+def batch_delete_child_chunks(user_id, kb_name, file_name, chunk_id, chunk_current_num,
+                        child_chunk_current_nums, kb_id=""):
+    """
+        根据chunk_id和child_chunk_current_nums删除子分段
+    """
+    url = MILVUS_BASE_URL + '/rag/kn/batch_delete_child_chunks'
+
+    data = {
+        'userId': user_id,
+        'kb_name': kb_name,
+        'file_name': file_name,
+        'chunk_id': chunk_id,
+        'kb_id': kb_id,
+        "chunk_current_num": chunk_current_num,
+        "child_chunk_current_nums": child_chunk_current_nums
+    }
+
+    return make_request(url, data)
+
 
 def update_milvus_content_status(user_id: str, kb_name: str, file_name: str, content_id: str, status: bool,
                                  on_off_switch=None, kb_id=""):

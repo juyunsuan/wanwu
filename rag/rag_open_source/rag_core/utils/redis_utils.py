@@ -10,6 +10,7 @@ logger.info(logger_name+'---------LOG_FILE：'+repr(app_name))
 from settings import REDIS_ADDRESS, REDIS_PORT, REDIS_PASSWD, REDIS_DB
 
 
+
 def get_redis_connection(redis_db=REDIS_DB):
     """
     获取 Redis 连接

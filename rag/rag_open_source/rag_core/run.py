@@ -2,26 +2,23 @@
 # -*- encoding: utf-8 -*-
 import os
 import json
-import shutil
-import numpy as np
-import logging
+import requests
+import time
+
 from flask import Flask, jsonify, request, make_response
-from utils.knowledge_base_utils import *
 from flask_cors import CORS
-from pathlib import Path
-from functools import wraps
-from datetime import datetime
+
 from textsplitter import ChineseTextSplitter
 from pymongo import MongoClient
-from langchain_core.documents import Document
 import argparse
 from utils import redis_utils
 from utils import file_utils
 from utils import kafka_utils
+from utils import chunk_utils
+import utils.knowledge_base_utils as kb_utils
 from utils.constant import CHUNK_SIZE
 import urllib.parse
 import urllib3
-import hashlib
 from know_sse import get_query_dict_cache, query_rewrite
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from logging_config import setup_logging
@@ -68,7 +65,7 @@ def init_kb():
         assert len(kb_name) > 0 or len(kb_id) > 0
         assert len(embedding_model_id) > 0
 
-        result_data = init_knowledge_base(user_id, kb_name, kb_id=kb_id, embedding_model_id=embedding_model_id)
+        result_data = kb_utils.init_knowledge_base(user_id, kb_name, kb_id=kb_id, embedding_model_id=embedding_model_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(result_data, ensure_ascii=False))
         # response = make_response(json.dumps(result_data, ensure_ascii=False),headers)
@@ -118,7 +115,7 @@ def add_konwledge_temp():
         logger.info(repr(files))
         logger.info(repr(request.form))
 
-        response_info = add_files(user_id, kb_name, files, sentence_size, overlap_size, chunk_type, separators,
+        response_info = kb_utils.add_files(user_id, kb_name, files, sentence_size, overlap_size, chunk_type, separators,
                                   is_enhanced, parser_choices, ocr_model_id, pre_process, meta_data_rules)
 
         json_str = json.dumps(response_info, ensure_ascii=False)
@@ -194,7 +191,7 @@ def del_kb():
         assert len(user_id) > 0
         assert len(kb_name) > 0 or len(kb_id) > 0
 
-        result_data = del_konwledge_base(user_id, kb_name, kb_id=kb_id)
+        result_data = kb_utils.del_konwledge_base(user_id, kb_name, kb_id=kb_id)
         # 在批量删除文件中补充增加删除reids逻辑 begin
         if USE_DATA_FLYWHEEL:
             try:
@@ -209,7 +206,7 @@ def del_kb():
         # 在批量删除文件中补充增加删除reids逻辑 end
         # ========== chunk labels 删除的逻辑 ==========
         try:
-            kb_id = get_kb_name_id(user_id, kb_name)  # 获取kb_id
+            kb_id = kb_utils.get_kb_name_id(user_id, kb_name)  # 获取kb_id
             # 删除chunk_labels
             redis_utils.delete_chunk_labels(chunk_label_redis_client, kb_id)
         except Exception as err:
@@ -248,7 +245,7 @@ def updateFileTags():
                 "metadata_list": tags
             }]
         }
-        response_info = manage_kb_metadata(user_id, kb_name, MetadataOperation.UPDATE_METAS, metas, kb_id=kb_id)
+        response_info = kb_utils.manage_kb_metadata(user_id, kb_name, kb_utils.MetadataOperation.UPDATE_METAS, metas, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -274,7 +271,7 @@ def updateFileMetas():
             raise ValueError("metas must be a list")
         if not metas:
             raise ValueError("metas must be not empty")
-        response_info = manage_kb_metadata(user_id, kb_name, MetadataOperation.UPDATE_METAS, {"metas": metas}, kb_id=kb_id)
+        response_info = kb_utils.manage_kb_metadata(user_id, kb_name, kb_utils.MetadataOperation.UPDATE_METAS, {"metas": metas}, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -299,7 +296,7 @@ def deleteMetaByKeys():
             raise ValueError("keys must be a list")
         if not keys:
             raise ValueError("keys must be not empty")
-        response_info = manage_kb_metadata(user_id, kb_name, MetadataOperation.DELETE_KEYS, {"keys": keys}, kb_id=kb_id)
+        response_info = kb_utils.manage_kb_metadata(user_id, kb_name, kb_utils.MetadataOperation.DELETE_KEYS, {"keys": keys}, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -324,7 +321,7 @@ def renameMetaKeys():
             raise ValueError("key_mappings must be a list")
         if not key_mappings:
             raise ValueError("key_mappings must be not empty")
-        response_info = manage_kb_metadata(user_id, kb_name, MetadataOperation.RENAME_KEYS, {"key_mappings": key_mappings}, kb_id=kb_id)
+        response_info = kb_utils.manage_kb_metadata(user_id, kb_name, kb_utils.MetadataOperation.RENAME_KEYS, {"key_mappings": key_mappings}, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -350,10 +347,10 @@ def updateChunkLabels():
         if labels is None or not isinstance(labels, list):
             raise ValueError("labels must specified as an array")
 
-        response_info = update_chunk_labels(user_id, kb_name, file_name, chunk_id, labels, kb_id=kb_id)
+        response_info = chunk_utils.update_chunk_labels(user_id, kb_name, file_name, chunk_id, labels, kb_id=kb_id)
         # ======= chunk labels 更新的逻辑 ========
         if not kb_id:  # kb_id为空，则根据kb_name获取kb_id
-            kb_id = get_kb_name_id(user_id, kb_name)  # 获取kb_id
+            kb_id = kb_utils.get_kb_name_id(user_id, kb_name)  # 获取kb_id
         redis_utils.update_chunk_labels(chunk_label_redis_client, kb_id, file_name, chunk_id, labels)
         # ======= chunk labels 更新的逻辑 ========
         headers = {'Access-Control-Allow-Origin': '*'}
@@ -436,7 +433,7 @@ def search_knowledge_base():
         if rewrite_query:
             kb_ids = []  # kb_id 的 list
             for kb_n in kb_names:
-                kb_ids.append(get_kb_name_id(user_id, kb_n))  # 获取kb_id
+                kb_ids.append(kb_utils.get_kb_name_id(user_id, kb_n))  # 获取kb_id
             query_dict_list = get_query_dict_cache(redis_client, user_id, kb_ids)
             if query_dict_list:
                 rewritten_queries = query_rewrite(question, query_dict_list)
@@ -447,7 +444,7 @@ def search_knowledge_base():
             else:
                 logger.info("未启用或维护转名词表,query未改写,按原问题:%s 进行召回" % question)
 
-        response_info = get_knowledge_based_answer(user_id, kb_names, question, rate, top_k, chunk_conent, chunk_size,
+        response_info = kb_utils.get_knowledge_based_answer(user_id, kb_names, question, rate, top_k, chunk_conent, chunk_size,
                                                    return_meta, prompt_template, search_field, default_answer,
                                                    auto_citation, retrieve_method = retrieve_method, kb_ids=kb_ids,
                                                    filter_file_name_list=filter_file_name_list,
@@ -478,7 +475,7 @@ def list_kb():
 
         assert len(user_id) > 0
 
-        response_info = list_knowledge_base(user_id)
+        response_info = kb_utils.list_knowledge_base(user_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -502,7 +499,7 @@ def list_file():
         assert len(user_id) > 0
         assert len(kb_name) > 0 or len(kb_id) > 0
 
-        response_info = list_knowledge_file(user_id, kb_name, kb_id=kb_id)
+        response_info = kb_utils.list_knowledge_file(user_id, kb_name, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -527,7 +524,7 @@ def list_file_download_link():
         assert len(user_id) > 0
         assert len(kb_name) > 0 or len(kb_id) > 0
 
-        response_info = list_knowledge_file_download_link(user_id, kb_name, kb_id=kb_id)
+        response_info = kb_utils.list_knowledge_file_download_link(user_id, kb_name, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -553,7 +550,7 @@ def del_file():
         assert len(kb_name) > 0 or len(kb_id) > 0
         assert len(user_id) > 0
 
-        result_data = del_knowledge_base_files(user_id, kb_name, [file_name], kb_id=kb_id)
+        result_data = kb_utils.del_knowledge_base_files(user_id, kb_name, [file_name], kb_id=kb_id)
         # 在批量删除文件中补充增加删除reids逻辑 begin
         if USE_DATA_FLYWHEEL:
             try:
@@ -568,7 +565,7 @@ def del_file():
         # 在批量删除文件中补充增加删除reids逻辑 end
         # ========== chunk labels 删除的逻辑 ==========
         try:
-            kb_id = get_kb_name_id(user_id, kb_name)  # 获取kb_id
+            kb_id = kb_utils.get_kb_name_id(user_id, kb_name)  # 获取kb_id
             # 删除chunk_labels
             redis_utils.delete_chunk_labels(chunk_label_redis_client, kb_id, file_name=file_name)
         except Exception as err:
@@ -603,7 +600,7 @@ def del_files():
         assert len(kb_name) > 0 or len(kb_id) > 0
         assert len(user_id) > 0
 
-        result_data = del_knowledge_base_files(user_id, kb_name, file_names, kb_id=kb_id)
+        result_data = kb_utils.del_knowledge_base_files(user_id, kb_name, file_names, kb_id=kb_id)
         # 在批量删除文件中补充增加删除reids逻辑 begin
         if USE_DATA_FLYWHEEL:
             try:
@@ -638,7 +635,7 @@ def check_kb():
 
         assert len(user_id) > 0
 
-        response_info = check_knowledge_base(user_id, kb_name, kb_id=kb_id)
+        response_info = kb_utils.check_knowledge_base(user_id, kb_name, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -679,7 +676,7 @@ def getContentList():
         page_size = data['page_size']
         search_after = data['search_after']
         # 获取分页文件内容列表
-        response_info = get_file_content_list(user_id, kb_name, file_name, page_size, search_after, kb_id=kb_id)
+        response_info = kb_utils.get_file_content_list(user_id, kb_name, file_name, page_size, search_after, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -701,7 +698,7 @@ def getChildContentList():
         file_name = data['file_name']
         chunk_id = data['chunk_id']
 
-        response_info = get_file_child_content_list(user_id, kb_name, file_name, chunk_id, kb_id=kb_id)
+        response_info = kb_utils.get_file_child_content_list(user_id, kb_name, file_name, chunk_id, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -722,10 +719,43 @@ def batchAddChunks():
         file_name = data['fileName']
         max_sentence_size = data['max_sentence_size']
         chunks = data['chunks']
+        split_type = data.get("split_type", "common")
+        child_chunk_config = data.get("child_chunk_config", None)
 
         if not chunks or not isinstance(chunks, list):
             raise ValueError("chunks must be a list and not empty")
-        response_info = batch_add_chunks(user_id, kb_name, file_name, max_sentence_size, chunks, kb_id=kb_id)
+        if split_type == "parent_child" and not child_chunk_config:
+            raise ValueError("child_chunk_config should not be None when split_type is parent_child")
+        response_info = chunk_utils.batch_add_chunks(user_id, kb_name, file_name, max_sentence_size, chunks,
+                                         split_type = split_type,
+                                         child_chunk_config=child_chunk_config,
+                                         kb_id=kb_id)
+        headers = {'Access-Control-Allow-Origin': '*'}
+        response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
+    except Exception as e:
+        logger.info(repr(e))
+        response_info = {'code': 1, "message": repr(e), "data": {"success_count": 0}}
+        headers = {'Access-Control-Allow-Origin': '*'}
+        response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
+    return response
+
+@app.route("/rag/batch-add-child-chunks", methods=['POST'])
+def batchAddChildChunks():
+    logger.info('---------------批量新增文本子分块---------------')
+    try:
+        data = request.get_json()
+        user_id = data['userId']
+        kb_name = data.get("knowledgeBase", "")
+        kb_id = data.get("kb_id", "")
+        file_name = data['fileName']
+        chunk_id = data['chunk_id']
+        child_contents = data.get("child_contents", None)
+
+        if not child_contents or not isinstance(child_contents, list):
+            raise ValueError("child_contents must be a list and not empty")
+
+        response_info = chunk_utils.batch_add_child_chunks(user_id, kb_name, file_name, chunk_id,
+                                                           child_contents = child_contents, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -746,6 +776,8 @@ def updateChunk():
         file_name = data['fileName']
         max_sentence_size = data['max_sentence_size']
         chunk = data.get('chunk', None)
+        split_type = data.get("split_type", "common")
+        child_chunk_config = data.get("child_chunk_config", None)
 
         if not chunk or not isinstance(chunk, dict):
             raise ValueError("chunk must be a dict and not empty")
@@ -753,7 +785,39 @@ def updateChunk():
         if "labels" in chunk and not isinstance(chunk["labels"], list):
             raise ValueError("labels must be a list")
 
-        response_info = update_chunk(user_id, kb_name, file_name, max_sentence_size, chunk, kb_id=kb_id)
+        if split_type == "parent_child" and not child_chunk_config:
+            raise ValueError("child_chunk_config should not be None when split_type is parent_child")
+
+        response_info = chunk_utils.update_chunk(user_id, kb_name, file_name, max_sentence_size, chunk,
+                                                 split_type=split_type,
+                                                 child_chunk_config=child_chunk_config,
+                                                 kb_id=kb_id)
+        headers = {'Access-Control-Allow-Origin': '*'}
+        response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
+    except Exception as e:
+        logger.info(repr(e))
+        response_info = {'code': 1, "message": repr(e), "data": {"success_count": 0}}
+        headers = {'Access-Control-Allow-Origin': '*'}
+        response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
+    return response
+
+@app.route("/rag/update-child-chunk", methods=['POST'])
+def updateChildChunk():
+    logger.info('---------------更新子分段---------------')
+    try:
+        data = request.get_json()
+        user_id = data['userId']
+        kb_name = data.get("knowledgeBase", "")
+        kb_id = data.get("kb_id", "")
+        file_name = data['fileName']
+        child_chunk = data.get('child_chunk', None)
+        chunk_id = data.get('chunk_id')
+        chunk_current_num = data.get('chunk_current_num')
+
+        if not child_chunk or not isinstance(child_chunk, dict):
+            raise ValueError("child_chunk must be a dict and not empty")
+
+        response_info = chunk_utils.update_child_chunk(user_id, kb_name, file_name, chunk_id, chunk_current_num, child_chunk, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -776,7 +840,7 @@ def batchDeleteChunks():
 
         if not chunk_ids or not isinstance(chunk_ids, list):
             raise ValueError("chunk_ids must be a list and not empty")
-        response_info = batch_delete_chunks(user_id, kb_name, file_name, chunk_ids, kb_id=kb_id)
+        response_info = chunk_utils.batch_delete_chunks(user_id, kb_name, file_name, chunk_ids, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -785,6 +849,33 @@ def batchDeleteChunks():
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     return response
+
+@app.route("/rag/batch-delete-child-chunks", methods=['POST'])
+def batchDeleteChildChunks():
+    logger.info('---------------批量删除文本子分段---------------')
+    try:
+        data = request.get_json()
+        user_id = data['userId']
+        kb_name = data.get("knowledgeBase", "")
+        kb_id = data.get("kb_id", "")
+        file_name = data['fileName']
+        chunk_id = data.get('chunk_id')
+        chunk_current_num = data.get('chunk_current_num')
+        child_chunk_current_nums = data.get('child_chunk_current_nums', [])
+
+        if not child_chunk_current_nums or not isinstance(child_chunk_current_nums, list):
+            raise ValueError("child_chunk_current_nums must be a list and not empty")
+        response_info = chunk_utils.batch_delete_child_chunks(user_id, kb_name, file_name, chunk_id, chunk_current_num,
+                                                           child_chunk_current_nums, kb_id=kb_id)
+        headers = {'Access-Control-Allow-Origin': '*'}
+        response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
+    except Exception as e:
+        logger.info(repr(e))
+        response_info = {'code': 1, "message": repr(e), "data": {"success_count": 0}}
+        headers = {'Access-Control-Allow-Origin': '*'}
+        response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
+    return response
+
 
 @app.route("/rag/update-content-status", methods=['POST'])
 def updateContentStatus():
@@ -798,7 +889,7 @@ def updateContentStatus():
         content_id = data['content_id']
         status = data['status']
         on_off_switch = data.get('on_off_switch', None)  # 没有传递则默认为 None
-        response_info = update_content_status(user_id, kb_name, file_name, content_id, status, on_off_switch, kb_id=kb_id)
+        response_info = kb_utils.update_content_status(user_id, kb_name, file_name, content_id, status, on_off_switch, kb_id=kb_id)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
@@ -817,7 +908,7 @@ def updateKbName():
         user_id = data['userId']
         old_kb_name = data['old_kb_name']
         new_kb_name = data['new_kb_name']
-        response_info = update_kb_name(user_id, old_kb_name, new_kb_name)
+        response_info = kb_utils.update_kb_name(user_id, old_kb_name, new_kb_name)
         headers = {'Access-Control-Allow-Origin': '*'}
         response = make_response(json.dumps(response_info, ensure_ascii=False), headers)
     except Exception as e:
