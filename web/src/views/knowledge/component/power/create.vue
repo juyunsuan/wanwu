@@ -1,7 +1,6 @@
 <template>
   <div class="add-permission-content">
     <div class="content-wrapper" :class="{ 'transfer-mode': transferMode }">
-      <!-- 左侧选择面板 -->
       <div class="left-panel">
         <div class="search-section">
           <el-input
@@ -36,17 +35,13 @@
         </div>
       </div>
       
-      <!-- 右侧已选择面板 - 转让模式下不显示 -->
       <div class="right-panel" v-if="!transferMode">
         <div class="permission-section">
           <div class="permission-label">权限:</div>
           <el-select v-model="selectedPermission" placeholder="请选择权限" class="permission-select">
-            <el-option
-              v-for="item in permissionOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            ></el-option>
+            <el-option label="可读" :value="0"></el-option>
+            <el-option label="可编辑" :value="10"></el-option>
+            <el-option label="管理员" :value="20"></el-option>
           </el-select>
         </div>
         
@@ -71,6 +66,12 @@
 export default {
   name: 'AddPermission',
   props: {
+    knowledgeId: {
+      type: String,
+      default: ''
+    }
+  },
+  props: {
     transferMode: {
       type: Boolean,
       default: false
@@ -81,7 +82,6 @@ export default {
     }
   },
   computed: {
-    // 转让模式下默认选择管理员权限
     defaultPermission() {
       return this.transferMode ? '管理员' : '可读'
     }
@@ -90,11 +90,6 @@ export default {
     return {
       searchKeyword: '',
       selectedPermission: '可读',
-      permissionOptions: [
-        { label: '管理员', value: '管理员' },
-        { label: '编辑者', value: '编辑者' },
-        { label: '查看者', value: '查看者' }
-      ],
       treeProps: {
         children: 'children',
         label: 'name'
@@ -122,10 +117,7 @@ export default {
           ]
         }
       ],
-      selectedUsers: [
-        { id: 'user1_group1', name: '用户1', organization: '组织1' },
-        { id: 'user2_group1', name: '用户2', organization: '组织1' }
-      ]
+      selectedUsers: []
     }
   },
   watch: {
@@ -138,12 +130,10 @@ export default {
       immediate: true
     },
     searchKeyword(val){
-      console.log('搜索关键词:', val)
       this.$refs.tree.filter(val);
     }
   },
   methods: {
-    // 判断节点是否被选中
     isNodeSelected(nodeId) {
       return this.selectedUsers.some(user => user.id === nodeId)
     },
@@ -152,63 +142,48 @@ export default {
       return data.name.indexOf(value) !== -1;
     },
     handleTreeCheck(data, checkedInfo) {
-      // 处理树形选择（多选模式）
       console.log('选择变化:', data, checkedInfo)
       
-      // 获取所有选中的节点
       const checkedNodes = checkedInfo.checkedNodes || []
       const halfCheckedNodes = checkedInfo.halfCheckedNodes || []
       
-      // 只处理用户类型的节点
       const selectedUserNodes = checkedNodes.filter(node => node.type === 'user')
       
-      // 更新选中用户列表
       this.selectedUsers = selectedUserNodes.map(node => ({
         id: node.id,
         name: node.name,
         organization: node.organization
       }))
       
-      // 更新树形数据中的选中状态
       this.updateTreeSelectionState(checkedNodes)
     },
     handleNodeClick(data, node) {
-      // 处理节点点击（单选模式）
       if (this.transferMode && data.type === 'user') {
-        // 转让模式下，只允许选择用户类型的节点
         this.selectedUsers = [{
           id: data.id,
           name: data.name,
           organization: data.organization
         }]
         
-        // 更新树形数据中的选中状态
         this.updateTreeSelectionState([data])
         
-        // 更新选中节点的背景色
         this.updateSelectedNodeBackground()
       }
     },
     removeUser(user) {
-      // 移除用户
       user.selected = false
       this.selectedUsers = this.selectedUsers.filter(u => u.id !== user.id)
     },
     removeSelectedUser(user) {
-      // 移除已选择的用户
       this.selectedUsers = this.selectedUsers.filter(u => u.id !== user.id)
       
-      // 同时更新左侧树形控件的选中状态
       this.updateTreeSelection(user.id, false)
       
-      // 更新树形控件的选中状态
       this.$nextTick(() => {
         if (this.$refs.tree) {
           if (this.transferMode) {
-            // 转让模式下，清空所有选中状态
             this.$refs.tree.setCheckedKeys([])
           } else {
-            // 多选模式下，移除被删除用户的选中状态
             const checkedKeys = this.$refs.tree.getCheckedKeys()
             const newCheckedKeys = checkedKeys.filter(key => key !== user.id)
             this.$refs.tree.setCheckedKeys(newCheckedKeys)
@@ -217,7 +192,6 @@ export default {
       })
     },
     updateTreeSelection(userId, selected) {
-      // 更新树形数据中的选中状态
       const updateNode = (nodes) => {
         nodes.forEach(node => {
           if (node.id === userId) {
@@ -246,7 +220,6 @@ export default {
       updateNode(this.treeData)
     },
     createNewGroup() {
-      // 创建新群组
       this.$message.info('创建新群组功能')
     },
     updateSelectedNodeBackground() {

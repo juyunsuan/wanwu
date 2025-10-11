@@ -162,7 +162,7 @@ export default {
       this.$router.push({path:`/knowledge/doclist/${n.knowledgeId}`,query:{name:n.name}});
     },
     showPowerManagement(knowledgeItem) {
-      this.$refs.powerManagement.knowledgeName = knowledgeItem.name;
+      this.$refs.powerManagement.knowledgeId = knowledgeItem.knowledgeId;
       this.$refs.powerManagement.showDialog();
     },
   }

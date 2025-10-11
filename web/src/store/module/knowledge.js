@@ -20,20 +20,21 @@ const state = {
 const mutations = {
   // 设置选中的行数据
   SET_SELECTED_ROWS(state, rows) {
-    state.selectedRows = rows
+    console.log(rows,'rows')
+    state.selectedRows=rows
   },
   
   // 添加选中的行
   ADD_SELECTED_ROWS(state, rows) {
     // 去重添加
-    const existingIds = state.selectedRows.map(row => row.id)
-    const newRows = rows.filter(row => !existingIds.includes(row.id))
+    const existingIds = state.selectedRows.map(row => row.docId)
+    const newRows = rows.filter(row => !existingIds.includes(row.docId))
     state.selectedRows = [...state.selectedRows, ...newRows]
   },
   
   // 移除选中的行
   REMOVE_SELECTED_ROWS(state, rowIds) {
-    state.selectedRows = state.selectedRows.filter(row => !rowIds.includes(row.id))
+    state.selectedRows = state.selectedRows.filter(row => !rowIds.includes(row.docId))
   },
   
   // 清空选中的行
@@ -107,39 +108,39 @@ const actions = {
   // 选择行
   selectRows({ commit }, rows) {
     commit('ADD_SELECTED_ROWS', rows)
-    const docIds = rows.map(row => row.id)
+    const docIds = rows.map(row => row.docId)
     commit('ADD_SELECTED_DOC_IDS', docIds)
   },
   
   // 取消选择行
   unselectRows({ commit }, rows) {
-    const rowIds = rows.map(row => row.id)
+    const rowIds = rows.map(row => row.docId)
     commit('REMOVE_SELECTED_ROWS', rowIds)
     commit('REMOVE_SELECTED_DOC_IDS', rowIds)
   },
   
   // 切换行选择状态
   toggleRowSelection({ commit, state }, row) {
-    const isSelected = state.selectedRows.some(selectedRow => selectedRow.id === row.id)
+    const isSelected = state.selectedRows.some(selectedRow => selectedRow.docId === row.docId)
     if (isSelected) {
-      commit('REMOVE_SELECTED_ROWS', [row.id])
-      commit('REMOVE_SELECTED_DOC_IDS', [row.id])
+      commit('REMOVE_SELECTED_ROWS', [row.docId])
+      commit('REMOVE_SELECTED_DOC_IDS', [row.docId])
     } else {
       commit('ADD_SELECTED_ROWS', [row])
-      commit('ADD_SELECTED_DOC_IDS', [row.id])
+      commit('ADD_SELECTED_DOC_IDS', [row.docId])
     }
   },
   
   // 全选当前页
   selectAllCurrentPage({ commit, state }, currentPageRows) {
     commit('ADD_SELECTED_ROWS', currentPageRows)
-    const docIds = currentPageRows.map(row => row.id)
+    const docIds = currentPageRows.map(row => row.docId)
     commit('ADD_SELECTED_DOC_IDS', docIds)
   },
   
   // 取消全选当前页
   unselectAllCurrentPage({ commit, state }, currentPageRows) {
-    const rowIds = currentPageRows.map(row => row.id)
+    const rowIds = currentPageRows.map(row => row.docId)
     commit('REMOVE_SELECTED_ROWS', rowIds)
     commit('REMOVE_SELECTED_DOC_IDS', rowIds)
   },
@@ -201,13 +202,13 @@ const getters = {
   
   // 检查某行是否被选中
   isRowSelected: state => row => {
-    return state.selectedRows.some(selectedRow => selectedRow.id === row.id)
+    return state.selectedRows.some(selectedRow => selectedRow.docId === row.docId)
   },
   
   // 获取当前页选中的行
   currentPageSelectedRows: state => currentPageRows => {
     return state.selectedRows.filter(selectedRow => 
-      currentPageRows.some(currentRow => currentRow.id === selectedRow.id)
+      currentPageRows.some(currentRow => currentRow.docId === selectedRow.docId)
     )
   }
 }
@@ -219,3 +220,4 @@ export default {
   actions,
   getters
 }
+

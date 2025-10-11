@@ -57,6 +57,7 @@
                 v-if="showTips"
               ></el-alert>
               <el-table
+                ref="dataTable"
                 :data="tableData"
                 style="width: 100%"
                 :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
@@ -185,6 +186,7 @@ import SearchInput from "@/components/searchInput.vue";
 import mataData from './metadata.vue'
 import batchMetaData from './meta/batchMetaData.vue'
 import {getDocList,delDocItem,uploadFileTips,updateDocMeta} from "@/api/knowledge";
+import { mapMutations, mapGetters } from 'vuex';
 export default {
   components: { Pagination,SearchInput,mataData,batchMetaData},
   data() {
@@ -213,6 +215,9 @@ export default {
       isDisabled:false
     };
   },
+  computed: {
+    ...mapGetters('knowledge', ['selectedRows'])
+  },
   watch:{
     '$route':{
       handler(val){
@@ -239,7 +244,12 @@ export default {
     this.clearTimer()
   },
   methods: {
+    ...mapMutations('knowledge', ['SET_SELECTED_ROWS']),
     showBatchMeta(){
+      if(this.selectedRows.length === 0){
+        this.$message.warning('请先选中要编辑的文档');
+        return;
+      }
       this.$refs.batchMetaData.showDialog();
     },
     handleBatchMetaSuccess(data){
@@ -247,8 +257,65 @@ export default {
       this.$message.success('批量编辑元数据值成功');
       // 这里可以添加具体的业务逻辑，比如刷新列表等
     },
-    handleSelectionChange(val){
-      console.log(val)
+    handleSelectionChange(val){ 
+      console.log('handleSelectionChange 被调用', {
+        val: val,
+        currentSelectedRows: this.selectedRows,
+        currentPageData: this.tableData
+      });
+      
+      // 获取当前页面的docId列表
+      const currentPageDocIds = this.tableData.map(item => item.docId);
+      console.log('当前页面的docId列表:', currentPageDocIds);
+      
+      // 获取当前页选中的docId列表
+      const currentPageSelectedIds = val.map(item => item.docId);
+      console.log('当前页选中的docId列表:', currentPageSelectedIds);
+      
+      // 获取之前选中的行（排除当前页面的）
+      const previousSelectedRows = this.selectedRows.filter(row => 
+        !currentPageDocIds.includes(row.docId)
+      );
+      console.log('之前选中的行（排除当前页）:', previousSelectedRows);
+      
+      // 合并之前选中的行和当前页选中的行
+      const allSelectedRows = [...previousSelectedRows, ...val];
+      console.log('合并后的所有选中行:', allSelectedRows);
+      
+      // 去重处理（基于docId）
+      const uniqueSelectedRows = allSelectedRows.reduce((acc, current) => {
+        const existingIndex = acc.findIndex(item => item.docId === current.docId);
+        if (existingIndex === -1) {
+          acc.push(current);
+        } else {
+          // 如果已存在，更新为最新的数据
+          acc[existingIndex] = current;
+        }
+        return acc;
+      }, []);
+      
+      console.log('去重后的最终选中行:', uniqueSelectedRows);
+      this.SET_SELECTED_ROWS(uniqueSelectedRows);
+    },
+    restoreSelection() {
+      this.$nextTick(() => {
+        console.log('restoreSelection 被调用', {
+          selectedRows: this.selectedRows,
+          tableData: this.tableData,
+          dataTableRef: this.$refs.dataTable
+        });
+        
+        if (this.$refs.dataTable && this.selectedRows.length > 0) {
+          this.selectedRows.forEach(selectedRow => {
+            const row = this.tableData.find(item => item.docId === selectedRow.docId);
+            console.log(`尝试恢复选择: docId=${selectedRow.docId}, 找到行:`, row);
+            if (row) {
+              this.$refs.dataTable.toggleRowSelection(row, true);
+              console.log(`已恢复选择: docId=${selectedRow.docId}`);
+            }
+          });
+        }
+      });
     },
     getSegmentMethodText(value){
       switch (value) {
@@ -495,6 +562,7 @@ export default {
     },
     refreshData(data) {
       this.tableData = data
+      this.restoreSelection();
     }
   }
 };

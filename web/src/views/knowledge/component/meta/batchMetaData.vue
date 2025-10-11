@@ -33,10 +33,10 @@
                 @change="handleKeyChange(item, index)"
               >
                 <el-option
-                  v-for="option in keyOptions"
-                  :key="option.value"
-                  :label="option.label"
-                  :value="option.value"
+                  v-for="meta in keyOptions"
+                  :key="meta.metaKey"
+                  :label="meta.metaKey + ' | ' + '[ '+meta.metaValueType+' ]'"
+                  :value="meta.metaKey"
                 />
               </el-select>
             </div>
@@ -99,6 +99,7 @@
 </template>
 
 <script>
+import {metaSelect} from "@/api/knowledge"
 export default {
   name: 'BatchMetaData',
   data() {
@@ -107,16 +108,21 @@ export default {
       loading: false,
       applyToAll: false,
       metaDataList: [],
-      keyOptions: [
-        { label: '自动带出', value: 'auto_fetch' },
-        { label: '文档类型', value: 'doc_type' },
-        { label: '创建时间', value: 'create_time' },
-        { label: '作者', value: 'author' },
-        { label: '版本', value: 'version' }
-      ],
+      keyOptions: [],
     }
   },
+  created(){
+    this.getList();
+  },
   methods: {
+    getList(){
+        const knowledgeId = this.$route.params.id;
+        metaSelect({knowledgeId}).then(res =>{
+            if(res.code === 0){
+                this.keyOptions = res.data.knowledgeMetaList || []
+            }
+        }).catch(() =>{})
+    },
     showDialog() {
       this.dialogVisible = true;
       this.initData();
@@ -129,7 +135,7 @@ export default {
     initData() {
       this.metaDataList = [
         {
-          key: 'auto_fetch',
+          key: '',
           type: 'string',
           value: '',
           stringValue: ''

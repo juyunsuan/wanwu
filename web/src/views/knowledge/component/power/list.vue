@@ -8,28 +8,27 @@
         :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
         border
       >
-        <el-table-column prop="name" label="成员" width="200">
+        <el-table-column prop="userName" label="成员" width="200">
           <template slot-scope="scope">
             <div class="name-cell">
-              <span class="name-text">{{ scope.row.name }}</span>
+              <span class="name-text">{{ scope.row.userName }}</span>
             </div>
           </template>
         </el-table-column>
         
-        <el-table-column prop="type" label="权限">
+        <el-table-column prop="permissionType" label="权限">
           <template slot-scope="scope">
             <div class="type-cell">
-              <span v-if="!scope.row.editing" class="type-text">{{ scope.row.type }}</span>
+              <span v-if="!scope.row.editing" class="type-text">{{ powerType[scope.row.permissionType] }}</span>
               <el-select 
                 v-else 
-                v-model="scope.row.type" 
+                v-model="scope.row.permissionType" 
                 size="small" 
-                @change="handlePermissionChange(scope.row)"
                 class="permission-select"
               >
-                <el-option label="可读" value="可读"></el-option>
-                <el-option label="可编辑" value="可编辑"></el-option>
-                <el-option label="管理员" value="管理员"></el-option>
+                <el-option label="可读" :value="0"></el-option>
+                <el-option label="可编辑" :value="10"></el-option>
+                <el-option label="管理员" :value="20"></el-option>
               </el-select>
             </div>
           </template>
@@ -37,8 +36,7 @@
         <el-table-column label="操作" width="180" align="center">
           <template slot-scope="scope">
             <div class="action-buttons">
-              <!-- 管理员权限：只显示转让按钮 -->
-              <template v-if="scope.row.type === '管理员'">
+              <template v-if="scope.row.permissionType === 20">
                 <el-button
                   type="text"
                   size="small"
@@ -50,7 +48,6 @@
                 </el-button>
               </template>
               
-              <!-- 非管理员权限：显示编辑和删除按钮 -->
               <template v-else>
                 <el-button
                   v-if="!scope.row.editing"
@@ -102,67 +99,89 @@
 </template>
 
 <script>
+import { getUserPower,editUserPower } from "@/api/knowledge";
+import { POWER_TYPE } from "@/views/knowledge/config";
 export default {
   name: 'PowerList',
+  props: {
+    knowledgeId: {
+      type: String,
+      default: ''
+    }
+  },
   data() {
     return {
+      powerType: POWER_TYPE,
       tableData: [
         {
-          name: '管理员权限',
-          type: '管理员',
-          description: '拥有系统所有功能的访问权限',
-          status: '启用',
-          editing: false,
-          originalType: '管理员'
+          userName: '管理员权限',
+          permissionType: 20,
+          editing: false
         },
         {
-          name: '用户管理',
-          type: '可编辑',
-          description: '可以管理用户账户信息',
-          status: '启用',
-          editing: false,
-          originalType: '可编辑'
+          userName: '用户管理',
+          permissionType: 10,
+          editing: false
         },
         {
-          name: '数据查看',
-          type: '可读',
-          description: '可以查看系统中的数据',
-          status: '禁用',
-          editing: false,
-          originalType: '可读'
+          userName: '数据查看',
+          permissionType: 0,
+          editing: false
         }
       ]
     }
   },
+  created(){
+    this.getUserPower();
+  },
   methods: {
+    getUserPower() {
+      getUserPower({knowledgeId:this.knowledgeId}).then(res => {
+        if(res.code === 0){
+          this.tableData = (res.data.knowledgeUserInfoList||[]).map(item => ({
+            ...item,
+            editing: false,
+            originalType: item.permissionType
+          }))
+        }
+      }).catch(() => {})
+    },
     handleEdit(row) {
-      // 进入编辑模式
       row.editing = true
-      row.originalType = row.type // 保存原始值
     },
     handleSave(row) {
-      // 保存编辑
-      row.editing = false
-      row.originalType = row.type
-      this.$message.success('权限修改成功')
+      if(row.originalType === row.permissionType) {
+        row.editing = false
+        return
+      }
+      const data = {
+        knowledgeId:this.knowledgeId,
+        knowledgeUserList:[
+          {
+            orgId:row.orgId,
+            userId:row.userId,
+            permissionType:row.permissionType
+          }
+        ]
+      }
+      editUserPower(data).then(res => {
+        if(res.code === 0){
+          row.editing = false
+          this.$message.success('权限修改成功')
+          this.getUserPower()
+        }
+      }).catch(() => {})
     },
     handleCancel(row) {
-      // 取消编辑，恢复原始值
       row.type = row.originalType
       row.editing = false
     },
-    handlePermissionChange(row) {
-      // 权限改变时的处理
-      console.log('权限已修改为:', row.type)
-    },
     handleTransfer(row) {
-      // 显示确认提示
       this.$confirm('确定要转让管理员权限吗？转让后您将失去管理员权限。', '转让确认', {
         confirmButtonText: '确定转让',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        // 确认后触发转让事件，让父组件处理
         this.$emit('transfer', row)
       }).catch(() => {
         this.$message.info('已取消转让')
@@ -175,7 +194,6 @@ export default {
         type: 'warning'
       }).then(() => {
         console.log('删除', row)
-        // 删除逻辑
         this.$message.success('删除成功')
       }).catch(() => {
         this.$message.info('已取消删除')

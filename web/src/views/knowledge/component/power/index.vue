@@ -1,6 +1,5 @@
 <template>
   <div class="power-management">
-    <!-- 权限管理弹框 -->
     <el-dialog
       :visible.sync="dialogVisible"
       width="50%"
@@ -26,12 +25,9 @@
             @click="showCreate"
           >新增</el-button>
         </div>
-      <!-- 权限列表 -->
-        <PowerList ref="powerList" v-if="currentView === 'list'" @transfer="showTransfer"/>
-      <!-- 添加权限 -->
-        <PowerCreate ref="powerCreate" v-if="currentView === 'create'"/>
-      <!-- 转让权限 -->
-        <PowerCreate ref="powerTransfer" v-if="currentView === 'transfer'" :transfer-mode="true" :transfer-data="transferData"/>
+        <PowerList ref="powerList" v-if="currentView === 'list'" @transfer="showTransfer" :knowledgeId="knowledgeId"/>
+        <PowerCreate ref="powerCreate" v-if="currentView === 'create'" :knowledgeId="knowledgeId" />
+        <PowerCreate ref="powerTransfer" v-if="currentView === 'transfer'" :transfer-mode="true" :transfer-data="transferData" />
       <div
         slot="footer"
         class="dialog-footer"
@@ -62,7 +58,7 @@
 <script>
 import PowerList from "./list.vue";
 import PowerCreate from "./create.vue";
-
+import { transferUserPower } from "@/api/knowledge";
 export default {
   name: "PowerManagement",
   components: {
@@ -71,10 +67,10 @@ export default {
   },
   data() {
     return {
-      currentView: "list", // 当前视图：list、create 或 transfer
+      currentView: "list",
       dialogVisible: false,
-      knowledgeName:'',
-      transferData: null, // 转让数据
+      knowledgeId:'',
+      transferData: null,
     };
   },
   computed: {
@@ -90,36 +86,29 @@ export default {
     },
   },
   methods: {
-    // 显示权限管理弹框
     showDialog() {
       this.currentView = "list";
       this.dialogVisible = true;
     },
 
-    // 显示创建权限页面
     showCreate() {
       this.currentView = "create";
     },
 
-    // 显示转让权限页面
     showTransfer(transferData) {
       this.transferData = transferData;
       this.currentView = "transfer";
     },
 
-    // 显示权限列表页面
     showList() {
       this.currentView = "list";
     },
 
-    // 关闭弹框
     handleCancel() {
       this.dialogVisible = false;
     },
 
-    // 确认添加权限
     handleConfirm() {
-      // 这里可以获取 create 组件的数据
       const createData = this.$refs.powerCreate;
       if (createData) {
         console.log("添加权限数据:", {
@@ -127,54 +116,47 @@ export default {
           selectedUsers: createData.selectedUsers,
         });
 
-        // 这里可以调用 API 保存数据
         this.$message.success("权限添加成功");
 
-        // 返回列表页面
         this.showList();
 
-        // 刷新列表
         this.refreshList();
       }
     },
 
-    // 对话框关闭事件
     handleDialogClose() {
-      // 重置为列表视图
       this.currentView = "list";
 
-      // 可以在这里重置 create 组件的数据
       if (this.$refs.powerCreate) {
-        // 重置表单数据等
         console.log("对话框关闭，重置数据");
       }
     },
 
     // 确认转让权限
     handleTransferConfirm() {
-      // 这里可以获取 transfer 组件的数据
-      const transferData = this.$refs.powerTransfer;
+      const transferData = this.$refs.powerTransfer.selectedUsers;
       if (transferData) {
-        console.log("转让权限数据:", {
-          selectedUsers: transferData.selectedUsers,
-          transferData: this.transferData,
-        });
-
-        // 这里可以调用 API 保存转让数据
-        this.$message.success("权限转让成功");
-
-        // 转让成功后切换到添加权限页面
-        this.showCreate();
-
-        // 刷新列表
-        this.refreshList();
+        const data = {
+          knowledgeId: this.knowledgeId,
+          knowledgeUserList:{
+            userId: transferData.userId,
+            permissionType: transferData.permissionType
+          }
+        }
+        transferUserPower({data}).then(res => {
+          if(res.code === 0){
+            this.$message.success("权限转让成功");
+            this.showCreate();
+            this.refreshList();
+          }
+        }).catch(() => {
+          this.$message.error("权限转让失败");
+        })
       }
     },
 
-    // 刷新列表
     refreshList() {
       if (this.$refs.powerList) {
-        // 这里可以调用列表组件的刷新方法
         console.log("刷新权限列表");
       }
     },
