@@ -34,6 +34,7 @@
 
               <div class="content_title">
                 <el-button size="mini" type="primary" icon="el-icon-refresh" @click="reload">{{$t('common.gpuDialog.reload')}}</el-button>
+                <el-button size="mini" type="primary" @click="showBatchMeta">批量编辑元数据值</el-button>
                 <el-button size="mini" type="primary" @click="showMeta">元数据管理</el-button>
                 <el-button size="mini" type="primary" @click="$router.push(`/knowledge/hitTest?knowledgeId=${docQuery.knowledgeId}&name=${knowledgeName}`)">命中测试</el-button>
                 <el-button
@@ -59,7 +60,12 @@
                 :data="tableData"
                 style="width: 100%"
                 :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
+                @selection-change="handleSelectionChange"
               >
+                <el-table-column
+                  type="selection"
+                  width="55">
+                </el-table-column>
                 <el-table-column
                   prop="docName"
                   :label="$t('knowledgeManage.fileName')"
@@ -167,6 +173,9 @@
         <el-button type="primary" @click="submitMeta" :disabled="isDisabled">确 定</el-button>
       </span>
     </el-dialog>
+    
+    <!-- 批量编辑元数据值弹窗 -->
+    <batchMetaData ref="batchMetaData" @success="handleBatchMetaSuccess" />
   </div>
 </template>
 
@@ -174,9 +183,10 @@
 import Pagination from "@/components/pagination.vue";
 import SearchInput from "@/components/searchInput.vue";
 import mataData from './metadata.vue'
+import batchMetaData from './meta/batchMetaData.vue'
 import {getDocList,delDocItem,uploadFileTips,updateDocMeta} from "@/api/knowledge";
 export default {
-  components: { Pagination,SearchInput,mataData},
+  components: { Pagination,SearchInput,mataData,batchMetaData},
   data() {
     return {
       knowledgeName:this.$route.query.name || '',
@@ -229,6 +239,17 @@ export default {
     this.clearTimer()
   },
   methods: {
+    showBatchMeta(){
+      this.$refs.batchMetaData.showDialog();
+    },
+    handleBatchMetaSuccess(data){
+      console.log('批量编辑元数据值结果:', data);
+      this.$message.success('批量编辑元数据值成功');
+      // 这里可以添加具体的业务逻辑，比如刷新列表等
+    },
+    handleSelectionChange(val){
+      console.log(val)
+    },
     getSegmentMethodText(value){
       switch (value) {
         case '0':

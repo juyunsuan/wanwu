@@ -326,7 +326,9 @@ export default {
       this.$refs.createChunk.showDiglog(this.obj.id,isChildChunk)
     },
     updateChildData(){
-      this.handleParse();
+      setTimeout(() => {
+        this.handleParse();
+      }, 1000);
     },
     formatScore(score) {
       if (typeof score !== 'number') {
@@ -361,7 +363,7 @@ export default {
       updateSegmentChild({
         childChunk:{
           content: newContent.trim(),
-          chunkNo:index
+          chunkNo:row['childContent'][index].childNum
         },
         docId: this.obj.id,
         parentChunkNo: row.contentNum,
@@ -393,12 +395,14 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-       delSegmentChild({docId:this.obj.id,parentId:row['childContent'][index].parentId,parentChunkNo:row.contentNum,ChildChunkNoList:[index]}).then(res =>{
+        delSegmentChild({docId:this.obj.id,parentId:row['childContent'][index].parentId,parentChunkNo:row.contentNum,ChildChunkNoList:[row['childContent'][index].childNum]}).then(res =>{
           if(res.code === 0){
             this.$message.success('删除成功');
             this.handleParse();
           }
-        })
+        }).catch(() => {
+          this.$message.error('删除失败');
+        });
       });
     },
     updateDataBatch(){

@@ -5,6 +5,7 @@ import { login } from './module/login'
 import { user } from './module/user'
 import { app } from './module/app'
 import { workflow } from './module/workflow'
+import knowledge from './module/knowledge'
 
 
 Vue.use(Vuex)
@@ -20,7 +21,8 @@ export const store = new Vuex.Store({
         login,
         user,
         app,
-        workflow
+        workflow,
+        knowledge
     },
     plugins: [vuexLocal.plugin]
 })
