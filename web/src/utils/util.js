@@ -153,3 +153,16 @@ export const formatTools = (tools) => {
     })
     return newTools
 }
+
+/**
+ * 格式化得分，保留5位小数
+ * @param {number|string} score - 得分值
+ * @returns {string} 格式化后的得分字符串
+ */
+export function formatScore(score) {
+    // 格式化得分，保留5位小数
+    if (typeof score !== 'number') {
+        return '0.00000';
+    }
+    return score.toFixed(5);
+}

@@ -172,7 +172,6 @@ export default {
         name: '',
         schema: '',
         privacyPolicy: '',
-        flag: '0',
         apiAuth: {
           type: 'None',
           authType: 'Custom',
@@ -197,7 +196,7 @@ export default {
     }
   },
   methods: {
-    showDialog(customToolId, dialogDetailVisible, title) {
+    showDialog(customToolId, dialogDetailVisible) {
       this.dialogDetailVisible = dialogDetailVisible
       this.dialogBasicVisible = true
       if (customToolId) {
@@ -215,11 +214,6 @@ export default {
               this.listenerSchema()
             })
       } else this.title = '新增自定义工具'
-      if (title) {
-        this.title = title
-        // 区分自定义工具和用户导入的openapi 0:自定义工具 1:用户导入的openapi
-        this.form.flag = '1'
-      }
     },
     exampleChange(value) {
       this.form.schema = this.schemaConfig[value]
@@ -231,7 +225,7 @@ export default {
     },
     listenerApiKey() {
       this.$refs.apiAuthForm.validate(async (valid) => {
-        if (!valid && this.form.apiAuth.type === 'API Key') return;
+        if (!valid) return;
         this.dialogAuthVisible = false
       })
     },
@@ -270,11 +264,7 @@ export default {
               }).finally(() => this.loading = false)
         } else {
           delete params.customToolId
-          if (this.form.flag === '1') {
-            this.$emit('addOpenapi', params);
-            this.dialogBasicVisible = false
-            this.cancel()
-          } else addCustom(params).then((res) => {
+          addCustom(params).then((res) => {
             if (res.code === 0) {
               this.$message.success("新增成功")
               this.$emit("handleFetch", false)
@@ -298,7 +288,6 @@ export default {
         name: '',
         schema: '',
         privacyPolicy: '',
-        flag: '0',
         apiAuth: {
           type: 'None',
           authType: 'Custom',

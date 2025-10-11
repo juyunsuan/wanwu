@@ -50,6 +50,7 @@
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item command="edit">{{$t('common.button.edit')}}</el-dropdown-item>
                 <el-dropdown-item command="delete">{{$t('common.button.delete')}}</el-dropdown-item>
+                <el-dropdown-item command="power">权限</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </div>
@@ -58,6 +59,7 @@
     </div>
     <el-empty class="noData" v-if="!(listData && listData.length)" :description="$t('common.noData')"></el-empty>
     <tagDialog ref="tagDialog" @relodaData="relodaData" type="knowledge" :title="title"/>
+    <PowerManagement ref="powerManagement" />
   </div>
 </template>
 
@@ -65,8 +67,9 @@
 import { delKnowledgeItem } from "@/api/knowledge";
 import { AppType } from "@/utils/commonSet"
 import tagDialog from './tagDialog.vue';
+import PowerManagement from './power/index.vue';
 export default {
-  components:{tagDialog},
+  components:{tagDialog, PowerManagement},
   props:{
     appData:{
       type:Array,
@@ -116,6 +119,9 @@ export default {
         case 'delete':
           this.deleteItem(n.knowledgeId)
           break;
+        case 'power':
+          this.showPowerManagement(n);
+          break;
       }
     },
     editItem(row) {
@@ -154,6 +160,10 @@ export default {
     },
     toDocList(n){
       this.$router.push({path:`/knowledge/doclist/${n.knowledgeId}`,query:{name:n.name}});
+    },
+    showPowerManagement(knowledgeItem) {
+      this.$refs.powerManagement.knowledgeName = knowledgeItem.name;
+      this.$refs.powerManagement.showDialog();
     },
   }
 }
