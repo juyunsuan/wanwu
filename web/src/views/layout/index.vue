@@ -502,21 +502,17 @@ export default {
       box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
       margin: 8px 6px;
       .left-nav-content-wrap {
-        display: flex;
+        /*display: flex;
         flex-direction: column;
-        height: calc(100vh - 200px);
-        min-height: 480px;
-        justify-content: space-around;
+        justify-content: center;*/
       }
       .left-nav-content {
         padding: 6px 5px;
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 180px);
-        min-height: 480px;
+        height: auto;
         align-items: center;
         justify-content: space-around;
-        max-height: 660px;
       }
       .total-create {
         width: 24px;
@@ -528,7 +524,8 @@ export default {
         object-fit: contain;
       }
       .nav-item {
-        // margin: calc((100vh - 400px) / 16) 0;
+        /*margin: calc((100vh - 560px) / 28) 0;*/
+        margin: 0.8vh 0;
         color: #77869E;
         font-weight: bold;
         cursor: pointer;
