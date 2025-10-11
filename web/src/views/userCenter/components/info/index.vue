@@ -22,14 +22,17 @@
         data(){
           return{
               loading:true,
-              userId: JSON.parse(localStorage.getItem('access_cert')).user.userInfo.uid,
+              userId: this.$store.state.user.userInfo.uid,
           }
         },
-        async created(){
-            let res = await getUserDetail({userId:this.userId})
-            if(res.code === 0){
+        async created() {
+            try {
+                let res = await getUserDetail({userId:this.userId})
+                if(res.code === 0){
+                    this.$refs['info'].setData(res.data)
+                }
+            } finally {
                 this.loading = false
-                this.$refs['info'].setData(res.data)
             }
         },
     }

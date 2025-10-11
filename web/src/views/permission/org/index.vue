@@ -2,8 +2,13 @@
   <div>
     <div class="table-wrap list-common wrap-fullheight">
       <div class="table-box">
-        <search-input :placeholder="$t('org.form.org')" ref="searchInput" @handleSearch="getTableData" />
-        <el-button class="add-bt" size="mini" type="primary" @click="preInsert">
+        <search-input
+          style="margin-bottom: 20px"
+          :placeholder="$t('org.form.org')"
+          ref="searchInput"
+          @handleSearch="getTableData"
+        />
+        <el-button v-if="isAdmin" class="add-bt" size="mini" type="primary" @click="preInsert">
           <img src="@/assets/imgs/addOrg.png" alt="" />
           <span>{{$t('org.button.create')}}</span>
         </el-button>
@@ -29,7 +34,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column align="left" :label="$t('common.table.operation')" width="240">
+          <el-table-column v-if="isAdmin" align="left" :label="$t('common.table.operation')" width="240">
             <template slot-scope="scope">
               <el-button class="operation" type="text" @click="preUpdate(scope.row)">{{$t('common.button.edit')}}</el-button>
               <el-button type="text" @click="preDel(scope.row)">{{$t('common.button.delete')}}</el-button>
@@ -73,6 +78,7 @@ export default {
   components: { Pagination, SearchInput },
   data(){
     return {
+      isAdmin: this.$store.state.user.permission.isAdmin || false,
       listApi: fetchOrgList,
       loading: false,
       isEdit: false,

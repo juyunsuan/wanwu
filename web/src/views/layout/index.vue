@@ -230,7 +230,6 @@ export default {
   name: 'Layout',
   components: { ChangeLang, DocDownloadDialog, CreateTotalDialog, AboutDialog },
   data() {
-    const accessCert = localStorage.getItem('access_cert')
     return{
       basePath: this.$basePath,
       homeLogoPath: '',
@@ -245,7 +244,6 @@ export default {
       menuKey: 'menu_key',
       activeIndex: '0',
       isShowMenu: false,
-      userName: accessCert ? JSON.parse(accessCert).user.userInfo.userName : '',
       isShowNav: true,
       popoverList: [
         [
