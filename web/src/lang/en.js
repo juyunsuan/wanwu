@@ -158,6 +158,7 @@ export default {
             coryText: '副本'
         },
         noData: '暂无数据',
+        noBindEmail: '暂无邮箱',
         loading: '正在加载数据...',
         gpuDialog: {
             placeholder: '请选择GPU',
