@@ -260,7 +260,7 @@
     </el-dialog>
     <dataBaseDialog ref="dataBase" @updateData="updateData" :knowledgeId="obj.knowledgeId" :name="obj.knowledgeName"/>
     <tagDialog ref="tagDialog" type="section" :title="title" :currentList="currentList" @sendList="sendList" />
-    <createChunk ref="createChunk"  @updateDataBatch="updateDataBatch" @updateData="updateData" :parentId="cardObj[0]['contentId']"/>
+    <createChunk ref="createChunk"  @updateDataBatch="updateDataBatch" @updateData="updateData" :parentId="cardObj[0]['contentId']" @updateChildData="updateChildData"/>
   </div>
 </template>
 <script>
@@ -358,14 +358,13 @@ export default {
         this.$message.warning('内容不能为空');
         return;
       }
-      
       updateSegmentChild({
         childChunk:{
           content: newContent.trim(),
           chunkNo:index
         },
         docId: this.obj.id,
-        parentChunkNo: this.cardObj.contentNum,
+        parentChunkNo: row.contentNum,
         parentId: row.contentId
       }).then(res => {
         if (res.code === 0) {
@@ -394,7 +393,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        delSegmentChild({docId:this.obj.id,parentId:row.parentId,parentChunkNo:this.cardObj.contentNum,ChildChunkNoList:[index]}).then(res =>{
+       delSegmentChild({docId:this.obj.id,parentId:row['childContent'][index].parentId,parentChunkNo:row.contentNum,ChildChunkNoList:[index]}).then(res =>{
           if(res.code === 0){
             this.$message.success('删除成功');
             this.handleParse();
