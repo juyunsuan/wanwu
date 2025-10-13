@@ -674,20 +674,6 @@ export default {
       if(!this.editForm.knowledgebases.length) return;
       this.$refs.knowledgeSetDialog.showDialog(this.editForm.knowledgeConfig);
     },
-    //获取模型列表
-    //获取rerank模型
-    getRerankData() {
-      getRerankList().then((res) => {
-        if (res.code === 0) {
-          this.rerankOptions = res.data.map((item) => {
-            return {
-              label: item.name,
-              value: item.id,
-            };
-          });
-        }
-      });
-    },
     showSafety() {
       this.$refs.setSafety.showDialog(this.editForm.safetyConfig.tables);
     },
