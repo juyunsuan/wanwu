@@ -251,10 +251,10 @@
       </div>
 
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="handleSubmit(false)" :loading="submitLoading" v-if="!cardObj[0]['isParent']">确定</el-button>
-        <el-button type="primary" @click="handleSubmit(true)"  v-if="cardObj[0]['isParent']">保存并重新解析子分段</el-button>
-        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent']">新增子分段</el-button>
-        <el-button type="primary" @click="handleClose">{{$t('knowledgeManage.close')}}</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="submitLoading" v-if="!cardObj[0]['isParent']">确定</el-button>
+        <el-button type="primary" @click="handleSubmit"  v-if="cardObj[0]['isParent']" :loading="submitLoading">保存并重新解析子分段</el-button>
+        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent']" :disabled="submitLoading">新增子分段</el-button>
+        <el-button type="primary" @click="handleClose" :disabled="submitLoading">{{$t('knowledgeManage.close')}}</el-button>
       </span>
     </el-dialog>
     <dataBaseDialog ref="dataBase" @updateData="updateData" :knowledgeId="obj.knowledgeId" :name="obj.knowledgeName"/>
@@ -425,7 +425,7 @@ export default {
         this.timer = null;
       }
     },
-    handleSubmit(type){
+    handleSubmit(){
       const hasChanges = this.oldContent !== this.cardObj[0]['content'];
       
       if(!hasChanges){
@@ -437,13 +437,9 @@ export default {
       editSegment({content:this.cardObj[0]['content'],contentId:this.cardObj[0]['contentId'],docId:this.obj.id}).then(res =>{
         if(res.code === 0){
           this.$message.success('操作成功');
-          if(type){
-            this.handleParse();
-          }else{
             this.dialogVisible = false;
             this.submitLoading = false;
             this.getList();
-          }
         }
       }).catch(() =>{
         this.submitLoading = false;
