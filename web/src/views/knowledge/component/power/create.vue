@@ -3,10 +3,28 @@
     <div class="content-wrapper" :class="{ 'transfer-mode': transferMode }">
       <div class="left-panel">
         <div class="search-section">
+          <el-select
+            v-model="selectedOrganization"
+            placeholder="选择组织"
+            filterable
+            clearable
+            class="org-select"
+            @change="handleOrgChange"
+          >
+            <el-option
+              v-for="org in organizationList"
+              :key="org.id"
+              :label="org.name"
+              :value="org.id"
+            >
+            </el-option>
+          </el-select>
           <el-input
             v-model="searchKeyword"
-            placeholder="搜索用户名/组织/群组名称"
+            placeholder="搜索用户名"
             class="search-input"
+            :disabled="!selectedOrganization"
+            @focus="handleInputFocus"
           >
           </el-input>
         </div>
@@ -48,12 +66,24 @@
         <div class="selected-users-section">
           <div class="selected-users-list">
             <div
-              v-for="user in selectedUsers"
-              :key="user.id"
-              class="selected-user-item"
+              v-for="orgGroup in groupedSelectedUsers"
+              :key="orgGroup.organization"
+              class="org-group"
             >
-              <span class="user-info">{{ user.name }} {{ user.organization }}</span>
-              <i class="el-icon-close remove-icon" @click="removeSelectedUser(user)"></i>
+              <div class="org-group-header">
+                <span class="org-name">{{ orgGroup.organization }}</span>
+                <span class="user-count">({{ orgGroup.users.length }})</span>
+              </div>
+              <div class="org-users">
+                <div
+                  v-for="user in orgGroup.users"
+                  :key="user.id"
+                  class="selected-user-item"
+                >
+                  <span class="user-info">{{ user.name }}</span>
+                  <i class="el-icon-close remove-icon" @click="removeSelectedUser(user)"></i>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -84,12 +114,39 @@ export default {
   computed: {
     defaultPermission() {
       return this.transferMode ? '管理员' : '可读'
+    },
+    groupedSelectedUsers() {
+      // 按组织分组选中的用户
+      const groups = {};
+      this.selectedUsers.forEach(user => {
+        if (!groups[user.organization]) {
+          groups[user.organization] = {
+            organization: user.organization,
+            users: []
+          };
+        }
+        groups[user.organization].users.push(user);
+      });
+      
+      // 转换为数组并按组织名称排序
+      return Object.values(groups).sort((a, b) => a.organization.localeCompare(b.organization));
     }
   },
   data() {
     return {
       searchKeyword: '',
+      selectedOrganization: '',
       selectedPermission: '可读',
+      organizationList: [
+        { id: 'org1', name: '组织1' },
+        { id: 'group1', name: '群组1' },
+        { id: 'group1_user1', name: '群组1-用户1' },
+        { id: 'group1_user2', name: '群组1-用户2' },
+        { id: 'org2', name: '技术部' },
+        { id: 'org3', name: '产品部' },
+        { id: 'org4', name: '运营部' }
+      ],
+      originalTreeData: null,
       treeProps: {
         children: 'children',
         label: 'name'
@@ -112,10 +169,13 @@ export default {
           name: '群组1',
           type: 'group',
           children: [
-            { id: 'user1_group1', name: '用户1', type: 'user', organization: '群组1', selected: true },
-            { id: 'user2_group1', name: '用户2', type: 'user', organization: '群组1', selected: true }
+            { id: 'user1_group1', name: '用户1', type: 'user', organization: '群组1', selected: false },
+            { id: 'user2_group1', name: '用户2', type: 'user', organization: '群组1', selected: false },
+            { id: 'user3_group1', name: '用户3', type: 'user', organization: '群组1', selected: false },
+            { id: 'user4_group1', name: '用户4', type: 'user', organization: '群组1', selected: false }
           ]
         }
+
       ],
       selectedUsers: []
     }
@@ -130,7 +190,10 @@ export default {
       immediate: true
     },
     searchKeyword(val){
-      this.$refs.tree.filter(val);
+      // 只有在选择了组织时才进行搜索
+      if (this.selectedOrganization) {
+        this.$refs.tree.filter(val);
+      }
     }
   },
   methods: {
@@ -140,6 +203,55 @@ export default {
     filterNode(value,data){
       if (!value) return true;
       return data.name.indexOf(value) !== -1;
+    },
+    handleOrgChange(orgId) {
+      // 当组织选择改变时，过滤树形数据
+      this.filterTreeByOrganization(orgId);
+      
+      // 如果清空了组织选择，同时清空用户名搜索
+      if (!orgId) {
+        this.searchKeyword = '';
+      }
+    },
+    handleInputFocus() {
+      // 当用户名输入框获得焦点时，如果没有选择组织，给出提示
+      if (!this.selectedOrganization) {
+        this.$message.warning('请先选择组织');
+      }
+    },
+    filterTreeByOrganization(orgId) {
+      if (!orgId) {
+        // 如果没有选择组织，显示所有数据
+        this.$refs.tree.filter('');
+        return;
+      }
+      
+      // 根据选择的组织过滤树形数据
+      const filterData = (nodes) => {
+        return nodes.filter(node => {
+          if (node.id === orgId) {
+            return true; // 显示选中的组织节点
+          }
+          if (node.children) {
+            const filteredChildren = filterData(node.children);
+            if (filteredChildren.length > 0) {
+              return {
+                ...node,
+                children: filteredChildren
+              };
+            }
+          }
+          return false;
+        });
+      };
+      
+      // 临时保存原始数据
+      if (!this.originalTreeData) {
+        this.originalTreeData = JSON.parse(JSON.stringify(this.treeData));
+      }
+      
+      // 应用过滤
+      this.treeData = filterData(this.originalTreeData);
     },
     handleTreeCheck(data, checkedInfo) {
       console.log('选择变化:', data, checkedInfo)
@@ -268,6 +380,16 @@ export default {
     
       .search-section {
         margin-bottom: 15px;
+        display: flex;
+        gap: 10px;
+        
+        .org-select {
+          flex: 1;
+        }
+        
+        .search-input {
+          flex: 1;
+        }
       }
       
       .selection-tree {
@@ -352,45 +474,75 @@ export default {
           max-height: 300px;
           overflow-y: auto;
           
-          .selected-user-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-            background-color: #f5f7fa;
-            border: 1px solid transparent;
-            transition: all 0.3s ease;
-            margin-bottom: 8px;
+          .org-group {
+            margin-bottom: 16px;
             
             &:last-child {
               margin-bottom: 0;
             }
             
-            &:hover {
-              background-color: #f5f7fa;
-              border-color: #384BF7;
+            .org-group-header {
+              display: flex;
+              align-items: center;
+              margin-bottom: 8px;
+              padding: 4px 0;
+              border-bottom: 1px solid #e4e7ed;
+              
+              .org-name {
+                font-size: 14px;
+                font-weight: 600;
+                color: #384BF7;
+              }
+              
+              .user-count {
+                font-size: 12px;
+                color: #909399;
+                margin-left: 8px;
+              }
             }
             
-            .user-info {
-              font-size: 14px;
-              color: #606266;
+            .org-users {
+              .selected-user-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 6px 8px;
+                cursor: pointer;
+                border-radius: 4px;
+                background-color: #f5f7fa;
+                border: 1px solid transparent;
+                transition: all 0.3s ease;
+                margin-bottom: 6px;
+                
+                &:last-child {
+                  margin-bottom: 0;
+                }
+                
+                &:hover {
+                  background-color: #f0f2ff;
+                  border-color: #384BF7;
+                }
+                
+                .user-info {
+                  font-size: 13px;
+                  color: #606266;
+                }
+                
+                .remove-icon {
+                  color: #384BF7;
+                  cursor: pointer;
+                  font-size: 12px;
+                  padding: 2px;
+                  border-radius: 2px;
+                  opacity: 0;
+                  transition: opacity 0.3s ease;
+                }
+              }
+              
+              .selected-user-item:hover .remove-icon {
+                opacity: 1;
+              }
             }
-            
-            .remove-icon {
-              color: #384BF7;
-              cursor: pointer;
-              font-size: 12px;
-              padding: 2px;
-              border-radius: 2px;
-              opacity: 0;
-              transition: opacity 0.3s ease;
-            }
-          }
-          
-          .selected-user-item:hover .remove-icon {
-            opacity: 1;
           }
         }
       }

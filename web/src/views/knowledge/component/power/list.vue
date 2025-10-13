@@ -15,7 +15,13 @@
             </div>
           </template>
         </el-table-column>
-        
+        <el-table-column prop="organization" label="组织" width="200">
+          <template slot-scope="scope">
+            <div class="org-cell">
+              <span class="org-text">{{ scope.row.organization || '-' }}</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="permissionType" label="权限">
           <template slot-scope="scope">
             <div class="type-cell">
@@ -24,6 +30,7 @@
                 v-else 
                 v-model="scope.row.permissionType" 
                 size="small" 
+                @change="handlePermissionChange(scope.row)"
                 class="permission-select"
               >
                 <el-option label="可读" :value="0"></el-option>
@@ -36,7 +43,8 @@
         <el-table-column label="操作" width="180" align="center">
           <template slot-scope="scope">
             <div class="action-buttons">
-              <template v-if="scope.row.permissionType === 20">
+              <!-- 管理员权限：只显示转让按钮 -->
+              <template v-if="scope.row.type === '管理员'">
                 <el-button
                   type="text"
                   size="small"
@@ -48,6 +56,7 @@
                 </el-button>
               </template>
               
+              <!-- 非管理员权限：显示编辑和删除按钮 -->
               <template v-else>
                 <el-button
                   v-if="!scope.row.editing"
@@ -99,7 +108,7 @@
 </template>
 
 <script>
-import { getUserPower,editUserPower } from "@/api/knowledge";
+import { getUserPower } from "@/api/knowledge";
 import { POWER_TYPE } from "@/views/knowledge/config";
 export default {
   name: 'PowerList',
@@ -115,73 +124,61 @@ export default {
       tableData: [
         {
           userName: '管理员权限',
+          organization: '技术部',
           permissionType: 20,
           editing: false
         },
         {
           userName: '用户管理',
+          organization: '产品部',
           permissionType: 10,
           editing: false
         },
         {
           userName: '数据查看',
+          organization: '运营部',
           permissionType: 0,
           editing: false
         }
       ]
     }
   },
-  created(){
-    this.getUserPower();
-  },
   methods: {
     getUserPower() {
       getUserPower({knowledgeId:this.knowledgeId}).then(res => {
         if(res.code === 0){
-          this.tableData = (res.data.knowledgeUserInfoList||[]).map(item => ({
-            ...item,
-            editing: false,
-            originalType: item.permissionType
-          }))
+          this.tableData = res.data.knowledgeUserInfoList||[]
         }
       }).catch(() => {})
     },
     handleEdit(row) {
+      // 进入编辑模式
       row.editing = true
+      row.originalType = row.type // 保存原始值
     },
     handleSave(row) {
-      if(row.originalType === row.permissionType) {
-        row.editing = false
-        return
-      }
-      const data = {
-        knowledgeId:this.knowledgeId,
-        knowledgeUserList:[
-          {
-            orgId:row.orgId,
-            userId:row.userId,
-            permissionType:row.permissionType
-          }
-        ]
-      }
-      editUserPower(data).then(res => {
-        if(res.code === 0){
-          row.editing = false
-          this.$message.success('权限修改成功')
-          this.getUserPower()
-        }
-      }).catch(() => {})
+      // 保存编辑
+      row.editing = false
+      row.originalType = row.type
+      this.$message.success('权限修改成功')
     },
     handleCancel(row) {
+      // 取消编辑，恢复原始值
       row.type = row.originalType
       row.editing = false
     },
+    handlePermissionChange(row) {
+      // 权限改变时的处理
+      console.log('权限已修改为:', row.type)
+    },
     handleTransfer(row) {
+      // 显示确认提示
       this.$confirm('确定要转让管理员权限吗？转让后您将失去管理员权限。', '转让确认', {
         confirmButtonText: '确定转让',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
+        // 确认后触发转让事件，让父组件处理
         this.$emit('transfer', row)
       }).catch(() => {
         this.$message.info('已取消转让')
@@ -194,6 +191,7 @@ export default {
         type: 'warning'
       }).then(() => {
         console.log('删除', row)
+        // 删除逻辑
         this.$message.success('删除成功')
       }).catch(() => {
         this.$message.info('已取消删除')
@@ -242,12 +240,12 @@ export default {
       }
     }
     
-    .name-cell, .type-cell {
+    .name-cell, .org-cell, .type-cell {
       display: flex;
       align-items: center;
       justify-content: center;
       
-      .name-text, .type-text {
+      .name-text, .org-text, .type-text {
         color: #606266;
         font-size: 14px;
       }
