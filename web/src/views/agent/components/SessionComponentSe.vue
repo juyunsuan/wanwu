@@ -27,7 +27,7 @@
           <div :class="['session-item','rl']">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div class="answer-content">
               <div class="answer-content-query">
@@ -90,7 +90,7 @@
           <div :class="['session-item','rl']">
             <img
               class="logo"
-              :src="'/user/api/'+ defaultUrl"
+              :src="require('@/assets/imgs/robot-icon.png')"
             />
             <div class="answer-content"><i class="el-icon-loading"></i></div>
           </div>
@@ -103,7 +103,7 @@
           <div :class="['session-item','rl']">
             <img
               class="logo"
-              :src="'/user/api/'+ defaultUrl"
+              :src="require('@/assets/imgs/robot-icon.png')"
             />
             <div
               class="answer-content"
@@ -130,7 +130,7 @@
           >
             <img
               class="logo"
-              :src="'/user/api/'+ defaultUrl"
+              :src="require('@/assets/imgs/robot-icon.png')"
             />
             <div
               class="session-wrap"
@@ -274,7 +274,7 @@
           <div :class="['session-item','rl']">
             <img
               class="logo"
-              :src="'/user/api/'+defaultUrl || basePath + '/img/b.png'"
+              :src="require('@/assets/imgs/robot-icon.png')"
             />
             <div class="answer-content">
               <div
@@ -944,7 +944,7 @@ export default {
       border-radius: 6px;
     }
     .answer-content {
-      padding: 0 15px 10px 15px;
+      padding: 0 10px 10px 15px;
       position: relative;
       color: #333;
       .answer-content-query {
@@ -956,7 +956,7 @@ export default {
           background: #7288fa;
           color: #fff;
           padding: 8px 20px 8px 10px;
-          border-radius: 0 10px 10px 10px;
+          border-radius: 10px 0 10px 10px;
         }
         .session-setting-id {
           color: rgba(98, 98, 98, 0.5);
@@ -1196,6 +1196,23 @@ export default {
     font-weight: bold;
     margin-left: 6px;
     cursor: pointer;
+  }
+}
+
+/* 仅通过样式调整位置：
+   问题在右侧（内容在右、头像在最右），答案在左侧（默认） */
+.session-question {
+  .session-item {
+    flex-direction: row-reverse;
+    margin-left: auto;
+    width: auto;
+  }
+}
+.session-answer {
+  .session-item {
+    justify-content: flex-start; /* 保持在左侧 */
+    flex-direction: row; /* 头像在左，内容在右 */
+    margin-right: auto; /* 贴左侧 */
   }
 }
 
