@@ -96,7 +96,7 @@ def batch_add_chunks(user_id: str, kb_name: str, file_name: str, max_sentence_si
     else:
         chunk_total_num = allocate_chunk_result["data"]["chunk_total_num"]
         meta_data = allocate_chunk_result["data"]["meta_data"]
-        current_chunk_num = chunk_total_num - len(chunks) + 1
+        current_chunk_num = chunk_total_num - len(chunks)
         if not kb_id:  # kb_id为空，则根据kb_name获取kb_id
             kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # 获取kb_id
         for chunk in chunks:
@@ -145,7 +145,7 @@ def batch_add_child_chunks(user_id: str, kb_name: str, file_name: str, chunk_id:
         child_chunk_total_num = allocate_child_chunk_result["data"]["child_chunk_total_num"]
         parent_content = allocate_child_chunk_result["data"]["content"]
         meta_data = allocate_child_chunk_result["data"]["meta_data"]
-        child_chunk_current_num = child_chunk_total_num - len(child_contents) + 1
+        child_chunk_current_num = child_chunk_total_num - len(child_contents)
         if not kb_id:  # kb_id为空，则根据kb_name获取kb_id
             kb_id = milvus_utils.get_milvus_kb_name_id(user_id, kb_name)  # 获取kb_id
         for child_content in child_contents:
@@ -222,7 +222,7 @@ def update_chunk(user_id: str, kb_name: str, file_name: str, max_sentence_size: 
             sub_chunks = file_utils.split_doc(chunks, max_sentence_size)
 
         save_resp = save_chunks(user_id, kb_name, file_name, chunks, sub_chunks, kb_id=kb_id)
-        if save_resp["message"] != 0:
+        if save_resp["code"] != 0:
             response_info["message"] = save_resp["message"]
             #新增数据回滚
             milvus_utils.batch_delete_chunks(user_id, kb_name, file_name, [new_content_id], kb_id=kb_id)
@@ -292,7 +292,7 @@ def batch_delete_child_chunks(user_id: str, kb_name: str, file_name: str, chunk_
                 f"child_chunk_current_nums: {child_chunk_current_nums}")
     response_info = milvus_utils.batch_delete_child_chunks(user_id, kb_name, file_name, chunk_id, chunk_current_num, child_chunk_current_nums, kb_id=kb_id)
     logger.info(f"========= batch_delete_child_chunks end：user_id: {user_id}, kb_name: {kb_name}, kb_id: {kb_id}, "
-                f"file_name: {file_name}, chunk_id: {chunk_id}")
+                f"file_name: {file_name}, chunk_id: {chunk_id}, response_info: {response_info}")
 
     return response_info
 

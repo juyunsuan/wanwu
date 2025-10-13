@@ -531,7 +531,7 @@ def batch_delete_child_chunks(user_id, kb_name, file_name, chunk_id, chunk_curre
     """
         根据chunk_id和child_chunk_current_nums删除子分段
     """
-    url = MILVUS_BASE_URL + '/rag/kn/batch_delete_child_chunks'
+    url = MILVUS_BASE_URL + '/rag/kn/delete_child_chunks'
 
     data = {
         'userId': user_id,
