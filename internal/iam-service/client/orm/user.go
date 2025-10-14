@@ -523,7 +523,6 @@ func toUserInfo(user *model.User) *UserInfo {
 func toUserInfoTx(tx *gorm.DB, user *model.User, orgTree *model.OrgNode, allOrg bool, orgID ...uint32) (*UserInfo, error) {
 	ret := &UserInfo{
 		ID:         user.ID,
-		Status:     user.Status,
 		Name:       user.Name,
 		Nick:       user.Nick,
 		Gender:     user.Gender,
@@ -541,8 +540,12 @@ func toUserInfoTx(tx *gorm.DB, user *model.User, orgTree *model.OrgNode, allOrg 
 		return nil, err
 	}
 	for _, org := range orgs {
-		if allOrg || util.Exist(orgID, org.ID) {
-			ret.Orgs = append(ret.Orgs, &UserOrg{Org: org})
+		if allOrg {
+			ret.Orgs = append(ret.Orgs, &UserOrg{Org: org.IDName})
+			ret.Status = user.Status
+		} else if util.Exist(orgID, org.ID) {
+			ret.Orgs = append(ret.Orgs, &UserOrg{Org: org.IDName})
+			ret.Status = org.Status
 		}
 	}
 	// creator
@@ -617,18 +620,23 @@ func toUserInfoTx(tx *gorm.DB, user *model.User, orgTree *model.OrgNode, allOrg 
 	return ret, nil
 }
 
-func getUserOrgsTx(tx *gorm.DB, userID uint32, orgTree *model.OrgNode) ([]IDName, error) {
-	var ret []IDName
+func getUserOrgsTx(tx *gorm.DB, userID uint32, orgTree *model.OrgNode) ([]OrgUserIDName, error) {
+	var ret []OrgUserIDName
 	var userOrgs []*model.OrgUser
 	if err := sqlopt.WithUserID(userID).Apply(tx).Find(&userOrgs).Error; err != nil {
 		return nil, fmt.Errorf("get user %v orgs err: %v", userID, err)
 	}
 	for _, orgUser := range userOrgs {
-		ret = append(ret, IDName{ID: orgUser.OrgID, Name: orgTree.GetFullName(orgUser.OrgID)})
+		var status bool
+		if orgUser.Status != sqlopt.OrgUserStatusDisabled {
+			status = true
+		}
+		ret = append(ret, OrgUserIDName{IDName: IDName{ID: orgUser.OrgID, Name: orgTree.GetFullName(orgUser.OrgID)}, Status: status})
 	}
 	return ret, nil
 }
 
+// ID: orgUser.OrgID, Name: orgTree.GetFullName(orgUser.OrgID),Status: orgUser.Status
 func getCreatorTx(tx *gorm.DB, creatorID uint32) (IDName, error) {
 	ret := IDName{ID: creatorID}
 	creator := &model.User{}
