@@ -417,7 +417,6 @@ func selectOrgs(tx *gorm.DB, userID uint32, orgTree *model.OrgNode) ([]IDName, e
 	var userOrgs []*model.OrgUser
 	if err := sqlopt.SQLOptions(
 		sqlopt.WithUserID(userID),
-		sqlopt.WithOrgUserEnable(),
 	).Apply(tx).Find(&userOrgs).Error; err != nil {
 		return nil, fmt.Errorf("get org user err: %v", err)
 	}

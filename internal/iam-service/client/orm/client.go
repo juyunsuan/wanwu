@@ -97,7 +97,7 @@ type UserInfo struct {
 }
 
 type UserOrg struct {
-	Org   IDName
+	Org   OrgUserIDName
 	Roles []RoleIDName
 }
 
