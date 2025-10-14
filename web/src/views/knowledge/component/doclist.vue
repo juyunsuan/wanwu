@@ -266,6 +266,10 @@ export default {
       this.$refs.batchMetaData.showDialog();
     },
     handleSelectionChange(val){ 
+      if (val.length > 100) {
+        this.$message.warning('最多只能选择100个文件');
+        return;
+      }
       this.selectedTableData = val
       this.selectedDocIds = val.map(item => item.docId)
     },
