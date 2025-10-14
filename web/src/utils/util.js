@@ -166,3 +166,7 @@ export function formatScore(score) {
     }
     return score.toFixed(5);
 }
+
+export function avatarSrc(path){
+    return basePath + '/user/api/' + path
+}
