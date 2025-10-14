@@ -87,7 +87,7 @@
           v-if="n.responseLoading"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
               :src="require('@/assets/imgs/robot-icon.png')"
@@ -100,7 +100,7 @@
           v-if="n.pendingResponse"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
               :src="require('@/assets/imgs/robot-icon.png')"
@@ -126,7 +126,7 @@
         >
           <div
             v-if="[0,1,2,3,4,6,20,21,10].includes(n.qa_type)"
-            :class="['session-item','rl']"
+            class="session-answer-wrapper"
           >
             <img
               class="logo"
@@ -164,7 +164,7 @@
           </div>
           <div
             v-else
-            :class="['session-item','rl']"
+            class="session-answer-wrapper"
           >
             <img
               class="logo"
@@ -271,7 +271,7 @@
           v-if="!n.response && n.gen_file_url_list && n.gen_file_url_list.length"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
               :src="require('@/assets/imgs/robot-icon.png')"
@@ -893,9 +893,11 @@ export default {
     img {
       width: 80% !important;
     }
-    section li {
-      list-style-position: inside; /* 将标记符号放在内容框内 */
+    section li,li {
+      list-style-position: inside !important; /* 将标记符号放在内容框内 */
+      white-space: nowrap !important; /* 序号后面不换行 */
     }
+   
     .citation {
       display: inline-flex;
       color: #384bf7;
@@ -955,7 +957,7 @@ export default {
         .answer-text {
           background: #7288fa;
           color: #fff;
-          padding: 8px 20px 8px 10px;
+          padding: 8px 10px 8px 20px;
           border-radius: 10px 0 10px 10px;
         }
         .session-setting-id {
@@ -994,7 +996,7 @@ export default {
     }
   }
   .session-answer {
-    background-color: #eceefe;
+    // background-color: #eceefe;
     border-radius: 10px;
     .answer-annotation {
       line-height: 0 !important;
@@ -1018,7 +1020,7 @@ export default {
     }
     /*出处*/
     .search-list {
-      padding: 0 20px 3px 54px;
+      padding: 10px 20px 3px 54px;
       .search-list-item {
         margin-bottom: 5px;
         line-height: 22px;
@@ -1048,7 +1050,7 @@ export default {
       display: flex;
       // justify-content: space-between;
       align-items: center;
-      padding: 15px 20px 15px 53px;
+      padding: 5px 20px 15px 63px;
       color: #777;
       .opera-left {
         // flex: 8;
@@ -1209,10 +1211,29 @@ export default {
   }
 }
 .session-answer {
-  .session-item {
-    justify-content: flex-start; /* 保持在左侧 */
-    flex-direction: row; /* 头像在左，内容在右 */
-    margin-right: auto; /* 贴左侧 */
+  .session-answer-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px; /* 头像和内容之间10px距离 */
+    padding: 20px 20px 0 20px;
+    min-height: 80px;
+    background: none; /* 确保外层容器无背景色 */
+    
+    .logo {
+      width: 30px;
+      height: 30px;
+      object-fit: cover;
+      flex-shrink: 0; /* 防止头像被压缩 */
+      background: none; /* 头像无背景色 */
+    }
+    
+    .answer-content {
+      flex: 1;
+      background-color: #eceefe; /* 只有内容区域有背景色 */
+      border-radius: 0 10px 10px 10px;
+      padding: 20px;
+      line-height:1.6;
+    }
   }
 }
 
@@ -1264,7 +1285,7 @@ img.failed::after {
 .text-loading {
   width: 54px;
   height: 18px;
-  margin: 0 0 0 55px;
+  margin: 6px 0 0 55px;
 }
 
 .text-loading > div {

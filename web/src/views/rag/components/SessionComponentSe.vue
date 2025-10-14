@@ -38,7 +38,7 @@
           <div :class="['session-item','rl']">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div class="answer-content">
               <div class="answer-content-query">
@@ -69,10 +69,10 @@
           v-if="n.responseLoading"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="'/user/api/'+defaultUrl"
+              :src="require('@/assets/imgs/robot-icon.png')"
             />
             <div class="answer-content"><i class="el-icon-loading"></i></div>
           </div>
@@ -82,10 +82,10 @@
           v-if="n.pendingResponse"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="'/user/api/'+ defaultUrl"
+              :src="require('@/assets/imgs/robot-icon.png')"
             />
             <div
               class="answer-content"
@@ -105,10 +105,10 @@
           class="session-answer"
           :id="'message-container'+i"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="'/user/api/'+ defaultUrl"
+              :src="require('@/assets/imgs/robot-icon.png')"
             />
             <div
               class="session-wrap"
@@ -131,6 +131,15 @@
                 v-bind:class="{'ds-res':showDSBtn(n.response)}"
                 v-html="showDSBtn(n.response)?replaceHTML(n.response,n):n.response"
               ></div>
+              <!--loading-->
+              <div
+                v-if="n.finish === 0 && sessionStatus == 0 && i === session_data.history.length - 1"
+                class="text-loading"
+              >
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
               <!--出处-->
               <div
                 v-if="n.searchList && n.searchList.length && n.finish === 1"
@@ -817,8 +826,8 @@ img.failed::after {
         .answer-text {
           background: #7288fa;
           color: #fff;
-          border-radius: 0 10px 10px 10px;
-          padding: 10px 20px 10px 10px;
+          border-radius: 10px 0 10px 10px;
+          padding: 10px 10px 10px 20px;
         }
         .session-setting-id {
           color: rgba(98, 98, 98, 0.5);
@@ -856,8 +865,48 @@ img.failed::after {
     }
   }
   .session-answer {
-    background-color: #eceefe;
+    // background-color: #eceefe;
     border-radius: 10px;
+    
+    .session-answer-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px; /* 头像和内容之间10px距离 */
+      padding: 20px 20px 0 20px;
+      min-height: 80px;
+      background: none; /* 确保外层容器无背景色 */
+      
+      .logo {
+        width: 30px;
+        height: 30px;
+        object-fit: cover;
+        flex-shrink: 0; /* 防止头像被压缩 */
+        background: none; /* 头像无背景色 */
+      }
+      
+      .answer-content {
+        flex: 1;
+        background-color: #eceefe; /* 只有内容区域有背景色 */
+        border-radius: 0 10px 10px 10px;
+        padding: 20px;
+        line-height: 1.6;
+      }
+    }
+  }
+  
+  /* 问题在右侧，答案在左侧 */
+  .session-question {
+    .session-item {
+      flex-direction: row-reverse;
+      margin-left: auto;
+      width: auto;
+      gap: 10px; /* 问题和问题图标之间10px间距 */
+      display: flex;
+      align-items: flex-start;
+    }
+  }
+  
+  .session-answer {
     .answer-annotation {
       line-height: 0 !important;
       .annotation-img {
@@ -1050,6 +1099,59 @@ img.failed::after {
     font-weight: bold;
     margin-left: 6px;
     cursor: pointer;
+  }
+}
+
+.text-loading,
+.text-loading > div {
+  position: relative;
+  box-sizing: border-box;
+}
+
+.text-loading {
+  display: block;
+  font-size: 0;
+  color: #c8c8c8;
+}
+
+.text-loading.la-dark {
+  color: #e8e8e8;
+}
+
+.text-loading > div {
+  display: inline-block;
+  float: none;
+  background-color: currentColor;
+  border: 0 solid currentColor;
+}
+
+.text-loading {
+  width: 54px;
+  height: 18px;
+  margin-top: 6px;
+}
+
+.text-loading > div {
+  width: 8px;
+  height: 8px;
+  margin: 4px;
+  border-radius: 100%;
+  animation: ball-beat 0.7s -0.15s infinite linear;
+}
+
+.text-loading > div:nth-child(2n-1) {
+  animation-delay: -0.5s;
+}
+
+@keyframes ball-beat {
+  50% {
+    opacity: 0.2;
+    transform: scale(0.75);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 </style>
