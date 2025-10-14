@@ -25,7 +25,6 @@ func CreateUser(ctx *gin.Context, creatorID, orgID string, userCreate *request.U
 		NickName:  userCreate.Nickname,
 		Gender:    userCreate.Gender,
 		Phone:     userCreate.Phone,
-		Email:     userCreate.Email,
 		Company:   userCreate.Company,
 		Remark:    userCreate.Remark,
 		Password:  password,
@@ -44,7 +43,6 @@ func ChangeUser(ctx *gin.Context, orgID string, userUpdate *request.UserUpdate) 
 		NickName: userUpdate.Nickname,
 		Gender:   userUpdate.Gender,
 		Phone:    userUpdate.Phone,
-		Email:    userUpdate.Email,
 		Company:  userUpdate.Company,
 		Remark:   userUpdate.Remark,
 		RoleIds:  userUpdate.RoleIDs,
@@ -92,9 +90,10 @@ func GetUserList(ctx *gin.Context, orgID, name string, pageNo, pageSize int32) (
 	}, nil
 }
 
-func ChangeUserStatus(ctx *gin.Context, userID string, status bool) error {
+func ChangeUserStatus(ctx *gin.Context, userID, orgID string, status bool) error {
 	_, err := iam.ChangeUserStatus(ctx.Request.Context(), &iam_service.ChangeUserStatusReq{
 		UserId: userID,
+		OrgId:  orgID,
 		Status: status,
 	})
 	return err

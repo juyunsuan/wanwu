@@ -68,7 +68,6 @@ func (s *Service) CreateUser(ctx context.Context, req *iam_service.CreateUserReq
 		Nick:      req.NickName,
 		Gender:    req.Gender,
 		Phone:     req.Phone,
-		Email:     req.Email,
 		Company:   req.Company,
 		Remark:    req.Remark,
 		Password:  req.Password,
@@ -90,7 +89,6 @@ func (s *Service) UpdateUser(ctx context.Context, req *iam_service.UpdateUserReq
 		Nick:    req.NickName,
 		Gender:  req.Gender,
 		Phone:   req.Phone,
-		Email:   req.Email,
 		Company: req.Company,
 		Remark:  req.Remark,
 	}, util.MustU32(req.OrgId), roleIDs); err != nil {
@@ -107,7 +105,7 @@ func (s *Service) DeleteUser(ctx context.Context, req *iam_service.DeleteUserReq
 }
 
 func (s *Service) ChangeUserStatus(ctx context.Context, req *iam_service.ChangeUserStatusReq) (*emptypb.Empty, error) {
-	if err := s.cli.ChangeUserStatus(ctx, util.MustU32(req.UserId), req.Status); err != nil {
+	if err := s.cli.ChangeUserStatus(ctx, util.MustU32(req.UserId), util.MustU32(req.OrgId), req.Status); err != nil {
 		return nil, errStatus(errs.Code_IAMUser, err)
 	}
 	return &emptypb.Empty{}, nil

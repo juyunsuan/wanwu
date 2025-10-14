@@ -70,6 +70,19 @@ func (c *Client) CheckUserPerm(ctx context.Context, userID uint32, genTokenAt in
 			return toErrStatus("iam_perm_check_user_perm", util.Int2Str(userID),
 				util.Int2Str(orgID), fmt.Sprintf("%v", oneOfPerms), err.Error())
 		}
+		// check org user 用户在组织中的状态校验
+		orgUser := &model.OrgUser{}
+		if err := sqlopt.SQLOptions(
+			sqlopt.WithUserID(userID),
+			sqlopt.WithOrgID(orgID),
+		).Apply(tx).First(orgUser).Error; err != nil {
+			if err != gorm.ErrRecordNotFound {
+				return toErrStatus("iam_perm_check_user_perm", util.Int2Str(userID),
+					util.Int2Str(orgID), fmt.Sprintf("get org %v user %v", orgID, userID), err.Error())
+			}
+		} else if orgUser.Status == sqlopt.OrgUserStatusDisabled {
+			return toErrStatus("iam_perm_user_disable")
+		}
 		// check if user is org admin
 		var userRoles []*model.UserRole
 		var err error

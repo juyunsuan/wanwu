@@ -26,7 +26,7 @@ type IClient interface {
 	DeleteUser(ctx context.Context, userID uint32) *errs.Status
 	UpdateUserAvatar(ctx context.Context, userID uint32, key string) *errs.Status
 
-	ChangeUserStatus(ctx context.Context, userID uint32, status bool) *errs.Status
+	ChangeUserStatus(ctx context.Context, userID, orgID uint32, status bool) *errs.Status
 	UpdateUserPassword(ctx context.Context, userID uint32, pwd, newPwd string) *errs.Status
 	ResetUserPassword(ctx context.Context, userID uint32, pwd string) *errs.Status
 

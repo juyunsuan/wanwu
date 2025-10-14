@@ -170,11 +170,10 @@ message CreateUserReq {
   string nickName = 4;
   string gender = 5;
   string phone = 6;
-  string email = 7;
-  string company = 8;
-  string remark = 9;
-  string password = 10;
-  repeated string roleIds = 11;
+  string company = 7;
+  string remark = 8;
+  string password = 9;
+  repeated string roleIds = 10;
 }
 
 message UpdateUserReq {
@@ -184,10 +183,9 @@ message UpdateUserReq {
   string nickName = 4;
   string gender = 5;
   string phone = 6;
-  string email = 7;
-  string company = 8;
-  string remark = 9;
-  repeated string roleIds = 10;
+  string company = 7;
+  string remark = 8;
+  repeated string roleIds = 9;
 }
 
 message DeleteUserReq {
@@ -196,7 +194,8 @@ message DeleteUserReq {
 
 message ChangeUserStatusReq {
   string userId = 1;
-  bool status = 2;
+  string orgId = 2;
+  bool status = 3;
 }
 
 message UpdateUserPasswordReq {
