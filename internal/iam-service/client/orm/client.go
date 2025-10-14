@@ -46,6 +46,11 @@ type IDName struct {
 	NameStatus *err_code.Status
 }
 
+type OrgUserIDName struct {
+	IDName
+	Status bool
+}
+
 type RoleIDName struct {
 	ID       uint32
 	Name     string
