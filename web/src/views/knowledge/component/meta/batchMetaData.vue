@@ -1,13 +1,15 @@
 <template>
   <el-dialog
-    title="批量编辑元数据值"
     :visible.sync="dialogVisible"
     width="60%"
     :before-close="handleClose"
     class="batch-meta-dialog"
   >
+    <div slot="title" class="custom-title">
+      <h1>批量编辑元数据值</h1>
+      <span>[ 编辑{{ selectedDocIds.length }}个文档 ]</span>
+    </div>
     <div class="dialog-content">
-      <!-- 创建元数据值按钮 -->
       <div class="create-section">
         <el-button type="primary" @click="addMetaData" class="create-btn">
           <i class="el-icon-plus"></i>
@@ -15,22 +17,20 @@
         </el-button>
       </div>
 
-      <!-- 元数据值列表 -->
-      <div class="meta-list">
+      <div class="meta-list" v-if="metaDataList.length > 0" :loading="docLoading">
         <div 
           v-for="(item, index) in metaDataList" 
           :key="index" 
           class="meta-item"
         >
           <div class="meta-row">
-            <!-- Key选择 -->
             <div class="field-group">
               <label class="field-label">Key:</label>
               <el-select 
-                v-model="item.key" 
+                v-model="item.metaKey" 
                 placeholder="请选择"
                 class="field-select"
-                @change="handleKeyChange(item, index)"
+                :disabled="item.metaId"
               >
                 <el-option
                   v-for="meta in keyOptions"
@@ -41,7 +41,6 @@
               </el-select>
             </div>
 
-            <!-- 类型显示 -->
             <div class="field-group type-group">
               <span class="type-label">类型:</span>
               <span class="type-value">[{{ item.type }}]</span>
@@ -49,23 +48,50 @@
 
             <el-divider direction="vertical" class="field-divider" />
 
-            <!-- Value输入 -->
             <div class="field-group">
               <label class="field-label">Value:</label>
-              <el-input 
-                v-model="item.value" 
-                placeholder="请输入"
-                class="field-input"
-              />
+              <el-tag 
+                  v-if="item.metaValue &&JSON.parse(item.metaValue).length > 1" 
+                  type="info" 
+                  closable 
+                  @close="handleCloseArray(item)">
+                  多个值
+              </el-tag>
+              <template v-else>
+                <el-input 
+                  v-if="item.metaValueType === 'string'"
+                  v-model="item.metaValue" 
+                  placeholder="请输入"
+                  class="field-input"
+                  @change="handleMetaValueChange(item, index)"
+                />
+                <el-input 
+                  v-if="item.metaValueType === 'number'"
+                  v-model="item.metaValue" 
+                  placeholder="请输入"
+                  class="field-input"
+                  type="number"
+                  @change="handleMetaValueChange(item, index)"
+                />
+                <el-date-picker
+                  v-if="item.metaValueType === 'time'"
+                  v-model="item.metaValue"
+                  type="datetime"
+                  placeholder="请选择时间"
+                  class="field-input"
+                  format="yyyy-MM-dd HH:mm:ss"
+                  value-format="yyyy-MM-dd HH:mm:ss"
+                  @change="handleMetaValueChange(item, index)"
+                />
+              </template>
             </div>
 
             <el-divider direction="vertical" class="field-divider" />
 
-            <!-- 删除按钮 -->
             <div class="field-group delete-group">
               <el-button 
                 type="text" 
-                @click="removeMetaData(index)"
+                @click="removeMetaData(item,index)"
                 class="delete-btn"
                 icon="el-icon-delete"
               />
@@ -74,9 +100,8 @@
         </div>
       </div>
 
-      <!-- 应用选项 -->
       <div class="apply-section">
-        <el-checkbox v-model="applyToAll" class="apply-checkbox">
+        <el-checkbox v-model="applyToSelected" class="apply-checkbox">
           应用于所有选定文档
         </el-checkbox>
         <el-tooltip 
@@ -88,7 +113,6 @@
       </div>
     </div>
 
-    <!-- 底部按钮 -->
     <span slot="footer" class="dialog-footer">
       <el-button @click="handleClose" class="cancel-btn">取 消</el-button>
       <el-button type="primary" @click="handleConfirm" class="confirm-btn" :loading="loading">
@@ -99,22 +123,48 @@
 </template>
 
 <script>
-import {metaSelect} from "@/api/knowledge"
+import {metaSelect,getDocMetaList,updateMetaData} from "@/api/knowledge"
 export default {
   name: 'BatchMetaData',
+  props:['selectedDocIds'],
   data() {
     return {
       dialogVisible: false,
       loading: false,
-      applyToAll: false,
+      docLoading: false,
+      applyToSelected: false,
       metaDataList: [],
       keyOptions: [],
     }
   },
   created(){
     this.getList();
+    this.getMetaList();
   },
   methods: {
+    handleMetaValueChange(item, index) {
+      if (item.metaId && item.originalMetaValue !== item.metaValue) {
+        item.option = 'update';
+      }
+    },
+    handleCloseArray(item){
+      item.metaValue = ''
+    },
+    getMetaList(){
+      this.docLoading = true;
+      getDocMetaList({docId:this.selectedDocIds}).then(res =>{
+        if(res.code === 0){
+          this.metaDataList = (res.data.knowledgeMetaValues || []).map(item => ({
+            ...item,
+            option:'existing',
+            originalMetaValue: item.metaValue
+          }))
+          this.docLoading = false;
+        }
+      }).catch(() =>{
+        this.docLoading = false;
+      })
+    },
     getList(){
         const knowledgeId = this.$route.params.id;
         metaSelect({knowledgeId}).then(res =>{
@@ -130,15 +180,16 @@ export default {
     
     handleClose() {
       this.dialogVisible = false;
+      this.$emit('reLoadDocList')
     },
     
     initData() {
       this.metaDataList = [
         {
-          key: '',
-          type: 'string',
-          value: '',
-          stringValue: ''
+          metaKey: '',
+          metaValueType:'string',
+          metaValue: '',
+          option: 'add'
         }
       ];
       this.applyToAll = false;
@@ -153,29 +204,45 @@ export default {
       });
     },
     
-    removeMetaData(index) {
-      this.metaDataList.splice(index, 1);
+    removeMetaData(item,index) {
+      this.$confirm('确定要删除这条元数据吗？', '删除确认', {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.metaDataList.splice(index, 1);
+        const data = {
+          applyToSelected:this.applyToSelected,
+          docIdList:this.selectedDocIds,
+          metaValueList:[{
+            metaId:item.metaId,
+            option:'delete'
+          }]
+          }
+        this.unpdateMetaApi(data,'delete')
+      }).catch(() => {
+        this.$message.info('已取消删除');
+      });
     },
-    
-    handleKeyChange(item, index) {
-      // 根据选择的key设置对应的类型
-      const keyTypeMap = {
-        'auto_fetch': 'string',
-        'doc_type': 'string',
-        'create_time': 'date',
-        'author': 'string',
-        'version': 'string'
-      };
-      item.type = keyTypeMap[item.key] || 'string';
+    unpdateMetaApi(data,type) {
+      updateMetaData(data).then(res =>{
+        if(res.code === 0){
+          this.$message.success('操作成功');
+          this.getMetaList();
+          if(type === 'submit'){
+            this.handleClose();
+            this.loading = false;
+          }
+        }
+      }).catch(() =>{})
     },
-    
     handleConfirm() {
+      this.loading = true;
       if (this.metaDataList.length === 0) {
         this.$message.warning('请至少添加一个元数据值');
         return;
       }
       
-      // 验证必填字段
       for (let i = 0; i < this.metaDataList.length; i++) {
         const item = this.metaDataList[i];
         if (!item.key) {
@@ -188,18 +255,21 @@ export default {
         }
       }
       
-      this.loading = true;
+      const updateData = this.metaDataList.filter(item => 
+        item.option === 'update' || item.option === 'add'
+      );
       
-      // 模拟API调用
-      setTimeout(() => {
+      if (updateData.length === 0) {
+        this.$message.info('没有需要更新的数据');
         this.loading = false;
-        this.$message.success('批量编辑成功');
-        this.handleClose();
-        this.$emit('success', {
-          metaDataList: this.metaDataList,
-          applyToAll: this.applyToAll
-        });
-      }, 1000);
+        return;
+      }
+      const data = {
+        applyToSelected:this.applyToSelected,
+        docIdList:this.selectedDocIds,
+        metaValueList:updateData
+      }
+      this.unpdateMetaApi(data,'submit')
     }
   }
 }
@@ -211,7 +281,26 @@ export default {
     padding: 20px 20px 10px;
     border-bottom: 1px solid #f0f0f0;
   }
+}
+
+.custom-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   
+  h1 {
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 24px;
+    margin: 0;
+  }
+  
+  span {
+    color: #384BF7;
+  }
+}
+
+.batch-meta-dialog {
   /deep/ .el-dialog__body {
     padding: 20px;
   }

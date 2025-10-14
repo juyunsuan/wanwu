@@ -467,11 +467,19 @@ export const editUserPower = (data)=>{
         data
     })
 };
-//批量更新知识库元数据值
-export const batchUpdateMeta = (data)=>{
+//更新文档元数据
+export const updateMetaData = (data)=>{
     return service({
         url: `${BASE_URL}/knowledge/meta/value`,
         method: 'post',
         data
+    })
+};
+//获取文档元数据列表
+export const getDocMetaList = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/meta/value`,
+        method: 'get',
+        params:data
     })
 };

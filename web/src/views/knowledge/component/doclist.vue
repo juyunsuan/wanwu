@@ -178,7 +178,7 @@
     </el-dialog>
     
     <!-- 批量编辑元数据值弹窗 -->
-    <batchMetaData ref="batchMetaData" @success="handleBatchMetaSuccess" />
+    <batchMetaData ref="batchMetaData" :selectedDocIds="selectedDocIds" @reLoadDocList="reLoadDocList" />
   </div>
 </template>
 
@@ -214,7 +214,8 @@ export default {
       metaVisible:false,
       metaData:[],
       isDisabled:false,
-      selectedTableData:[]
+      selectedTableData:[],
+      selectedDocIds:[]
     };
   },
   watch:{
@@ -243,6 +244,20 @@ export default {
     this.clearTimer()
   },
   methods: {
+    reLoadDocList(){
+      this.getTableData(this.docQuery)
+      this.selectedTableData = []
+      this.selectedDocIds = []
+      
+      // 取消所有表格数据的选中状态
+      this.$nextTick(() => {
+        const table = this.$refs.dataTable
+        if (table) {
+          table.clearSelection()
+        }
+      })
+      
+    },
     showBatchMeta(){
       if(!this.selectedTableData || this.selectedTableData.length === 0){
         this.$message.warning('请先选中要编辑的文档');
@@ -250,11 +265,9 @@ export default {
       }
       this.$refs.batchMetaData.showDialog();
     },
-    handleBatchMetaSuccess(data){
-      this.$message.success('批量编辑元数据值成功');
-    },
     handleSelectionChange(val){ 
       this.selectedTableData = val
+      this.selectedDocIds = val.map(item => item.docId)
     },
     getSegmentMethodText(value){
       switch (value) {
