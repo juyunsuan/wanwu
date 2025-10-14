@@ -25,10 +25,24 @@
 {"code":110004,"key":"bff_auth_code_not_define","langs":{"en":"code currently undefined","zh":"code暂无定义"}}
 {"code":0,"key":"------ org ------","langs":{}}
 {"code":110000,"key":"bff_org_disable","langs":{"en":"the organization has been deactivated","zh":"组织已停用"}}
+{"code":110000,"key":"bff_org_cannot_change","langs":{"en":"cannot modify organization","zh":"无法编辑组织"}}
+{"code":110000,"key":"bff_org_cannot_delete","langs":{"en":"cannot delete organization","zh":"无法删除组织"}}
+{"code":110000,"key":"bff_org_cannot_change_status","langs":{"en":"cannot modify organization status","zh":"无法修改组织状态"}}
+{"code":110000,"key":"bff_org_cannot_create","langs":{"en":"cannot create organization","zh":"无法新增组织"}}
+{"code":0,"key":"------ role ------","langs":{}}
+{"code":110000,"key":"bff_role_cannot_change","langs":{"en":"cannot modify role","zh":"无法编辑用户"}}
+{"code":110000,"key":"bff_role_cannot_create","langs":{"en":"cannot create role","zh":"无法新增角色"}}
+{"code":110000,"key":"bff_role_cannot_delete","langs":{"en":"cannot delete role","zh":"无法删除角色"}}
+{"code":110000,"key":"bff_role_cannot_change_status","langs":{"en":"cannot modify role status","zh":"无法修改角色状态"}}
 {"code":0,"key":"------ user ------","langs":{}}
-{"code":110001,"key":"bff_user_cannot_change_other_password","langs":{"en":"cannot modify another user's password","zh":"无法修改他人密码"}}
-{"code":110001,"key":"bff_user_cannot_delete","langs":{"en":"only system administrators can delete users","zh":"非系统管理员无法删除用户"}}
-{"code":110001,"key":"bff_user_password_decrypt","langs":{"en":"decrypt password err: %v","zh":"用户密码解密错误: %v"}}
+{"code":110000,"key":"bff_user_cannot_change_other_password","langs":{"en":"cannot modify another user's password","zh":"无法修改他人密码"}}
+{"code":110000,"key":"bff_user_cannot_delete","langs":{"en":"only system administrators can delete users","zh":"非系统管理员无法删除用户"}}
+{"code":110000,"key":"bff_user_password_decrypt","langs":{"en":"decrypt password err: %v","zh":"用户密码解密错误: %v"}}
+{"code":110000,"key":"bff_user_cannot_delete_other","langs":{"en":"cannot delete user","zh":"无法删除用户"}}
+{"code":110000,"key":"bff_user_cannot_change_other","langs":{"en":"cannot modify user","zh":"无法编辑用户"}}
+{"code":110000,"key":"bff_user_cannot_create_other","langs":{"en":"cannot create user","zh":"无法新增用户"}}
+{"code":110000,"key":"bff_user_cannot_change_status","langs":{"en":"cannot modify user status","zh":"无法修改用户状态"}}
+{"code":110000,"key":"bff_user_cannot_change_password","langs":{"en":"cannot modify user's password","zh":"无法修改密码"}}
 {"code":0,"key":"------ file upload ------","langs":{}}
 {"code":110000,"key":"bff_file_upload_check","langs":{"en":"file verification failed, please try again later!","zh":"文件校验失败，请稍后重试！(%v)"}}
 {"code":110000,"key":"bff_file_upload_merge","langs":{"en":"file merge failed, please try again later!","zh":"文件合并失败，请稍后重试！(%v)"}}
@@ -48,6 +62,7 @@
 {"code":110000,"key":"bff_workflow_openapi_file_upload","langs":{"zh":"工作流openapi上传文件错误: %v"}}
 {"code":110000,"key":"bff_workflow_upload_file","langs":{"zh":"工作流上传文件错误: %v"}}
 {"code":110000,"key":"bff_workflow_import_file","langs":{"zh":"工作流导入文件错误: %v"}}
+{"code":110000,"key":"bff_workflow_export","langs":{"zh":"工作流导出错误: %v"}}
 {"code":0,"key":"------ doc ------","langs":{}}
 {"code":110000,"key":"bff_doc_center_file_unescape","langs":{"en":"path unescape error: %v","zh":"路径去除转义错误: %v"}}
 {"code":110000,"key":"bff_doc_center_file_md","langs":{"en":"no markdown files found: %v","zh":"未含有md文件: %v"}}
