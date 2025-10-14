@@ -951,7 +951,7 @@ export default {
         display: flex;
         flex-wrap: wrap;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: flex-end;
         .answer-text {
           background: #7288fa;
           color: #fff;

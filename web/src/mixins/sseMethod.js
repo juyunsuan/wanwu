@@ -419,7 +419,7 @@ export default {
                 signal: this.ctrlAbort.signal,
                 body: JSON.stringify(data),
                 openWhenHidden: true, //页面退至后台保持连接
-                ...(this.type === 'webChat' && { isOpeanUrl: true }),
+                ...(this.type === 'webChat' && { isOpenUrl: true }),
                 onopen: async(e) => {
                     console.log("已建立SSE连接~",new Date().getTime());
                     if (e.status !== 200) {
