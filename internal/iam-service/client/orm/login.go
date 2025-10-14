@@ -49,7 +49,7 @@ func (c *Client) Login(ctx context.Context, username, password, language string)
 			return toErrStatus("iam_login_err", err.Error())
 		}
 		var orgID uint32
-		if len(userInfo.Orgs) == 1 {
+		if len(userInfo.Orgs) > 0 {
 			orgID = userInfo.Orgs[0].Org.ID
 		} else if len(userInfo.Orgs) > 1 {
 			for _, org := range userInfo.Orgs {
