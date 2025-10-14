@@ -225,10 +225,6 @@ export default {
         clickTool(item,i){
             this.toolIndex = i;
             this.activeValue = item.value;
-        },
-        submit(){
-            this.$emit('selectTool',this.activeValue);
-            this.dialogVisible = false;
         }
     }
 }

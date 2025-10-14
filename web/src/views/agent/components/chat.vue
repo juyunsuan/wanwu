@@ -2,7 +2,7 @@
     <!-- 远景大模型 -->
     <div class="full-content flex">
         <el-main class="scroll">
-            <div class="smart-center">
+            <div class="smart-center" style="padding:0;">
                 <!--基础配置回显-->
                 <div v-show="echo" class="session rl echo">
                     <Prologue  :editForm="editForm" @setProloguePrompt="setProloguePrompt" :isBigModel="true" />

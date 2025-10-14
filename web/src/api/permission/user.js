@@ -9,14 +9,7 @@ export const fetchUserList = (params) => {
         params,
     })
 }
-// 获取用户详情
-export const fetchUserDetail = (params) => {
-    return service({
-        url: `${BASE_URL}/user/info`,
-        method: "get",
-        params,
-    })
-}
+
 // 获取角色列表用户
 export const fetchRoleList = () => {
     return service({
