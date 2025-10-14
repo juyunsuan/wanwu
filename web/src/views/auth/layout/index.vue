@@ -28,7 +28,7 @@
 <script>
 import {mapState, mapActions} from 'vuex'
 import ChangeLang from "@/components/changeLang.vue"
-import {replaceTitle, replaceIcon} from "@/utils/util";
+import {replaceTitle, replaceIcon, avatarSrc} from "@/utils/util";
 import { getCommonInfo } from '@/api/user'
 
 export default {
@@ -76,7 +76,7 @@ export default {
         this.setDefaultImage()
         return
       }
-      this.backgroundSrc = this.$basePath + '/user/api' + backgroundPath
+      this.backgroundSrc = avatarSrc(backgroundPath)
     },
   }
 }

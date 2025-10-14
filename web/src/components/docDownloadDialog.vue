@@ -16,6 +16,7 @@
 
 <script>
 import { docDownload } from "@/api/user"
+import {avatarSrc} from "@/utils/util";
 
 export default {
   data() {
@@ -38,7 +39,7 @@ export default {
           this.$message.error(res.msg || '暂无下载路径')
           return
         }
-        const url = window.location.origin + this.$basePath + '/user/api' + res.data.docCenterPath
+        const url = window.location.origin + avatarSrc(res.data.docCenterPath)
         window.open(url)
         this.handleClose()
       })
