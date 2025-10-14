@@ -167,7 +167,7 @@ func toUserInfo(user *orm.UserInfo) *iam_service.UserInfo {
 	}
 	for _, userOrg := range user.Orgs {
 		ret.Orgs = append(ret.Orgs, &iam_service.UserOrg{
-			Org:   toIDName(userOrg.Org),
+			Org:   toIDName(userOrg.Org.IDName),
 			Roles: toRoleIDNames(userOrg.Roles),
 		})
 	}

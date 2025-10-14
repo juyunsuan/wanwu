@@ -48,27 +48,18 @@ func (c *Client) Login(ctx context.Context, username, password, language string)
 		if err != nil {
 			return toErrStatus("iam_login_err", err.Error())
 		}
-		// select org
-		orgs, err := selectOrgs(tx, user.ID, orgTree)
-		if err != nil {
-			return toErrStatus("iam_login_err", err.Error())
-		}
 		var orgID uint32
-		if len(orgs) == 1 {
-			orgID = orgs[0].ID
-		} else if len(orgs) > 1 {
-			var hasRole bool
+		if len(userInfo.Orgs) == 1 {
+			orgID = userInfo.Orgs[0].Org.ID
+		} else if len(userInfo.Orgs) > 1 {
 			for _, org := range userInfo.Orgs {
-				if org.Org.ID == orgs[0].ID {
-					if len(org.Roles) > 0 {
-						hasRole = true
-						orgID = orgs[0].ID
-					}
-					break
+				if !org.Org.Status {
+					continue
 				}
-			}
-			if !hasRole {
-				orgID = orgs[1].ID
+				if len(org.Roles) > 0 {
+					orgID = org.Org.ID
+				}
+				break
 			}
 		}
 		if orgID != 0 {

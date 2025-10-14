@@ -541,10 +541,10 @@ func toUserInfoTx(tx *gorm.DB, user *model.User, orgTree *model.OrgNode, allOrg 
 	}
 	for _, org := range orgs {
 		if allOrg {
-			ret.Orgs = append(ret.Orgs, &UserOrg{Org: org.IDName})
+			ret.Orgs = append(ret.Orgs, &UserOrg{Org: org})
 			ret.Status = user.Status
 		} else if util.Exist(orgID, org.ID) {
-			ret.Orgs = append(ret.Orgs, &UserOrg{Org: org.IDName})
+			ret.Orgs = append(ret.Orgs, &UserOrg{Org: org})
 			ret.Status = org.Status
 		}
 	}
