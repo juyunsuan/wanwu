@@ -51,15 +51,16 @@ func (c *Client) Login(ctx context.Context, username, password, language string)
 		var orgID uint32
 		if len(userInfo.Orgs) > 0 {
 			orgID = userInfo.Orgs[0].Org.ID
-		} else if len(userInfo.Orgs) > 1 {
+		}
+		if len(userInfo.Orgs) > 1 {
 			for _, org := range userInfo.Orgs {
 				if !org.Org.Status {
 					continue
 				}
 				if len(org.Roles) > 0 {
 					orgID = org.Org.ID
+					break
 				}
-				break
 			}
 		}
 		if orgID != 0 {
