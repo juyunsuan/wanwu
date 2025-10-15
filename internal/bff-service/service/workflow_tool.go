@@ -85,7 +85,7 @@ func GetWorkflowToolSelect(ctx *gin.Context, userId, orgId, toolType, name strin
 }
 
 func GetWorkflowToolDetail(ctx *gin.Context, userId, orgId, toolId, toolType, operationId string) (*response.ToolDetail4Workflow, error) {
-	var schema string
+	var schema, iconUrl string
 	switch toolType {
 	case constant.ToolTypeBuiltIn:
 		resp, err := mcp.GetSquareTool(ctx.Request.Context(), &mcp_service.GetSquareToolReq{
@@ -99,6 +99,7 @@ func GetWorkflowToolDetail(ctx *gin.Context, userId, orgId, toolId, toolType, op
 			return nil, err
 		}
 		schema = resp.Schema
+		iconUrl, _ = net_url.JoinPath(config.Cfg().Server.ApiBaseUrl, cacheMCPAvatar(ctx, resp.Info.AvatarPath).Path)
 	case constant.ToolTypeCustom:
 		resp, err := mcp.GetCustomToolInfo(ctx.Request.Context(), &mcp_service.GetCustomToolInfoReq{
 			CustomToolId: toolId,
@@ -111,12 +112,13 @@ func GetWorkflowToolDetail(ctx *gin.Context, userId, orgId, toolId, toolType, op
 			return nil, err
 		}
 		schema = resp.Schema
+		iconUrl, _ = net_url.JoinPath(config.Cfg().Server.ApiBaseUrl, config.Cfg().DefaultIcon.ToolIcon)
 	}
+
 	inputs, outputs, err := openapiSchema2ToolActionInputsAndOutputs4Workflow(ctx.Request.Context(), schema, operationId)
 	if err != nil {
 		return nil, err
 	}
-	iconUrl, _ := net_url.JoinPath(config.Cfg().Server.ApiBaseUrl, config.Cfg().DefaultIcon.ToolIcon)
 	return &response.ToolDetail4Workflow{
 		ActionID:   operationId,
 		ActionName: operationId,

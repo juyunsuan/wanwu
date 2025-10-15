@@ -121,11 +121,7 @@ func ImportWorkflow(ctx *gin.Context) {
 //	@Success	200			{object}	response.Response{data=response.ListResult{list=[]response.ToolSelect4Workflow}}
 //	@Router		/workflow/tool/select [get]
 func GetWorkflowToolSelect(ctx *gin.Context) {
-	// 获取查询参数
-	toolType := ctx.Query("toolType")
-	name := ctx.Query("name")
-	// 调用服务层获取工具列表
-	tools, err := service.GetWorkflowToolSelect(ctx, getUserID(ctx), getOrgID(ctx), toolType, name)
+	tools, err := service.GetWorkflowToolSelect(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("toolType"), ctx.Query("name"))
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
@@ -147,12 +143,7 @@ func GetWorkflowToolSelect(ctx *gin.Context) {
 //	@Success	200			{object}	response.Response{data=response.ToolDetail4Workflow}
 //	@Router		/workflow/tool/action [get]
 func GetWorkflowToolDetail(ctx *gin.Context) {
-	// 获取查询参数
-	toolType := ctx.Query("toolType")
-	name := ctx.Query("actionName")
-	toolId := ctx.Query("toolId")
-	// 调用服务层获取工具列表
-	data, err := service.GetWorkflowToolDetail(ctx, getUserID(ctx), getOrgID(ctx), toolId, toolType, name)
+	data, err := service.GetWorkflowToolDetail(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("toolId"), ctx.Query("toolType"), ctx.Query("actionName"))
 	if err != nil {
 		gin_util.Response(ctx, nil, err)
 		return
