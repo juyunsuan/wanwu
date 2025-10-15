@@ -12,8 +12,9 @@ const (
 	// jwt subject
 	USER = "user"
 
-	UserTokenTimeout = int64(60 * 60 * 24) // 1天
-	BufferTime       = int64(60 * 60 * 2)
+	UserTokenTimeout      = int64(60 * 60 * 24) // 1天
+	BufferTime            = int64(60 * 60 * 2)
+	UserLoginTokenTimeout = int64(60 * 5) // 5 min
 )
 
 var (

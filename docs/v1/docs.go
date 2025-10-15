@@ -2246,6 +2246,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/base/login/email": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "guest"
+                ],
+                "summary": "用户邮箱双因子登录",
+                "parameters": [
+                    {
+                        "description": "用户名+密码",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.Login"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.LoginByEmail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/base/password/email": {
             "post": {
                 "consumes": [
@@ -7871,6 +7916,151 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/login": {
+            "put": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "二阶段用户首次登录邮箱校验绑定与修改密码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "common"
+                ],
+                "summary": "用户首次登录邮箱校验绑定与修改密码",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "语言",
+                        "name": "X-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "密码和邮箱信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ChangeUserPasswordByEmail"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Login"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "二阶段用户非首次登录邮箱校验与绑定",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "common"
+                ],
+                "summary": "非首次登录邮箱校验与绑定",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "语言",
+                        "name": "X-Language",
+                        "in": "header"
+                    },
+                    {
+                        "description": "登录邮箱信息",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LoginEmailCheck"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.Login"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/user/login/email/code": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "common"
+                ],
+                "summary": "登录邮箱验证码发送",
+                "parameters": [
+                    {
+                        "description": "邮箱地址",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LoginSendEmailCode"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/user/password": {
             "put": {
                 "security": [
@@ -9772,6 +9962,31 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ChangeUserPasswordByEmail": {
+            "type": "object",
+            "required": [
+                "code",
+                "email",
+                "newPassword",
+                "oldPassword"
+            ],
+            "properties": {
+                "code": {
+                    "description": "邮箱验证码",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                },
+                "newPassword": {
+                    "type": "string"
+                },
+                "oldPassword": {
+                    "type": "string"
+                }
+            }
+        },
         "request.ChatRagRequest": {
             "type": "object",
             "required": [
@@ -10278,7 +10493,6 @@ const docTemplate = `{
             "required": [
                 "ChildChunkNoList",
                 "docId",
-                "parentChunkNo",
                 "parentId"
             ],
             "properties": {
@@ -10959,6 +11173,35 @@ const docTemplate = `{
                 }
             }
         },
+        "request.LoginEmailCheck": {
+            "type": "object",
+            "required": [
+                "code",
+                "email"
+            ],
+            "properties": {
+                "code": {
+                    "description": "邮箱验证码",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                }
+            }
+        },
+        "request.LoginSendEmailCode": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "description": "邮箱",
+                    "type": "string"
+                }
+            }
+        },
         "request.MCPCreate": {
             "type": "object",
             "required": [
@@ -11490,7 +11733,6 @@ const docTemplate = `{
             "required": [
                 "childChunk",
                 "docId",
-                "parentChunkNo",
                 "parentId"
             ],
             "properties": {
@@ -11721,10 +11963,6 @@ const docTemplate = `{
                     "description": "公司",
                     "type": "string"
                 },
-                "email": {
-                    "description": "邮箱",
-                    "type": "string"
-                },
                 "gender": {
                     "description": "性别（0-女，1-男，空-未知）",
                     "type": "string"
@@ -11832,10 +12070,6 @@ const docTemplate = `{
             "properties": {
                 "company": {
                     "description": "公司",
-                    "type": "string"
-                },
-                "email": {
-                    "description": "邮箱",
                     "type": "string"
                 },
                 "gender": {
@@ -12650,6 +12884,19 @@ const docTemplate = `{
                 }
             }
         },
+        "response.CustomLoginEmail": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "登录邮箱",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.CustomEmail"
+                        }
+                    ]
+                }
+            }
+        },
         "response.CustomRegister": {
             "type": "object",
             "properties": {
@@ -12667,7 +12914,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
-                    "description": "注册邮箱",
+                    "description": "邮箱",
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.CustomEmail"
@@ -13382,6 +13629,21 @@ const docTemplate = `{
                 }
             }
         },
+        "response.LoginByEmail": {
+            "type": "object",
+            "properties": {
+                "isEmailCheck": {
+                    "type": "boolean"
+                },
+                "isUpdatePassword": {
+                    "description": "是否已更新密码",
+                    "type": "boolean"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "response.LogoCustomInfo": {
             "type": "object",
             "properties": {
@@ -13421,6 +13683,14 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/response.CustomLogin"
+                        }
+                    ]
+                },
+                "loginEmail": {
+                    "description": "邮箱登录信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/response.CustomLoginEmail"
                         }
                     ]
                 },

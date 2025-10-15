@@ -29,6 +29,10 @@ type ResetPasswordByEmail struct {
 	Password string `json:"password" validate:"required"` // 密码
 }
 
+type LoginSendEmailCode struct {
+	Email string `json:"email" validate:"required"` // 邮箱
+}
+
 func (l *Login) Check() error {
 	return nil
 }
@@ -46,5 +50,9 @@ func (r *ResetPasswordSendEmailCode) Check() error {
 }
 
 func (r *ResetPasswordByEmail) Check() error {
+	return nil
+}
+
+func (l *LoginSendEmailCode) Check() error {
 	return nil
 }

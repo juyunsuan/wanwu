@@ -139,6 +139,67 @@ func UpdateUserAvatar(ctx *gin.Context) {
 	gin_util.Response(ctx, nil, err)
 }
 
+// LoginEmailCheck
+//
+//	@Tags			common
+//	@Summary		非首次登录邮箱校验与绑定
+//	@Description	二阶段用户非首次登录邮箱校验与绑定
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Language	header		string					false	"语言"
+//	@Param			data		body		request.LoginEmailCheck	true	"登录邮箱信息"
+//	@Success		200			{object}	response.Response{data=response.Login}
+//	@Router			/user/login [post]
+func LoginEmailCheck(ctx *gin.Context) {
+	var req request.LoginEmailCheck
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	// 二阶段用户非首次登录邮箱校验与绑定
+	resp, err := service.LoginEmailCheck(ctx, &req, getLanguage(ctx), getUserID(ctx))
+	gin_util.Response(ctx, resp, err)
+}
+
+// ChangeUserPasswordByEmail
+//
+//	@Tags			common
+//	@Summary		用户首次登录邮箱校验绑定与修改密码
+//	@Description	二阶段用户首次登录邮箱校验绑定与修改密码
+//	@Security		JWT
+//	@Accept			json
+//	@Produce		json
+//	@Param			X-Language	header		string								false	"语言"
+//	@Param			data		body		request.ChangeUserPasswordByEmail	true	"密码和邮箱信息"
+//	@Success		200			{object}	response.Response{data=response.Login}
+//	@Router			/user/login [put]
+func ChangeUserPasswordByEmail(ctx *gin.Context) {
+	var req request.ChangeUserPasswordByEmail
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.ChangeUserPasswordByEmail(ctx, &req, getLanguage(ctx), getUserID(ctx))
+	gin_util.Response(ctx, resp, err)
+}
+
+// LoginSendEmailCode
+//
+//	@Tags		common
+//	@Summary	登录邮箱验证码发送
+//	@Accept		json
+//	@Produce	application/json
+//	@Param		data	body		request.LoginSendEmailCode	true	"邮箱地址"
+//	@Success	200		{object}	response.Response
+//	@Router		/user/login/email/code [post]
+func LoginSendEmailCode(ctx *gin.Context) {
+	var req request.LoginSendEmailCode
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	err := service.LoginSendEmailCode(ctx, req.Email)
+	gin_util.Response(ctx, nil, err)
+}
+
 // --- internal ---
 
 // 获取当前用户ID

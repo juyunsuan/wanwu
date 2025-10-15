@@ -14,6 +14,8 @@
 {"code":0,"key":"bff_avatar_upload_error","langs":{"zh":"自定义图标上传错误: %v"}}
 {"code":110006,"key":"","langs":{"zh":"注册已禁用"}}
 {"code":110007,"key":"","langs":{"zh":"忘记密码已禁用"}}
+{"code":110008,"key":"","langs":{"zh":"邮箱登录已禁用"}}
+{"code":110009,"key":"","langs":{"zh":"单因子登录禁用"}}
 {"code":0,"key":"------ auth ------","langs":{}}
 {"code":110004,"key":"bff_auth_server_authorized","langs":{"en":"authorized","zh":"已授权"}}
 {"code":110004,"key":"bff_auth_server_error","langs":{"en":"auth-service err","zh":"授权服务异常"}}
@@ -72,7 +74,13 @@
 {"code":110005,"key":"bff_sensitive_check_req","langs":{"en":"%v","zh":"%v"}}
 {"code":110005,"key":"bff_sensitive_check_req_default_reply","langs":{"en":"your current request or history contains sensitive content. In accordance with relevant security requirements, this round of dialogue has been terminated. Please clear your history or start a new dialogue","zh":"您当前请求或者历史信息中包含敏感内容，根据相关安全要求，该轮对话终止，请清除历史信息或者重新开启新的对话"}}
 {"code":110005,"key":"bff_sensitive_check_resp_default_reply","langs":{"en":"the response contains sensitive content. In accordance with relevant security requirements, this round of dialogue has been terminated. Please clear the history or start a new dialogue.","zh":"回答中包含敏感内容，根据相关安全要求，该轮对话终止，请清除历史信息或者重新开启新的对话"}}
-{"code":0,"key":"","langs":{}}
+{"code":0,"key":"------ mcp server ------","langs":{}}
+{"code":110000,"key":"bff_mcp_server_start_err","langs":{"zh":"启动MCP服务错误:%v"}}
+{"code":110000,"key":"bff_mcp_server_convert_tool_err","langs":{"zh":"MCP服务转换工具错误:%v"}}
+{"code":110000,"key":"bff_mcp_server_register_tool_err","langs":{"zh":"MCP服务注册工具错误:%v"}}
+{"code":110000,"key":"bff_mcp_server_unregister_tool_err","langs":{"zh":"MCP服务注销工具错误:%v"}}
+{"code":110000,"key":"bff_mcp_server_shutdown_err","langs":{"zh":"关闭MCP服务错误:%v"}}
+{"code":110000,"key":"bff_mcp_server_not_exist","langs":{"zh":"MCP服务不存在"}}
 {"code":0,"key":"------ custom ------","langs":{}}
 {"code":0,"key":"bff_custom_home_title","langs":{"en":"Yuanjing Wanwu Intelligent Body Development Platform","zh":"元景万悟智能体开发平台"}}
 {"code":0,"key":"bff_custom_tab_title","langs":{"en":"Yuanjing Wanwu","zh":"元景万悟"}}
@@ -88,6 +96,8 @@
 {"code":120003,"key":"iam_login_err","langs":{"en":"user login err: %v","zh":"用户登录错误: %v"}}
 {"code":120003,"key":"iam_login_invalid_name_pwd","langs":{"en":"username or password is incorrect","zh":"用户名或密码错误"}}
 {"code":120003,"key":"iam_login_user_disable","langs":{"en":"user disable","zh":"账号已被停用"}}
+{"code":120003,"key":"iam_login_email","langs":{"en":"user email is incorrect","zh":"用户邮箱错误"}}
+{"code":120003,"key":"iam_login_email_bind","langs":{"en":"email already exists, binding failed","zh":"邮箱重复，无法绑定"}}
 {"code":120004,"key":"iam_register_by_email_send_code","langs":{"en":"email register send code err: %v","zh":"邮箱注册发送验证码错误: %v"}}
 {"code":120004,"key":"iam_register_by_email_send_code_frequent","langs":{"en":"send email code too frequent, please try later","zh":"发送邮箱验证码太频繁，请稍后再试"}}
 {"code":120004,"key":"iam_register_by_email","langs":{"en":"email register err: %v","zh":"邮箱注册错误: %v"}}
@@ -238,6 +248,16 @@
 {"code":310010,"key":"mcp_update_custom_tool_err","langs":{"zh":"更新自定义工具异常:%v"}}
 {"code":310011,"key":"mcp_delete_custom_tool_err","langs":{"zh":"删除自定义工具:%v"}}
 {"code":310012,"key":"mcp_get_square_tool_err","langs":{"zh":"获取内置工具详情不存在"}}
+{"code":310013,"key":"mcp_create_mcp_server_err","langs":{"zh":"创建MCP服务异常:%v"}}
+{"code":310013,"key":"mcp_create_duplicate_mcp_server_err","langs":{"zh":"创建MCP服务异常:已存在同名"}}
+{"code":310014,"key":"mcp_delete_mcp_server_err","langs":{"zh":"删除MCP服务异常:%v"}}
+{"code":310015,"key":"mcp_get_mcp_server_info_err","langs":{"zh":"获取MCP服务详情异常:%v"}}
+{"code":310016,"key":"mcp_get_mcp_server_list_err","langs":{"zh":"获取MCP服务列表异常:%v"}}
+{"code":310017,"key":"mcp_create_mcp_server_tool_err","langs":{"zh":"创建MCP服务工具异常:%v"}}
+{"code":310018,"key":"mcp_update_mcp_server_tool_err","langs":{"zh":"更新MCP服务工具异常:%v"}}
+{"code":310019,"key":"mcp_delete_mcp_server_tool_err","langs":{"zh":"删除MCP服务工具异常:%v"}}
+{"code":310020,"key":"mcp_get_mcp_server_tool_info_err","langs":{"zh":"获取MCP服务工具详情异常:%v"}}
+{"code":310021,"key":"mcp_get_mcp_server_tool_list_err","langs":{"zh":"获取MCP服务工具列表异常:%v"}}
 {"code":150001,"key":"rag_role_err","langs":{"zh":"角色权限错误：%v"}}
 {"code":150002,"key":"rag_info_not_exist","langs":{"zh":"文本问答信息不存在：%v"}}
 {"code":150003,"key":"rag_delete_err","langs":{"zh":"删除文本问答错误：%v"}}

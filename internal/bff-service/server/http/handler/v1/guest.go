@@ -37,6 +37,24 @@ func Login(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
+// LoginByEmail
+//
+//	@Tags		guest
+//	@Summary	用户邮箱双因子登录
+//	@Accept		json
+//	@Produce	json
+//	@Param		data	body		request.Login	true	"用户名+密码"
+//	@Success	200		{object}	response.Response{data=response.LoginByEmail}
+//	@Router		/base/login/email [post]
+func LoginByEmail(ctx *gin.Context) {
+	var req request.Login
+	if !gin_util.Bind(ctx, &req) {
+		return
+	}
+	resp, err := service.LoginByEmail(ctx, &req)
+	gin_util.Response(ctx, resp, err)
+}
+
 // GetCaptcha
 //
 //	@Tags		guest

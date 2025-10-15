@@ -16,6 +16,11 @@ func registerCommon(apiV1 *gin.RouterGroup) {
 	mid.Sub("common").Reg(apiV1, "/avatar", http.MethodPost, v1.UploadAvatar, "上传自定义图标")
 	mid.Sub("common").Reg(apiV1, "/user/avatar", http.MethodPut, v1.UpdateUserAvatar, "编辑用户头像")
 
+	//二阶段用户登录
+	mid.Sub("common").Reg(apiV1, "/user/login", http.MethodPost, v1.LoginEmailCheck, "非首次登录邮箱绑定校验")
+	mid.Sub("common").Reg(apiV1, "/user/login", http.MethodPut, v1.ChangeUserPasswordByEmail, "首次登录修改用户密码与邮箱绑定校验（by 个人）")
+	mid.Sub("common").Reg(apiV1, "/user/login/email/code", http.MethodPost, v1.LoginSendEmailCode, "登录邮箱验证码发送")
+
 	// 通用文件上传
 	mid.Sub("common").Reg(apiV1, "/file/check", http.MethodGet, v1.CheckFile, "校验文件")
 	mid.Sub("common").Reg(apiV1, "/file/check/list", http.MethodGet, v1.CheckFileList, "校验文件列表")

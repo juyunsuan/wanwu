@@ -83,6 +83,14 @@ service IAMService {
   rpc GetCaptcha(GetCaptchaReq) returns (GetCaptchaResp) {}
   // 登录
   rpc Login(LoginReq) returns (LoginResp) {}
+  // 一阶段登录
+  rpc LoginByEmail(LoginByEmailReq) returns (LoginByEmailResp) {}
+  // 登录发送邮箱验证码
+  rpc LoginSendEmailCode(LoginSendEmailCodeReq)returns (google.protobuf.Empty) {}
+  // 二阶段登录邮箱校验
+  rpc LoginEmailCheck(LoginEmailCheckReq) returns (LoginResp) {}
+  // 二阶段登录重置密码与邮箱校验
+  rpc ChangeUserPasswordByEmail(ChangeUserPasswordByEmailReq) returns (LoginResp) {}
 
   // --- register ---
   // 邮箱注册用户
@@ -91,9 +99,9 @@ service IAMService {
   rpc RegisterSendEmailCode(RegisterSendEmailCodeReq) returns (google.protobuf.Empty) {}
 
   // --- reset password ---
-  // 邮箱注册用户
+  // 重置密码邮箱验证码发送
   rpc ResetPasswordSendEmailCode(ResetPasswordSendEmailCodeReq) returns (google.protobuf.Empty) {}
-  // 邮箱注册发送邮件
+  // 邮箱重置密码
   rpc ResetPasswordByEmail(ResetPasswordByEmailReq) returns (google.protobuf.Empty) {}
 }
 
@@ -402,6 +410,39 @@ message LoginReq {
 message LoginResp {
   UserInfo user = 1;
   UserPermission permission = 2;
+}
+
+message LoginByEmailReq {
+  string userName = 1; // 用户名
+  string password = 2; // 密码
+  string key = 3; // 客户端key
+  string code = 4; // 验证码
+}
+
+message LoginByEmailResp {
+  string userId = 1;
+  bool isEmailCheck = 2;
+  int64 lastUpdatePasswordAt = 3;
+}
+
+message LoginSendEmailCodeReq{
+  string email = 1;
+}
+
+message LoginEmailCheckReq{
+  string userId = 1;
+  string email = 2;
+  string code = 3;
+  string language = 4; //用户语言
+}
+
+message ChangeUserPasswordByEmailReq{
+  string userId = 1;
+  string oldPassword = 2;
+  string newPassword = 3;
+  string email = 4;
+  string code = 5;
+  string language = 6; //用户语言
 }
 
 // --- register ---

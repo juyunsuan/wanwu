@@ -38,4 +38,6 @@ type User struct {
 	Language string `gorm:"index:idx_user_language"`
 	// 用户头像
 	AvatarPath string `gorm:"index:idx_user_avatar_path"`
+	// isEmailCheck
+	IsEmailCheck bool `gorm:"default:false;not null"`
 }

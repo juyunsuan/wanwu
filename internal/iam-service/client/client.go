@@ -76,6 +76,10 @@ type IClient interface {
 	// --- login ---
 
 	Login(ctx context.Context, username, password, language string) (*orm.UserInfo, *orm.Permission, *errs.Status)
+	LoginSendEmailCode(ctx context.Context, email string) *errs.Status
+	LoginByEmail(ctx context.Context, username, password string) (*orm.EmailLoginInfo, *errs.Status)
+	LoginEmailCheck(ctx context.Context, userID uint32, email, code, language string) (*orm.UserInfo, *orm.Permission, *errs.Status)
+	ChangeUserPasswordByEmail(ctx context.Context, userID uint32, OldPassword, NewPassword, email, code, language string) (*orm.UserInfo, *orm.Permission, *errs.Status)
 
 	// --- register ---
 

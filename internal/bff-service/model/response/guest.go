@@ -15,6 +15,12 @@ type Login struct {
 	IsUpdatePassword bool              `json:"isUpdatePassword"` // 是否已更新密码
 }
 
+type LoginByEmail struct {
+	IsEmailCheck     bool   `json:"isEmailCheck"`
+	Token            string `json:"token"`
+	IsUpdatePassword bool   `json:"isUpdatePassword"` // 是否已更新密码
+}
+
 type Captcha struct {
 	Key string `json:"key"` // 客户端key
 	B64 string `json:"b64"` // 验证码png图片base64字符串
@@ -28,6 +34,7 @@ type LogoCustomInfo struct {
 	LinkList      map[string]string   `json:"linkList"`      // 跳转链接列表,key为链接名称,value为URL
 	Register      CustomRegister      `json:"register"`      // 注册信息
 	ResetPassword CustomResetPassword `json:"resetPassword"` // 重置密码信息
+	LoginEmail    CustomLoginEmail    `json:"loginEmail"`    // 邮箱登录信息
 	DefaultIcon   CustomDefaultIcon   `json:"defaultIcon"`   // 应用默认图片
 }
 
@@ -61,7 +68,11 @@ type CustomRegister struct {
 }
 
 type CustomResetPassword struct {
-	Email CustomEmail `json:"email"` // 注册邮箱
+	Email CustomEmail `json:"email"` // 邮箱
+}
+
+type CustomLoginEmail struct {
+	Email CustomEmail `json:"email"` // 登录邮箱
 }
 
 type CustomDefaultIcon struct {

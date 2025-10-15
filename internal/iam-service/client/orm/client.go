@@ -114,6 +114,12 @@ type Perm struct {
 	Perm string
 }
 
+type EmailLoginInfo struct {
+	ID                   uint32
+	IsEmailCheck         bool
+	LastUpdatePasswordAt int64
+}
+
 func toErrStatus(key string, args ...string) *err_code.Status {
 	return &err_code.Status{
 		TextKey: key,
