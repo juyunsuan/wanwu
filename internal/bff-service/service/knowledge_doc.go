@@ -367,6 +367,43 @@ func UpdateDocSegment(ctx *gin.Context, userId, orgId string, r *request.UpdateD
 	return err
 }
 
+func CreateDocChildSegment(ctx *gin.Context, userId, orgId string, r *request.CreateDocChildSegmentReq) error {
+	_, err := knowledgeBaseDoc.CreateDocChildSegment(ctx.Request.Context(), &knowledgebase_doc_service.CreateDocChildSegmentReq{
+		UserId:        userId,
+		OrgId:         orgId,
+		DocId:         r.DocId,
+		ParentChunkId: r.ParentId,
+		Content:       r.Content,
+	})
+	return err
+}
+
+func UpdateDocChildSegment(ctx *gin.Context, userId, orgId string, r *request.UpdateDocChildSegmentReq) error {
+	_, err := knowledgeBaseDoc.UpdateDocChildSegment(ctx.Request.Context(), &knowledgebase_doc_service.UpdateDocChildSegmentReq{
+		UserId:        userId,
+		OrgId:         orgId,
+		DocId:         r.DocId,
+		ParentChunkId: r.ParentId,
+		ParentChunkNo: r.ParentChunkNo,
+		ChildChunk: &knowledgebase_doc_service.ChildChunk{
+			ChunkNo: r.ChildChunk.ChildNo,
+			Content: r.ChildChunk.Content,
+		},
+	})
+	return err
+}
+
+func DeleteDocChildSegment(ctx *gin.Context, userId, orgId string, r *request.DeleteDocChildSegmentReq) error {
+	_, err := knowledgeBaseDoc.DeleteDocChildSegment(ctx.Request.Context(), &knowledgebase_doc_service.DeleteDocChildSegmentReq{
+		UserId:        userId,
+		OrgId:         orgId,
+		DocId:         r.DocId,
+		ParentChunkId: r.ParentId,
+		ParentChunkNo: r.ParentChunkNo,
+		ChildChunkNo:  r.ChildChunkNoList,
+	})
+	return err
+}
 func GetDocChildSegmentList(ctx *gin.Context, userId, orgId string, req *request.DocChildListReq) (*response.DocChildSegmentResp, error) {
 	docSegmentListResp, err := knowledgeBaseDoc.GetDocChildSegmentList(ctx.Request.Context(), &knowledgebase_doc_service.GetDocChildSegmentListReq{
 		UserId:    userId,
@@ -374,6 +411,10 @@ func GetDocChildSegmentList(ctx *gin.Context, userId, orgId string, req *request
 		DocId:     req.DocId,
 		ContentId: req.ContentId,
 	})
+	if err != nil {
+		log.Errorf("GetDocChildSegmentList error %v", err)
+		return nil, err
+	}
 	return buildDocChildSegmentResp(docSegmentListResp), err
 }
 

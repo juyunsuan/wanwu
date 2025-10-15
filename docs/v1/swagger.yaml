@@ -1262,6 +1262,15 @@ definitions:
     - chunkName
     - fileName
     type: object
+  request.ChildChunk:
+    properties:
+      chunkNo:
+        description: 子分段序列号
+        type: integer
+      content:
+        description: 子分段内容
+        type: string
+    type: object
   request.CleanFileReq:
     properties:
       chunkName:
@@ -1311,6 +1320,24 @@ definitions:
     required:
     - assistantId
     - prompt
+    type: object
+  request.CreateDocChildSegmentReq:
+    properties:
+      content:
+        description: 分段内容
+        items:
+          type: string
+        type: array
+      docId:
+        description: 文档id
+        type: string
+      parentId:
+        description: 父分段id
+        type: string
+    required:
+    - content
+    - docId
+    - parentId
     type: object
   request.CreateDocSegmentReq:
     properties:
@@ -1534,6 +1561,28 @@ definitions:
     required:
     - appId
     - appType
+    type: object
+  request.DeleteDocChildSegmentReq:
+    properties:
+      ChildChunkNoList:
+        description: 子分段序列号列表
+        items:
+          type: integer
+        type: array
+      docId:
+        description: 文档id
+        type: string
+      parentChunkNo:
+        description: 父分段序列号
+        type: integer
+      parentId:
+        description: 父分段id
+        type: string
+    required:
+    - ChildChunkNoList
+    - docId
+    - parentChunkNo
+    - parentId
     type: object
   request.DeleteDocReq:
     properties:
@@ -2341,6 +2390,27 @@ definitions:
         description: 应用类型
         type: string
     type: object
+  request.UpdateDocChildSegmentReq:
+    properties:
+      childChunk:
+        allOf:
+        - $ref: '#/definitions/request.ChildChunk'
+        description: 子分段序列号列表
+      docId:
+        description: 文档id
+        type: string
+      parentChunkNo:
+        description: 父分段序列号
+        type: integer
+      parentId:
+        description: 父分段id
+        type: string
+    required:
+    - childChunk
+    - docId
+    - parentChunkNo
+    - parentId
+    type: object
   request.UpdateDocSegmentReq:
     properties:
       content:
@@ -3117,6 +3187,13 @@ definitions:
         - $ref: '#/definitions/response.CustomEmail'
         description: 注册邮箱
     type: object
+  response.CustomResetPassword:
+    properties:
+      email:
+        allOf:
+        - $ref: '#/definitions/response.CustomEmail'
+        description: 注册邮箱
+    type: object
   response.CustomTab:
     properties:
       logo:
@@ -3623,6 +3700,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/response.CustomRegister'
         description: 注册信息
+      resetPassword:
+        allOf:
+        - $ref: '#/definitions/response.CustomResetPassword'
+        description: 重置密码信息
       tab:
         allOf:
         - $ref: '#/definitions/response.CustomTab'
@@ -6422,6 +6503,54 @@ paths:
       summary: 批量新增文档切片
       tags:
       - knowledge
+  /knowledge/doc/segment/child/create:
+    post:
+      consumes:
+      - application/json
+      description: 新增文档子分片
+      parameters:
+      - description: 新增文档子切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateDocChildSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 新增文档子分片
+      tags:
+      - knowledge
+  /knowledge/doc/segment/child/delete:
+    delete:
+      consumes:
+      - application/json
+      description: 删除文档子切片
+      parameters:
+      - description: 删除文档切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.DeleteDocChildSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 删除文档子切片
+      tags:
+      - knowledge
   /knowledge/doc/segment/child/list:
     get:
       consumes:
@@ -6449,6 +6578,30 @@ paths:
       security:
       - JWT: []
       summary: 获取子分段列表
+      tags:
+      - knowledge
+  /knowledge/doc/segment/child/update:
+    post:
+      consumes:
+      - application/json
+      description: 更新文档子切片
+      parameters:
+      - description: 更新文档子切片请求参数
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateDocChildSegmentReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - JWT: []
+      summary: 更新文档子切片
       tags:
       - knowledge
   /knowledge/doc/segment/create:

@@ -8,11 +8,19 @@ const (
 )
 
 type DocSegmentImportParams struct {
-	KnowledgeName   string `json:"knowledgeName"`   // 知识库的名称
-	KnowledgeId     string `json:"knowledgeId"`     // 知识库的唯一ID
-	FileName        string `json:"fileName"`        // 与chunk关联的文件名
-	MaxSentenceSize int    `json:"maxSentenceSize"` // 最大分段长度限制
-	FileUrl         string `json:"fileUrl"`         //文件url
+	KnowledgeName   string   `json:"knowledgeName"`   // 知识库的名称
+	KnowledgeId     string   `json:"knowledgeId"`     // 知识库的唯一ID
+	FileName        string   `json:"fileName"`        // 与chunk关联的文件名
+	MaxSentenceSize int      `json:"maxSentenceSize"` // 最大分段长度限制
+	FileUrl         string   `json:"fileUrl"`         //文件url
+	SegmentMethod   string   `json:"segmentMethod"`   ////分段方法 0：通用分段；1：父子分段,字符串为空则认为是通用分段
+	SubSplitter     []string `json:"subSplitter"`     // 分隔符（只有父子分段必填）
+	SubMaxSplitter  int      `json:"subMaxSplitter"`  // 可分隔最大值（只有父子分段必填）
+}
+
+type ChildChunkConfig struct {
+	Separators []string `json:"separators"` // 分隔符
+	ChunkSize  int32    `json:"chunk_size"` // 子分段大小
 }
 
 type DocSegmentImportTask struct {

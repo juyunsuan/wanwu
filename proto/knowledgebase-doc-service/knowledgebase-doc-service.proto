@@ -41,6 +41,12 @@ service KnowledgeBaseDocService {
   rpc UpdateDocSegment(UpdateDocSegmentReq) returns (google.protobuf.Empty) {}
   // 获取文档子分段列表
   rpc GetDocChildSegmentList(GetDocChildSegmentListReq) returns (GetDocChildSegmentListResp){}
+  // 新增文档子分片
+  rpc CreateDocChildSegment(CreateDocChildSegmentReq) returns (google.protobuf.Empty) {}
+  // 删除文档子分片
+  rpc DeleteDocChildSegment(DeleteDocChildSegmentReq) returns (google.protobuf.Empty) {}
+  // 更新文档子分片
+  rpc UpdateDocChildSegment(UpdateDocChildSegmentReq) returns (google.protobuf.Empty) {}
 }
 
 message GetDocListReq{
@@ -281,4 +287,35 @@ message ChildSegmentInfo{
   string childId = 2;
   int32 childNum = 3;
   string parentId = 4;
+}
+
+message CreateDocChildSegmentReq{
+  string userId = 1;
+  string orgId = 2;
+  string docId = 3;
+  string parentChunkId = 4;
+  repeated string content = 5;
+}
+
+message DeleteDocChildSegmentReq{
+  string userId = 1;
+  string orgId = 2;
+  string docId = 3;
+  string parentChunkId = 4;//父分段id
+  int32 parentChunkNo = 5;//父分段编号
+  repeated int32 childChunkNo = 6; //子分段编号列表
+}
+
+message UpdateDocChildSegmentReq{
+  string userId = 1;
+  string orgId = 2;
+  string docId = 3;
+  string parentChunkId = 4;//父分段id
+  int32 parentChunkNo = 5;//父分段编号
+  ChildChunk childChunk = 6; //子分段编号
+}
+
+message ChildChunk{
+  string content = 1;
+  int32 chunkNo = 2;
 }

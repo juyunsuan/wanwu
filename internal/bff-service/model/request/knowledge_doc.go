@@ -133,6 +133,34 @@ type DocChildListReq struct {
 	CommonCheck
 }
 
+type CreateDocChildSegmentReq struct {
+	DocId    string   `json:"docId"  validate:"required"`    // 文档id
+	ParentId string   `json:"parentId"  validate:"required"` // 父分段id
+	Content  []string `json:"content"  validate:"required"`  // 分段内容
+	CommonCheck
+}
+
+type UpdateDocChildSegmentReq struct {
+	DocId         string      `json:"docId"  validate:"required"`      // 文档id
+	ParentId      string      `json:"parentId"  validate:"required"`   // 父分段id
+	ParentChunkNo int32       `json:"parentChunkNo"`                   // 父分段序列号
+	ChildChunk    *ChildChunk `json:"childChunk"  validate:"required"` // 子分段序列号列表
+	CommonCheck
+}
+
+type ChildChunk struct {
+	ChildNo int32  `json:"chunkNo"` // 子分段序列号
+	Content string `json:"content"` // 子分段内容
+}
+
+type DeleteDocChildSegmentReq struct {
+	DocId            string  `json:"docId"  validate:"required"`            // 文档id
+	ParentId         string  `json:"parentId"  validate:"required"`         // 父分段id
+	ParentChunkNo    int32   `json:"parentChunkNo"`                         // 父分段序列号
+	ChildChunkNoList []int32 `json:"ChildChunkNoList"  validate:"required"` // 子分段序列号列表
+	CommonCheck
+}
+
 func (c *DocImportReq) Check() error {
 	if len(c.DocAnalyzer) > 0 {
 		for _, v := range c.DocAnalyzer {
