@@ -138,8 +138,6 @@ export default {
     }
   },
   created(){
-    this.getList();
-    this.getMetaList();
   },
   methods: {
     handleMetaValueChange(item, index) {
@@ -152,7 +150,7 @@ export default {
     },
     getMetaList(){
       this.docLoading = true;
-      getDocMetaList({docId:this.selectedDocIds}).then(res =>{
+      getDocMetaList({docIdList:String(this.selectedDocIds)}).then(res =>{
         if(res.code === 0){
           this.metaDataList = (res.data.knowledgeMetaValues || []).map(item => ({
             ...item,
@@ -175,6 +173,8 @@ export default {
     },
     showDialog() {
       this.dialogVisible = true;
+      this.getList();
+      this.getMetaList();
       this.initData();
     },
     

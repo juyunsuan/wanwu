@@ -9,8 +9,21 @@
           class="el-icon-arrow-left btn"
           @click="goBack"
         ></span>
-        <span class="header-left-title">智能体编辑</span>
-        <LinkIcon type="agent" />
+        <!-- <span class="header-left-title">智能体编辑</span> -->
+        <div class="basicInfo">
+          <div class="img">
+            <img :src="editForm.avatar.path ? `/user/api`+ editForm.avatar.path : '@/assets/imgs/bg-logo.png'" />
+          </div>
+          <div class="basicInfo-desc">
+            <span class="basicInfo-title">{{(editForm.name || '无信息').length > 12 ? (editForm.name || '无信息').substring(0, 12) + '...' : (editForm.name || '无信息')}}</span>
+            <span
+              class="el-icon-edit-outline editIcon"
+              @click="editAgent"
+            ></span>
+            <LinkIcon type="agent" />
+            <p>{{editForm.desc || '无信息'}}</p>
+          </div>
+        </div>
       </div>
       <div class="header-right">
         <el-button
@@ -60,19 +73,17 @@
     <div class="agent_form">
       <!-- 智能体信息 -->
       <div class="block prompt-box drawer-info">
-        <div class="basicInfo">
-          <div class="img">
-            <img :src="editForm.avatar.path ? `/user/api`+ editForm.avatar.path : '@/assets/imgs/bg-logo.png'" />
-          </div>
-          <div class="basicInfo-desc">
-            <span class="basicInfo-title">{{(editForm.name || '无信息').length > 12 ? (editForm.name || '无信息').substring(0, 12) + '...' : (editForm.name || '无信息')}}</span>
-            <span
-              class="el-icon-edit-outline editIcon"
-              @click="editAgent"
-            ></span>
-            <p>{{editForm.desc || '无信息'}}</p>
-          </div>
-        </div>
+            <h3 class="labelTitle">系统提示词</h3>
+            <div class="rl">
+              <el-input
+                class="desc-input "
+                v-model="editForm.instructions"
+                maxlength="600"
+                placeholder="描述你想创建的应用，详细描述应用的详细功能及作用，以及对该应用生成结果的要求"
+                type="textarea"
+              ></el-input>
+              <span class="el-input__count">{{editForm.instructions.length}}/600</span>
+            </div>
       </div>
       <!-- 智能体配置 -->
       <div class="drawer-form">
@@ -151,19 +162,6 @@
                 type="textarea"
               ></el-input>
               <span class="el-input__count">{{editForm.prologue.length}}/100</span>
-            </div>
-          </div>
-          <div class="block prompt-box">
-            <p class="block-title ">系统提示词</p>
-            <div class="rl">
-              <el-input
-                class="desc-input "
-                v-model="editForm.instructions"
-                maxlength="600"
-                placeholder="描述你想创建的应用，详细描述应用的详细功能及作用，以及对该应用生成结果的要求"
-                type="textarea"
-              ></el-input>
-              <span class="el-input__count">{{editForm.instructions.length}}/600</span>
             </div>
           </div>
           <div class="block recommend-box">
@@ -1172,18 +1170,16 @@ export default {
 .basicInfo {
   display: flex;
   align-items: center;
-  background: #f7f8fa;
-  box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-  padding: 10px 0;
+  border-radius: 12px;
+  padding: 16px;
   .img {
-    padding: 10px;
+    margin-right: 10px;
     img {
-      border-radius: 50%;
-      border: 1px solid #eee;
-      width: 60px;
-      height: 60px;
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
       object-fit: cover;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
     }
   }
   .basicInfo-desc {
@@ -1191,13 +1187,21 @@ export default {
   }
   .basicInfo-title {
     display: inline-block;
-    font-weight: 800;
-    font-size: 18px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f2937;
   }
   .editIcon {
     font-size: 16px;
     margin-left: 5px;
     cursor: pointer;
+    color: #6b7280;
+  }
+  p {
+    color: #6b7280;
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.2;
   }
 }
 .form-header {
@@ -1225,6 +1229,8 @@ export default {
     }
   }
   .header-left {
+    display: flex;
+    align-items: center;
     .btn {
       margin-right: 10px;
       font-size: 18px;
@@ -1255,6 +1261,15 @@ export default {
   .drawer-info {
     width: 300px;
     margin: 10px 0;
+    border-radius: 6px;
+    background: #f7f8fa;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
+    // padding: 10px;
+  }
+  .labelTitle {
+    font-size: 18px;
+    font-weight: 800;
+    padding: 10px 20px;
   }
   .actionConfig {
     overflow-y: auto;
@@ -1312,11 +1327,6 @@ export default {
       .block {
         padding: 5px 20px;
         margin-bottom: 0px !important;
-      }
-      .labelTitle {
-        font-size: 18px;
-        font-weight: 800;
-        padding: 10px 20px;
       }
     }
     /*通用*/
