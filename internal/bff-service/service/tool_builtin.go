@@ -97,6 +97,7 @@ func toToolSquareDetail(ctx *gin.Context, toolSquare *mcp_service.SquareToolDeta
 			Detail:          toolSquare.BuiltInTools.Detail,
 			ActionSum:       int64(toolSquare.BuiltInTools.ActionSum),
 		},
+		Schema: toolSquare.Schema,
 	}
 	for _, tool := range toolSquare.BuiltInTools.Tools {
 		ret.ToolSquareActions.Tools = append(ret.ToolSquareActions.Tools, toMCPTool(tool))

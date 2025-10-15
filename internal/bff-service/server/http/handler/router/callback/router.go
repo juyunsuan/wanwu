@@ -19,4 +19,6 @@ func Register(openAPI *gin.RouterGroup) {
 	mid.Sub("callback").Reg(openAPI, "/model/:modelId/pdf-parser", http.MethodPost, callback.ModelPdfParser, "Model pdf文档解析")
 	// workflow
 	mid.Sub("callback").Reg(openAPI, "/workflow/list", http.MethodGet, callback.GetWorkflowList, "根据userId和spaceId获取Workflow")
+	mid.Sub("callback").Reg(openAPI, "/workflow/tool/square", http.MethodGet, callback.GetWorkflowSquareTool, "获取内置工具详情")
+	mid.Sub("callback").Reg(openAPI, "/workflow/tool/custom", http.MethodGet, callback.GetWorkflowCustomTool, "获取自定义工具详情")
 }

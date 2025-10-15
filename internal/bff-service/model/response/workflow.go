@@ -1,6 +1,8 @@
 package response
 
-import "github.com/UnicomAI/wanwu/internal/bff-service/config"
+import (
+	"github.com/UnicomAI/wanwu/internal/bff-service/config"
+)
 
 type CozeWorkflowModelInfo struct {
 	ModelInfo
@@ -72,4 +74,21 @@ type CozeWorkflowExportData struct {
 	WorkflowName string `json:"name"`
 	WorkflowDesc string `json:"desc"`
 	Schema       string `json:"schema"`
+}
+
+type ToolDetail4Workflow struct {
+	Inputs     []ToolActionParam4Workflow `json:"inputs"`
+	Outputs    []ToolActionParam4Workflow `json:"outputs"`
+	ActionName string                     `json:"actionName"`
+	ActionID   string                     `json:"actionId"`
+	IconUrl    string                     `json:"iconUrl"`
+}
+
+type ToolActionParam4Workflow struct {
+	Input       struct{}                   `json:"input"`
+	Description string                     `json:"description"`
+	Name        string                     `json:"name"`
+	Type        string                     `json:"type"`
+	Required    bool                       `json:"required"`
+	Children    []ToolActionParam4Workflow `json:"schema"`
 }

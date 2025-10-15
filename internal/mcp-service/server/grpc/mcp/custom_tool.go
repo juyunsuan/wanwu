@@ -268,5 +268,6 @@ func buildSquareToolDetail(toolCfg config.ToolConfig, apiKey string) *mcp_servic
 			ActionSum:       int32(len(toolCfg.Tools)),
 			Tools:           convertMCPTools(toolCfg.Tools),
 		},
+		Schema: toolCfg.Schema,
 	}
 }

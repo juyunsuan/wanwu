@@ -176,6 +176,7 @@ func openapiSchema2ToolList(doc *openapi3.T) []response.CustomToolActionInfo {
 		for method, operation := range pathItem.Operations() {
 			list = append(list, response.CustomToolActionInfo{
 				Name:   operation.OperationID,
+				Desc:   operation.Description,
 				Method: method,
 				Path:   path,
 			})

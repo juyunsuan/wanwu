@@ -969,6 +969,28 @@ definitions:
     - id
     - status
     type: object
+  request.CustomToolApiAuthWebRequest:
+    properties:
+      apiKey:
+        description: apiKey 仅当认证类型为API Key时必填
+        type: string
+      authType:
+        description: Auth类型 仅当认证类型为API Key时必填，也可以为空
+        enum:
+        - Custom
+        type: string
+      customHeaderName:
+        description: Custom Header Name 仅当认证类型为API Key时必填
+        type: string
+      type:
+        description: 认证类型 None 或 APIKey
+        enum:
+        - None
+        - API Key
+        type: string
+    required:
+    - type
+    type: object
   request.SearchKnowledgeInfoReq:
     properties:
       categoryName:
@@ -980,6 +1002,85 @@ definitions:
     required:
     - categoryName
     - userId
+    type: object
+  response.CustomToolActionInfo:
+    properties:
+      desc:
+        type: string
+      method:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+    type: object
+  response.CustomToolDetail:
+    properties:
+      apiAuth:
+        allOf:
+        - $ref: '#/definitions/request.CustomToolApiAuthWebRequest'
+        description: apiAuth
+      apiList:
+        description: action列表
+        items:
+          $ref: '#/definitions/response.CustomToolActionInfo'
+        type: array
+      customToolId:
+        description: 自定义工具id
+        type: string
+      description:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      privacyPolicy:
+        description: 隐私政策
+        type: string
+      schema:
+        description: schema
+        type: string
+      toolSquareId:
+        description: 广场mcpId(非空表示来源于广场)
+        type: string
+    type: object
+  response.MCPTool:
+    properties:
+      description:
+        description: 工具描述
+        type: string
+      inputSchema:
+        allOf:
+        - $ref: '#/definitions/response.MCPToolInputSchema'
+        description: 工具参数
+      name:
+        description: 工具名
+        type: string
+    type: object
+  response.MCPToolInputSchema:
+    properties:
+      properties:
+        additionalProperties:
+          $ref: '#/definitions/response.MCPToolInputSchemaValue'
+        description: 字段名 -> 字段信息
+        type: object
+      required:
+        description: 必填字段
+        items:
+          type: string
+        type: array
+      type:
+        description: '固定值: object'
+        type: string
+    type: object
+  response.MCPToolInputSchemaValue:
+    properties:
+      description:
+        description: 字段描述
+        type: string
+      type:
+        description: 字段类型
+        type: string
     type: object
   response.ModelInfo:
     properties:
@@ -1044,6 +1145,46 @@ definitions:
       data: {}
       msg:
         type: string
+    type: object
+  response.ToolSquareDetail:
+    properties:
+      actionSum:
+        description: action总数
+        type: integer
+      apiKey:
+        description: apiKey
+        type: string
+      avatar:
+        allOf:
+        - $ref: '#/definitions/request.Avatar'
+        description: 图标
+      desc:
+        description: 描述
+        type: string
+      detail:
+        description: 详细描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      needApiKeyInput:
+        description: 是否需要apiKey输入
+        type: boolean
+      schema:
+        type: string
+      tags:
+        description: 标签
+        items:
+          type: string
+        type: array
+      toolSquareId:
+        description: 广场mcpId(非空表示来源于广场)
+        type: string
+      tools:
+        description: action列表
+        items:
+          $ref: '#/definitions/response.MCPTool'
+        type: array
     type: object
 info:
   contact: {}
@@ -1332,6 +1473,68 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: 根据userId和spaceId获取Workflow
+      tags:
+      - callback
+  /workflow/tool/custom:
+    get:
+      consumes:
+      - application/json
+      description: 获取自定义工具详情
+      parameters:
+      - description: customToolId
+        in: query
+        name: customToolId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.CustomToolDetail'
+              type: object
+      summary: 获取自定义工具详情
+      tags:
+      - callback
+  /workflow/tool/square:
+    get:
+      consumes:
+      - application/json
+      description: 获取内置工具详情
+      parameters:
+      - description: toolSquareId
+        in: query
+        name: toolSquareId
+        required: true
+        type: string
+      - description: 用户ID
+        in: query
+        name: userID
+        required: true
+        type: string
+      - description: 组织ID
+        in: query
+        name: orgID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ToolSquareDetail'
+              type: object
+      summary: 获取内置工具详情
       tags:
       - callback
 swagger: "2.0"

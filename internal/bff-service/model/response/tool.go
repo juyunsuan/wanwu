@@ -19,6 +19,7 @@ type CustomToolInfo struct {
 
 type CustomToolActionInfo struct {
 	Name   string `json:"name"`
+	Desc   string `json:"desc"`
 	Method string `json:"method"`
 	Path   string `json:"path"`
 }
@@ -31,6 +32,7 @@ type CustomToolSelect struct {
 type ToolSquareDetail struct {
 	ToolSquareInfo
 	ToolSquareActions
+	Schema string `json:"schema"`
 }
 
 type ToolSquareInfo struct {

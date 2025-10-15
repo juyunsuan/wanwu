@@ -254,3 +254,35 @@ func GetWorkflowList(ctx *gin.Context) {
 	resp, err := service.GetAppList(ctx, req.UserId, req.OrgId, constant.AppTypeWorkflow)
 	gin_util.Response(ctx, resp, err)
 }
+
+// GetWorkflowCustomTool
+//
+//	@Tags			callback
+//	@Summary		获取自定义工具详情
+//	@Description	获取自定义工具详情
+//	@Accept			json
+//	@Produce		json
+//	@Param			customToolId	query		string	true	"customToolId"
+//	@Success		200				{object}	response.Response{data=response.CustomToolDetail}
+//	@Router			/workflow/tool/custom [get]
+func GetWorkflowCustomTool(ctx *gin.Context) {
+	resp, err := service.GetCustomTool(ctx, "", "", ctx.Query("customToolId"))
+	gin_util.Response(ctx, resp, err)
+}
+
+// GetWorkflowSquareTool
+//
+//	@Tags			callback
+//	@Summary		获取内置工具详情
+//	@Description	获取内置工具详情
+//	@Accept			json
+//	@Produce		json
+//	@Param			toolSquareId	query		string	true	"toolSquareId"
+//	@Param			userID			query		string	true	"用户ID"
+//	@Param			orgID			query		string	true	"组织ID"
+//	@Success		200				{object}	response.Response{data=response.ToolSquareDetail}
+//	@Router			/workflow/tool/square [get]
+func GetWorkflowSquareTool(ctx *gin.Context) {
+	resp, err := service.GetToolSquareDetail(ctx, "", "", ctx.Query("toolSquareId"))
+	gin_util.Response(ctx, resp, err)
+}

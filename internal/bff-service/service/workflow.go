@@ -28,7 +28,7 @@ func ListLlmModelsByWorkflow(ctx *gin.Context, userId, orgId, modelT string) (*r
 	}
 	var rets []*response.CozeWorkflowModelInfo
 	for _, modelInfo := range modelResp.List.([]*response.ModelInfo) {
-		ret, err := toModelInfoByWorkflow(modelInfo)
+		ret, err := toModelInfo4Workflow(modelInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -283,7 +283,7 @@ func cozeWorkflowInfo2Model(workflowInfo *response.CozeWorkflowListDataWorkflow)
 	}
 }
 
-func toModelInfoByWorkflow(modelInfo *response.ModelInfo) (*response.CozeWorkflowModelInfo, error) {
+func toModelInfo4Workflow(modelInfo *response.ModelInfo) (*response.CozeWorkflowModelInfo, error) {
 	ret := &response.CozeWorkflowModelInfo{
 		ModelInfo:   *modelInfo,
 		ModelParams: config.Cfg().Workflow.ModelParams,

@@ -3244,6 +3244,8 @@ definitions:
     type: object
   response.CustomToolActionInfo:
     properties:
+      desc:
+        type: string
       method:
         type: string
       name:
@@ -4258,6 +4260,68 @@ definitions:
         description: 敏感词id
         type: string
     type: object
+  response.ToolAction4Workflow:
+    properties:
+      actionId:
+        type: string
+      actionName:
+        type: string
+      desc:
+        type: string
+    type: object
+  response.ToolActionParam4Workflow:
+    properties:
+      description:
+        type: string
+      input:
+        type: object
+      name:
+        type: string
+      required:
+        type: boolean
+      schema:
+        items:
+          $ref: '#/definitions/response.ToolActionParam4Workflow'
+        type: array
+      type:
+        type: string
+    type: object
+  response.ToolDetail4Workflow:
+    properties:
+      actionId:
+        type: string
+      actionName:
+        type: string
+      iconUrl:
+        type: string
+      inputs:
+        items:
+          $ref: '#/definitions/response.ToolActionParam4Workflow'
+        type: array
+      outputs:
+        items:
+          $ref: '#/definitions/response.ToolActionParam4Workflow'
+        type: array
+    type: object
+  response.ToolSelect4Workflow:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/response.ToolAction4Workflow'
+        type: array
+      apiKey:
+        type: string
+      desc:
+        type: string
+      iconUrl:
+        type: string
+      toolId:
+        type: string
+      toolName:
+        type: string
+      toolType:
+        type: string
+    type: object
   response.ToolSquareDetail:
     properties:
       actionSum:
@@ -4282,6 +4346,8 @@ definitions:
       needApiKeyInput:
         description: 是否需要apiKey输入
         type: boolean
+      schema:
+        type: string
       tags:
         description: 标签
         items:
@@ -9282,6 +9348,87 @@ paths:
       summary: 修改用户状态
       tags:
       - permission.user
+  /workflow/tool/action:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工具类型
+        enum:
+        - builtin
+        - custom
+        in: query
+        name: toolType
+        required: true
+        type: string
+      - description: 工具具体action名称
+        in: query
+        name: actionName
+        required: true
+        type: string
+      - description: 工具ID
+        in: query
+        name: toolId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.ToolDetail4Workflow'
+              type: object
+      security:
+      - JWT: []
+      summary: 工具具体action（用于workflow）
+      tags:
+      - workflow
+  /workflow/tool/select:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 工具类型
+        enum:
+        - builtin
+        - custom
+        in: query
+        name: toolType
+        required: true
+        type: string
+      - description: 工具名称
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  allOf:
+                  - $ref: '#/definitions/response.ListResult'
+                  - properties:
+                      list:
+                        items:
+                          $ref: '#/definitions/response.ToolSelect4Workflow'
+                        type: array
+                    type: object
+              type: object
+      security:
+      - JWT: []
+      summary: 工具列表（用于workflow）
+      tags:
+      - workflow
 securityDefinitions:
   JWT:
     in: header
