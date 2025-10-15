@@ -7,20 +7,20 @@
         </p>
         <div class="auth-form">
           <el-form ref="form" :model="form" :rules="rules" label-position="top">
-            <el-form-item :label="$t('register.form.username')" class="auth-form-item" prop="username">
+            <el-form-item class="auth-form-item" prop="username">
               <img class="auth-icon" src="@/assets/imgs/user.png" alt=""/>
               <el-input
                 v-model.trim="form.username"
                 :placeholder="$t('common.input.placeholder') + $t('register.form.username')" clearable
               />
             </el-form-item>
-            <el-form-item :label="$t('register.form.email')" class="auth-form-item" prop="email">
+            <el-form-item class="auth-form-item" prop="email">
               <img class="auth-icon" src="@/assets/imgs/user.png" alt=""/>
               <el-input
                 v-model.trim="form.email"
                 :placeholder="$t('common.input.placeholder') + $t('register.form.email')" clearable/>
             </el-form-item>
-            <el-form-item :label="$t('register.form.code')" class="auth-form-item" prop="code">
+            <el-form-item class="auth-form-item" prop="code">
               <img class="auth-icon" src="@/assets/imgs/code.png" alt=""/>
               <el-input
                 style="width: calc(100% - 90px)"
