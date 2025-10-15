@@ -70,7 +70,7 @@
 
 <script>
 import overview from '@/views/auth/layout'
-import {mapActions} from 'vuex'
+import {mapActions, mapState} from 'vuex'
 import {getImgVerCode} from "@/api/user"
 import {urlEncrypt} from "@/utils/crypto";
 import {redirectUrl} from "@/utils/util";
