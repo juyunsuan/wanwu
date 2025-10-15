@@ -79,24 +79,3 @@ type MCPToolInputSchemaValue struct {
 	Type        string `json:"type"`        // 字段类型
 	Description string `json:"description"` // 字段描述
 }
-
-// 精简OpenAPI结构体
-type OpenAPI struct {
-	OpenAPI string              `json:"openapi" yaml:"openapi"`
-	Paths   map[string]PathItem `json:"paths" yaml:"paths"`
-}
-
-type PathItem struct {
-	Get     *Operation `json:"get" yaml:"get"`
-	Post    *Operation `json:"post" yaml:"post"`
-	Put     *Operation `json:"put" yaml:"put"`
-	Delete  *Operation `json:"delete" yaml:"delete"`
-	Patch   *Operation `json:"patch" yaml:"patch"`
-	Head    *Operation `json:"head" yaml:"head"`
-	Options *Operation `json:"options" yaml:"options"`
-}
-
-type Operation struct {
-	OperationID string `json:"operationId" yaml:"operationId"`
-	Summary     string `json:"summary" yaml:"summary"`
-}
