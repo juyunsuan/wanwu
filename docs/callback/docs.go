@@ -2036,6 +2036,9 @@ const docTemplate = `{
         "response.CustomToolActionInfo": {
             "type": "object",
             "properties": {
+                "desc": {
+                    "type": "string"
+                },
                 "method": {
                     "type": "string"
                 },
@@ -2277,6 +2280,9 @@ const docTemplate = `{
                 "needApiKeyInput": {
                     "description": "是否需要apiKey输入",
                     "type": "boolean"
+                },
+                "schema": {
+                    "type": "string"
                 },
                 "tags": {
                     "description": "标签",

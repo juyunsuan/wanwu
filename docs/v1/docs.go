@@ -8300,7 +8300,7 @@ const docTemplate = `{
                                                         "list": {
                                                             "type": "array",
                                                             "items": {
-                                                                "$ref": "#/definitions/response.ToolSelectWithActions"
+                                                                "$ref": "#/definitions/response.ToolSelect4Workflow"
                                                             }
                                                         }
                                                     }
@@ -12256,20 +12256,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ActionInfo": {
-            "type": "object",
-            "properties": {
-                "actionId": {
-                    "type": "string"
-                },
-                "actionName": {
-                    "type": "string"
-                },
-                "desc": {
-                    "type": "string"
-                }
-            }
-        },
         "response.AnalysisDocUrlResp": {
             "type": "object",
             "properties": {
@@ -13097,6 +13083,9 @@ const docTemplate = `{
         "response.CustomToolActionInfo": {
             "type": "object",
             "properties": {
+                "desc": {
+                    "type": "string"
+                },
                 "method": {
                     "type": "string"
                 },
@@ -14614,6 +14603,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ToolAction4Workflow": {
+            "type": "object",
+            "properties": {
+                "actionId": {
+                    "type": "string"
+                },
+                "actionName": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ToolActionParam4Workflow": {
             "type": "object",
             "properties": {
@@ -14666,13 +14669,13 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ToolSelectWithActions": {
+        "response.ToolSelect4Workflow": {
             "type": "object",
             "properties": {
                 "actions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.ActionInfo"
+                        "$ref": "#/definitions/response.ToolAction4Workflow"
                     }
                 },
                 "apiKey": {
@@ -14729,6 +14732,9 @@ const docTemplate = `{
                 "needApiKeyInput": {
                     "description": "是否需要apiKey输入",
                     "type": "boolean"
+                },
+                "schema": {
+                    "type": "string"
                 },
                 "tags": {
                     "description": "标签",

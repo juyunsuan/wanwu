@@ -8293,7 +8293,7 @@
                                                         "list": {
                                                             "type": "array",
                                                             "items": {
-                                                                "$ref": "#/definitions/response.ToolSelectWithActions"
+                                                                "$ref": "#/definitions/response.ToolSelect4Workflow"
                                                             }
                                                         }
                                                     }
@@ -12249,20 +12249,6 @@
                 }
             }
         },
-        "response.ActionInfo": {
-            "type": "object",
-            "properties": {
-                "actionId": {
-                    "type": "string"
-                },
-                "actionName": {
-                    "type": "string"
-                },
-                "desc": {
-                    "type": "string"
-                }
-            }
-        },
         "response.AnalysisDocUrlResp": {
             "type": "object",
             "properties": {
@@ -13090,6 +13076,9 @@
         "response.CustomToolActionInfo": {
             "type": "object",
             "properties": {
+                "desc": {
+                    "type": "string"
+                },
                 "method": {
                     "type": "string"
                 },
@@ -14607,6 +14596,20 @@
                 }
             }
         },
+        "response.ToolAction4Workflow": {
+            "type": "object",
+            "properties": {
+                "actionId": {
+                    "type": "string"
+                },
+                "actionName": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ToolActionParam4Workflow": {
             "type": "object",
             "properties": {
@@ -14659,13 +14662,13 @@
                 }
             }
         },
-        "response.ToolSelectWithActions": {
+        "response.ToolSelect4Workflow": {
             "type": "object",
             "properties": {
                 "actions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.ActionInfo"
+                        "$ref": "#/definitions/response.ToolAction4Workflow"
                     }
                 },
                 "apiKey": {
@@ -14722,6 +14725,9 @@
                 "needApiKeyInput": {
                     "description": "是否需要apiKey输入",
                     "type": "boolean"
+                },
+                "schema": {
+                    "type": "string"
                 },
                 "tags": {
                     "description": "标签",

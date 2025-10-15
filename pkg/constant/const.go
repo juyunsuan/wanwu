@@ -12,3 +12,9 @@ const (
 	AppPublishPublic  = "public"  // 公开发布
 	AppPublishPrivate = "private" // 私密发布
 )
+
+// tool type
+const (
+	ToolTypeBuiltIn = "builtIn" // 内置工具
+	ToolTypeCustom  = "custom"  // 自定义工具
+)

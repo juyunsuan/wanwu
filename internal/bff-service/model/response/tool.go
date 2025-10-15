@@ -19,6 +19,7 @@ type CustomToolInfo struct {
 
 type CustomToolActionInfo struct {
 	Name   string `json:"name"`
+	Desc   string `json:"desc"`
 	Method string `json:"method"`
 	Path   string `json:"path"`
 }
@@ -48,20 +49,4 @@ type ToolSquareActions struct {
 	Tools           []MCPTool `json:"tools"`           // action列表
 	Detail          string    `json:"detail"`          // 详细描述
 	ActionSum       int64     `json:"actionSum"`       // action总数
-}
-
-type ToolSelectWithActions struct {
-	ToolID   string       `json:"toolId"`
-	ToolName string       `json:"toolName"`
-	ToolType string       `json:"toolType"`
-	IconUrl  string       `json:"iconUrl"`
-	ApiKey   string       `json:"apiKey"`
-	Desc     string       `json:"desc"`
-	Actions  []ActionInfo `json:"actions"`
-}
-
-type ActionInfo struct {
-	ActionName string `json:"actionName"`
-	ActionID   string `json:"actionId"`
-	Desc       string `json:"desc"`
 }

@@ -118,7 +118,7 @@ func ImportWorkflow(ctx *gin.Context) {
 //	@Produce	json
 //	@Param		toolType	query		string	true	"工具类型"	Enums(builtin,custom)
 //	@Param		name		query		string	false	"工具名称"
-//	@Success	200			{object}	response.Response{data=response.ListResult{list=[]response.ToolSelectWithActions}}
+//	@Success	200			{object}	response.Response{data=response.ListResult{list=[]response.ToolSelect4Workflow}}
 //	@Router		/workflow/tool/select [get]
 func GetWorkflowToolSelect(ctx *gin.Context) {
 	// 获取查询参数
