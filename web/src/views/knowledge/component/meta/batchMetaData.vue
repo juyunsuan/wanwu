@@ -150,7 +150,7 @@ export default {
     },
     getMetaList(){
       this.docLoading = true;
-      getDocMetaList({docIdList:String(this.selectedDocIds)}).then(res =>{
+      getDocMetaList({docIdList:this.selectedDocIds}).then(res =>{
         if(res.code === 0){
           this.metaDataList = (res.data.knowledgeMetaValues || []).map(item => ({
             ...item,

@@ -74,15 +74,16 @@
       <!-- 智能体信息 -->
       <div class="block prompt-box drawer-info">
             <h3 class="labelTitle">系统提示词</h3>
-            <div class="rl">
+            <div class="rl" style="padding: 10px;">
               <el-input
                 class="desc-input "
                 v-model="editForm.instructions"
                 maxlength="600"
                 placeholder="描述你想创建的应用，详细描述应用的详细功能及作用，以及对该应用生成结果的要求"
                 type="textarea"
+                show-word-limit
+                :rows="5"
               ></el-input>
-              <span class="el-input__count">{{editForm.instructions.length}}/600</span>
             </div>
       </div>
       <!-- 智能体配置 -->
@@ -1170,14 +1171,18 @@ export default {
 .basicInfo {
   display: flex;
   align-items: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 16px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   .img {
-    margin-right: 10px;
+    margin-right: 12px;
     img {
-      border-radius: 6px;
-      width: 32px;
-      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #f3f4f6;
+      width: 48px;
+      height: 48px;
       object-fit: cover;
       box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
     }
@@ -1188,8 +1193,9 @@ export default {
   .basicInfo-title {
     display: inline-block;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 16px;
     color: #1f2937;
+    margin-bottom: 4px;
   }
   .editIcon {
     font-size: 16px;
@@ -1199,9 +1205,9 @@ export default {
   }
   p {
     color: #6b7280;
-    font-size: 12px;
+    font-size: 14px;
     margin: 0;
-    line-height: 1.2;
+    line-height: 1.4;
   }
 }
 .form-header {

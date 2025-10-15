@@ -470,7 +470,7 @@ export const editUserPower = (data)=>{
 //更新文档元数据
 export const updateMetaData = (data)=>{
     return service({
-        url: `${BASE_URL}/knowledge/meta/value`,
+        url: `${BASE_URL}/knowledge/meta/value/update`,
         method: 'post',
         data
     })
@@ -478,8 +478,8 @@ export const updateMetaData = (data)=>{
 //获取文档元数据列表
 export const getDocMetaList = (data)=>{
     return service({
-        url: `${BASE_URL}/knowledge/meta/value`,
-        method: 'get',
-        params:data
+        url: `${BASE_URL}/knowledge/meta/value/list`,
+        method: 'post',
+        data
     })
 };
