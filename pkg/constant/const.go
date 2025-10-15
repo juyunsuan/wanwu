@@ -15,6 +15,6 @@ const (
 
 // tool type
 const (
-	ToolTypeBuiltIn = "builtIn" // 内置工具
+	ToolTypeBuiltIn = "builtin" // 内置工具
 	ToolTypeCustom  = "custom"  // 自定义工具
 )
