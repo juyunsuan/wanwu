@@ -42,10 +42,10 @@
               />
               <img
                 v-if="!isShowPwd1" class="pwd-icon" src="@/assets/imgs/showPwd.png" alt=""
-                @click="() => this.isShowPwd1 = true"/>
+                @click="isShowPwd1 = true"/>
               <img
                 v-else class="pwd-icon" src="@/assets/imgs/hidePwd.png" alt=""
-                @click="() => this.isShowPwd1 = false"/>
+                @click="isShowPwd1 = false"/>
             </el-form-item>
             <el-form-item
               :label="$t('reset.action2') + $t('reset.form.password')" class="auth-form-item"
@@ -58,10 +58,10 @@
                 :placeholder="$t('reset.action2') + $t('reset.form.password')"/>
               <img
                 v-if="!isShowPwd2" class="pwd-icon" src="@/assets/imgs/showPwd.png" alt=""
-                @click="() => this.isShowPwd2 = true"/>
+                @click="isShowPwd2 = true"/>
               <img
                 v-else class="pwd-icon" src="@/assets/imgs/hidePwd.png" alt=""
-                @click="() => this.isShowPwd2 = false"/>
+                @click="isShowPwd2 = false"/>
             </el-form-item>
           </el-form>
           <div class="nav-bt">
