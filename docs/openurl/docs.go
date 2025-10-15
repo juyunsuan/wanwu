@@ -1320,6 +1320,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 },
                 "valid": {
@@ -1361,6 +1362,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 },
                 "valid": {
@@ -1393,6 +1395,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 },
                 "workFlowDesc": {

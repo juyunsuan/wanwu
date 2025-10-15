@@ -7165,7 +7165,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.BuiltInToolReq"
+                            "$ref": "#/definitions/request.ToolSquareAPIKeyReq"
                         }
                     }
                 ],
@@ -7362,7 +7362,7 @@ const docTemplate = `{
                                                         "list": {
                                                             "type": "array",
                                                             "items": {
-                                                                "$ref": "#/definitions/response.CustomToolCell"
+                                                                "$ref": "#/definitions/response.CustomToolInfo"
                                                             }
                                                         }
                                                     }
@@ -7423,7 +7423,7 @@ const docTemplate = `{
                                                         "list": {
                                                             "type": "array",
                                                             "items": {
-                                                                "$ref": "#/definitions/response.CustomToolApiResponse"
+                                                                "$ref": "#/definitions/response.CustomToolActionInfo"
                                                             }
                                                         }
                                                     }
@@ -9925,22 +9925,6 @@ const docTemplate = `{
                 }
             }
         },
-        "request.BuiltInToolReq": {
-            "type": "object",
-            "required": [
-                "toolSquareId"
-            ],
-            "properties": {
-                "apiKey": {
-                    "description": "apiKey",
-                    "type": "string"
-                },
-                "toolSquareId": {
-                    "description": "广场toolId",
-                    "type": "string"
-                }
-            }
-        },
         "request.ChangeExplorationAppFavoriteRequest": {
             "type": "object",
             "required": [
@@ -10351,7 +10335,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "type": {
-                    "description": "认证类型",
+                    "description": "认证类型 None 或 APIKey",
                     "type": "string",
                     "enum": [
                         "None",
@@ -11715,6 +11699,22 @@ const docTemplate = `{
                 }
             }
         },
+        "request.ToolSquareAPIKeyReq": {
+            "type": "object",
+            "required": [
+                "toolSquareId"
+            ],
+            "properties": {
+                "apiKey": {
+                    "description": "apiKey",
+                    "type": "string"
+                },
+                "toolSquareId": {
+                    "description": "广场toolId",
+                    "type": "string"
+                }
+            }
+        },
         "request.UnPublishAppRequest": {
             "type": "object",
             "properties": {
@@ -12181,7 +12181,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
-                    "description": "唯一标识",
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 },
                 "updatedAt": {
@@ -12844,6 +12844,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 },
                 "valid": {
@@ -12940,28 +12941,7 @@ const docTemplate = `{
                 }
             }
         },
-        "response.CustomToolApiAuthWebRequest": {
-            "type": "object",
-            "properties": {
-                "apiKey": {
-                    "description": "apiKey",
-                    "type": "string"
-                },
-                "authType": {
-                    "description": "Auth类型",
-                    "type": "string"
-                },
-                "customHeaderName": {
-                    "description": "自定义头名",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "认证类型: None 或 APIKey",
-                    "type": "string"
-                }
-            }
-        },
-        "response.CustomToolApiResponse": {
+        "response.CustomToolActionInfo": {
             "type": "object",
             "properties": {
                 "method": {
@@ -12975,23 +12955,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.CustomToolCell": {
-            "type": "object",
-            "properties": {
-                "customToolId": {
-                    "description": "自定义工具id",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "描述",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "名称",
-                    "type": "string"
-                }
-            }
-        },
         "response.CustomToolDetail": {
             "type": "object",
             "properties": {
@@ -12999,15 +12962,15 @@ const docTemplate = `{
                     "description": "apiAuth",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/response.CustomToolApiAuthWebRequest"
+                            "$ref": "#/definitions/request.CustomToolApiAuthWebRequest"
                         }
                     ]
                 },
                 "apiList": {
-                    "description": "api列表",
+                    "description": "action列表",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/response.CustomToolApiResponse"
+                        "$ref": "#/definitions/response.CustomToolActionInfo"
                     }
                 },
                 "customToolId": {
@@ -13036,6 +12999,23 @@ const docTemplate = `{
                 }
             }
         },
+        "response.CustomToolInfo": {
+            "type": "object",
+            "properties": {
+                "customToolId": {
+                    "description": "自定义工具id",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                }
+            }
+        },
         "response.CustomToolSelect": {
             "type": "object",
             "properties": {
@@ -13052,7 +13032,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
-                    "description": "统一的id",
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 }
             }
@@ -13267,7 +13247,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
-                    "description": "唯一标识",
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 },
                 "updatedAt": {
@@ -13847,6 +13827,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 },
                 "valid": {
@@ -13882,7 +13863,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
-                    "description": "唯一标识",
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 }
             }
@@ -14527,7 +14508,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "tools": {
-                    "description": "工具列表",
+                    "description": "action列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/response.MCPTool"
@@ -14748,6 +14729,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uniqueId": {
+                    "description": "随机unique id(每次动态生成)",
                     "type": "string"
                 },
                 "workFlowDesc": {

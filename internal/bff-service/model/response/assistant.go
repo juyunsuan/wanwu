@@ -5,8 +5,8 @@ import (
 )
 
 type Assistant struct {
-	AssistantId            string                         `json:"assistantId"  validate:"required"`
 	request.AppBriefConfig                                // 基本信息
+	AssistantId            string                         `json:"assistantId"  validate:"required"`
 	Prologue               string                         `json:"prologue"`            // 开场白
 	Instructions           string                         `json:"instructions"`        // 系统提示词
 	RecommendQuestion      []string                       `json:"recommendQuestion"`   // 推荐问题
@@ -24,8 +24,8 @@ type Assistant struct {
 }
 
 type WorkFlowInfos struct {
+	UniqueId     string `json:"uniqueId"` // 随机unique id(每次动态生成)
 	WorkFlowId   string `json:"workFlowId"`
-	UniqueId     string `json:"uniqueId"`
 	ApiName      string `json:"apiName"`
 	Enable       bool   `json:"enable"`
 	WorkFlowName string `json:"name"`
@@ -33,8 +33,8 @@ type WorkFlowInfos struct {
 }
 
 type MCPInfos struct {
+	UniqueId      string `json:"uniqueId"` // 随机unique id(每次动态生成)
 	MCPId         string `json:"mcpId"`
-	UniqueId      string `json:"uniqueId"`
 	MCPSquareId   string `json:"mcpSquareId"`
 	Enable        bool   `json:"enable"`
 	MCPName       string `json:"name"`
@@ -45,8 +45,8 @@ type MCPInfos struct {
 }
 
 type CustomInfos struct {
+	UniqueId   string `json:"uniqueId"` // 随机unique id(每次动态生成)
 	CustomId   string `json:"customId"`
-	UniqueId   string `json:"uniqueId"`
 	Enable     bool   `json:"enable"`
 	CustomName string `json:"name"`
 	CustomDesc string `json:"customDesc"`

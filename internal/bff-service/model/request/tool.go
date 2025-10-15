@@ -11,7 +11,7 @@ type CustomToolCreate struct {
 func (req *CustomToolCreate) Check() error { return nil }
 
 type CustomToolApiAuthWebRequest struct {
-	Type             string `json:"type" validate:"required,oneof='None' 'API Key'"` // 认证类型
+	Type             string `json:"type" validate:"required,oneof='None' 'API Key'"` // 认证类型 None 或 APIKey
 	APIKey           string `json:"apiKey"`                                          // apiKey 仅当认证类型为API Key时必填
 	CustomHeaderName string `json:"customHeaderName"`                                // Custom Header Name 仅当认证类型为API Key时必填
 	AuthType         string `json:"authType" validate:"omitempty,oneof=Custom"`      // Auth类型 仅当认证类型为API Key时必填，也可以为空
@@ -42,9 +42,9 @@ type CustomToolSchemaReq struct {
 
 func (req *CustomToolSchemaReq) Check() error { return nil }
 
-type BuiltInToolReq struct {
+type ToolSquareAPIKeyReq struct {
 	ToolSquareID string `json:"toolSquareId" validate:"required"` // 广场toolId
 	APIKey       string `json:"apiKey"`                           // apiKey
 }
 
-func (req *BuiltInToolReq) Check() error { return nil }
+func (req *ToolSquareAPIKeyReq) Check() error { return nil }

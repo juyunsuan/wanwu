@@ -36,7 +36,7 @@ func CreateCustomTool(ctx *gin.Context) {
 //	@Success		200				{object}	response.Response{data=response.CustomToolDetail}
 //	@Router			/tool/custom [get]
 func GetCustomTool(ctx *gin.Context) {
-	resp, err := service.GetCustomToolInfo(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("customToolId"))
+	resp, err := service.GetCustomTool(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("customToolId"))
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -84,7 +84,7 @@ func UpdateCustomTool(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			name	query		string	false	"CustomTool名称"
-//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.CustomToolCell}}
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.CustomToolInfo}}
 //	@Router			/tool/custom/list [get]
 func GetCustomToolList(ctx *gin.Context) {
 	resp, err := service.GetCustomToolList(ctx, getUserID(ctx), getOrgID(ctx), ctx.Query("name"))
@@ -106,7 +106,7 @@ func GetCustomToolSelect(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// GetCustomToolSchemaAPI
+// GetCustomToolActions
 //
 //	@Tags			tool
 //	@Summary		获取可用API列表（根据Schema）
@@ -114,14 +114,14 @@ func GetCustomToolSelect(ctx *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			data	body		request.CustomToolSchemaReq	true	"Schema格式数据"
-//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.CustomToolApiResponse}}
+//	@Success		200		{object}	response.Response{data=response.ListResult{list=[]response.CustomToolActionInfo}}
 //	@Router			/tool/custom/schema [post]
-func GetCustomToolSchemaAPI(ctx *gin.Context) {
+func GetCustomToolActions(ctx *gin.Context) {
 	var req request.CustomToolSchemaReq
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	resp, err := service.GetCustomToolSchemaAPI(ctx, getUserID(ctx), getOrgID(ctx), req)
+	resp, err := service.GetCustomToolActions(ctx, getUserID(ctx), getOrgID(ctx), req)
 	gin_util.Response(ctx, resp, err)
 }
 
@@ -155,20 +155,20 @@ func GetToolSquareList(ctx *gin.Context) {
 	gin_util.Response(ctx, resp, err)
 }
 
-// UpdateBuiltInTool
+// UpdateToolSquareAPIKey
 //
 //	@Tags			tool
 //	@Summary		修改内置工具
 //	@Description	修改内置工具
 //	@Accept			json
 //	@Produce		json
-//	@Param			data	body		request.BuiltInToolReq	true	"内置工具信息"
+//	@Param			data	body		request.ToolSquareAPIKeyReq	true	"内置工具信息"
 //	@Success		200		{object}	response.Response{}
 //	@Router			/tool/builtin [post]
-func UpdateBuiltInTool(ctx *gin.Context) {
-	var req request.BuiltInToolReq
+func UpdateToolSquareAPIKey(ctx *gin.Context) {
+	var req request.ToolSquareAPIKeyReq
 	if !gin_util.Bind(ctx, &req) {
 		return
 	}
-	gin_util.Response(ctx, nil, service.UpdateBuiltInTool(ctx, getUserID(ctx), getOrgID(ctx), req))
+	gin_util.Response(ctx, nil, service.UpdateToolSquareAPIKey(ctx, getUserID(ctx), getOrgID(ctx), req))
 }

@@ -35,7 +35,7 @@ func CreateCustomTool(ctx *gin.Context, userID, orgID string, req request.Custom
 	return err
 }
 
-func GetCustomToolInfo(ctx *gin.Context, userID, orgID string, customToolId string) (*response.CustomToolDetail, error) {
+func GetCustomTool(ctx *gin.Context, userID, orgID string, customToolId string) (*response.CustomToolDetail, error) {
 	info, err := mcp.GetCustomToolInfo(ctx.Request.Context(), &mcp_service.GetCustomToolInfoReq{
 		CustomToolId: customToolId,
 	})
@@ -47,13 +47,15 @@ func GetCustomToolInfo(ctx *gin.Context, userID, orgID string, customToolId stri
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFGeneral, err.Error())
 	}
 	return &response.CustomToolDetail{
-		CustomToolId:  info.CustomToolId,
+		CustomToolInfo: response.CustomToolInfo{
+			CustomToolId: info.CustomToolId,
+			Name:         info.Name,
+			Description:  info.Description,
+		},
 		ToolSquareID:  info.ToolSquareId,
 		Schema:        info.Schema,
-		Name:          info.Name,
-		Description:   info.Description,
 		PrivacyPolicy: info.PrivacyPolicy,
-		ApiAuth: response.CustomToolApiAuthWebRequest{
+		ApiAuth: request.CustomToolApiAuthWebRequest{
 			Type:             info.ApiAuth.Type,
 			APIKey:           info.ApiAuth.ApiKey,
 			CustomHeaderName: info.ApiAuth.CustomHeaderName,
@@ -109,9 +111,9 @@ func GetCustomToolList(ctx *gin.Context, userID, orgID, name string) (*response.
 	if err != nil {
 		return nil, err
 	}
-	var list []response.CustomToolCell
+	var list []response.CustomToolInfo
 	for _, item := range resp.List {
-		list = append(list, response.CustomToolCell{
+		list = append(list, response.CustomToolInfo{
 			CustomToolId: item.CustomToolId,
 			Name:         item.Name,
 			Description:  item.Description,
@@ -135,12 +137,14 @@ func GetCustomToolSelect(ctx *gin.Context, userID, orgID, name string) (*respons
 		return nil, err
 	}
 	var list []response.CustomToolSelect
-	for _, item := range resp.List {
+	for _, info := range resp.List {
 		list = append(list, response.CustomToolSelect{
-			UniqueId:     "tool-" + item.CustomToolId,
-			CustomToolId: item.CustomToolId,
-			Name:         item.Name,
-			Description:  item.Description,
+			UniqueId: "tool-" + info.CustomToolId,
+			CustomToolInfo: response.CustomToolInfo{
+				CustomToolId: info.CustomToolId,
+				Name:         info.Name,
+				Description:  info.Description,
+			},
 		})
 	}
 	return &response.ListResult{
@@ -149,7 +153,7 @@ func GetCustomToolSelect(ctx *gin.Context, userID, orgID, name string) (*respons
 	}, nil
 }
 
-func GetCustomToolSchemaAPI(ctx *gin.Context, userID, orgID string, req request.CustomToolSchemaReq) (*response.ListResult, error) {
+func GetCustomToolActions(ctx *gin.Context, userID, orgID string, req request.CustomToolSchemaReq) (*response.ListResult, error) {
 	doc, err := openapi3_util.LoadFromData([]byte(req.Schema))
 	if err != nil {
 		return nil, grpc_util.ErrorStatus(errs.Code_BFFInvalidArg, err.Error())
@@ -166,11 +170,11 @@ func GetCustomToolSchemaAPI(ctx *gin.Context, userID, orgID string, req request.
 
 // --- internal ---
 
-func openapiSchema2ToolList(doc *openapi3.T) []response.CustomToolApiResponse {
-	var list []response.CustomToolApiResponse
+func openapiSchema2ToolList(doc *openapi3.T) []response.CustomToolActionInfo {
+	var list []response.CustomToolActionInfo
 	for path, pathItem := range doc.Paths.Map() {
 		for method, operation := range pathItem.Operations() {
-			list = append(list, response.CustomToolApiResponse{
+			list = append(list, response.CustomToolActionInfo{
 				Name:   operation.OperationID,
 				Method: method,
 				Path:   path,

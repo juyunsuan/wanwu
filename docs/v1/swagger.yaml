@@ -1199,17 +1199,6 @@ definitions:
     - knowledgeId
     - tagIdList
     type: object
-  request.BuiltInToolReq:
-    properties:
-      apiKey:
-        description: apiKey
-        type: string
-      toolSquareId:
-        description: 广场toolId
-        type: string
-    required:
-    - toolSquareId
-    type: object
   request.ChangeExplorationAppFavoriteRequest:
     properties:
       appId:
@@ -1484,7 +1473,7 @@ definitions:
         description: Custom Header Name 仅当认证类型为API Key时必填
         type: string
       type:
-        description: 认证类型
+        description: 认证类型 None 或 APIKey
         enum:
         - None
         - API Key
@@ -2418,6 +2407,17 @@ definitions:
     required:
     - tagId
     type: object
+  request.ToolSquareAPIKeyReq:
+    properties:
+      apiKey:
+        description: apiKey
+        type: string
+      toolSquareId:
+        description: 广场toolId
+        type: string
+    required:
+    - toolSquareId
+    type: object
   request.UnPublishAppRequest:
     properties:
       appId:
@@ -2743,7 +2743,7 @@ definitions:
         description: 发布类型(public:公开发布,private:私密发布)
         type: string
       uniqueId:
-        description: 唯一标识
+        description: 随机unique id(每次动态生成)
         type: string
       updatedAt:
         description: 应用更新时间(用于历史记录排序)
@@ -3186,6 +3186,7 @@ definitions:
       name:
         type: string
       uniqueId:
+        description: 随机unique id(每次动态生成)
         type: string
       valid:
         type: boolean
@@ -3241,22 +3242,7 @@ definitions:
         description: 标签页标题
         type: string
     type: object
-  response.CustomToolApiAuthWebRequest:
-    properties:
-      apiKey:
-        description: apiKey
-        type: string
-      authType:
-        description: Auth类型
-        type: string
-      customHeaderName:
-        description: 自定义头名
-        type: string
-      type:
-        description: '认证类型: None 或 APIKey'
-        type: string
-    type: object
-  response.CustomToolApiResponse:
+  response.CustomToolActionInfo:
     properties:
       method:
         type: string
@@ -3265,28 +3251,16 @@ definitions:
       path:
         type: string
     type: object
-  response.CustomToolCell:
-    properties:
-      customToolId:
-        description: 自定义工具id
-        type: string
-      description:
-        description: 描述
-        type: string
-      name:
-        description: 名称
-        type: string
-    type: object
   response.CustomToolDetail:
     properties:
       apiAuth:
         allOf:
-        - $ref: '#/definitions/response.CustomToolApiAuthWebRequest'
+        - $ref: '#/definitions/request.CustomToolApiAuthWebRequest'
         description: apiAuth
       apiList:
-        description: api列表
+        description: action列表
         items:
-          $ref: '#/definitions/response.CustomToolApiResponse'
+          $ref: '#/definitions/response.CustomToolActionInfo'
         type: array
       customToolId:
         description: 自定义工具id
@@ -3307,6 +3281,18 @@ definitions:
         description: 广场mcpId(非空表示来源于广场)
         type: string
     type: object
+  response.CustomToolInfo:
+    properties:
+      customToolId:
+        description: 自定义工具id
+        type: string
+      description:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+    type: object
   response.CustomToolSelect:
     properties:
       customToolId:
@@ -3319,7 +3305,7 @@ definitions:
         description: 名称
         type: string
       uniqueId:
-        description: 统一的id
+        description: 随机unique id(每次动态生成)
         type: string
     type: object
   response.DeleteFileResp:
@@ -3470,7 +3456,7 @@ definitions:
         description: 发布类型(public:公开发布,private:私密发布)
         type: string
       uniqueId:
-        description: 唯一标识
+        description: 随机unique id(每次动态生成)
         type: string
       updatedAt:
         description: 应用更新时间(用于历史记录排序)
@@ -3848,6 +3834,7 @@ definitions:
       name:
         type: string
       uniqueId:
+        description: 随机unique id(每次动态生成)
         type: string
       valid:
         type: boolean
@@ -3873,7 +3860,7 @@ definitions:
         description: sseUrl
         type: string
       uniqueId:
-        description: 唯一标识
+        description: 随机unique id(每次动态生成)
         type: string
     type: object
   response.MCPSquareDetail:
@@ -4304,7 +4291,7 @@ definitions:
         description: 广场mcpId(非空表示来源于广场)
         type: string
       tools:
-        description: 工具列表
+        description: action列表
         items:
           $ref: '#/definitions/response.MCPTool'
         type: array
@@ -4445,6 +4432,7 @@ definitions:
       name:
         type: string
       uniqueId:
+        description: 随机unique id(每次动态生成)
         type: string
       workFlowDesc:
         type: string
@@ -8698,7 +8686,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/request.BuiltInToolReq'
+          $ref: '#/definitions/request.ToolSquareAPIKeyReq'
       produces:
       - application/json
       responses:
@@ -8823,7 +8811,7 @@ paths:
                   - properties:
                       list:
                         items:
-                          $ref: '#/definitions/response.CustomToolCell'
+                          $ref: '#/definitions/response.CustomToolInfo'
                         type: array
                     type: object
               type: object
@@ -8857,7 +8845,7 @@ paths:
                   - properties:
                       list:
                         items:
-                          $ref: '#/definitions/response.CustomToolApiResponse'
+                          $ref: '#/definitions/response.CustomToolActionInfo'
                         type: array
                     type: object
               type: object

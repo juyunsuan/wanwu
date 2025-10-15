@@ -48,7 +48,7 @@ func GetToolSquareList(ctx *gin.Context, userID, orgID, name string) (*response.
 	}, nil
 }
 
-func UpdateBuiltInTool(ctx *gin.Context, userID, orgID string, req request.BuiltInToolReq) error {
+func UpdateToolSquareAPIKey(ctx *gin.Context, userID, orgID string, req request.ToolSquareAPIKeyReq) error {
 	toolInfo, _ := mcp.GetCustomToolInfo(ctx.Request.Context(), &mcp_service.GetCustomToolInfoReq{
 		ToolSquareId: req.ToolSquareID,
 		Identity: &mcp_service.Identity{
@@ -91,7 +91,7 @@ func UpdateBuiltInTool(ctx *gin.Context, userID, orgID string, req request.Built
 func toToolSquareDetail(ctx *gin.Context, toolSquare *mcp_service.SquareToolDetail) *response.ToolSquareDetail {
 	ret := &response.ToolSquareDetail{
 		ToolSquareInfo: toToolSquareInfo(ctx, toolSquare.Info),
-		BuiltInTools: response.BuiltInTools{
+		ToolSquareActions: response.ToolSquareActions{
 			NeedApiKeyInput: toolSquare.BuiltInTools.NeedApiKeyInput,
 			APIKey:          toolSquare.BuiltInTools.ApiKey,
 			Detail:          toolSquare.BuiltInTools.Detail,
@@ -99,7 +99,7 @@ func toToolSquareDetail(ctx *gin.Context, toolSquare *mcp_service.SquareToolDeta
 		},
 	}
 	for _, tool := range toolSquare.BuiltInTools.Tools {
-		ret.BuiltInTools.Tools = append(ret.BuiltInTools.Tools, toMCPTool(tool))
+		ret.ToolSquareActions.Tools = append(ret.ToolSquareActions.Tools, toMCPTool(tool))
 	}
 	return ret
 }
