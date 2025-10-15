@@ -38,7 +38,7 @@
           <div :class="['session-item','rl']">
             <img
               class="logo"
-              :src="'/user/api/'+ defaultUrl"
+              :src="'/user/api/'+ userAvatar"
             />
             <div class="answer-content">
               <div class="answer-content-query">
@@ -72,7 +72,7 @@
           <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div class="answer-content"><i class="el-icon-loading"></i></div>
           </div>
@@ -85,7 +85,7 @@
           <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div
               class="answer-content"
@@ -108,7 +108,7 @@
           <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div
               class="session-wrap"
@@ -128,6 +128,7 @@
               <!--内容-->
               <div
                 class="answer-content"
+                :id="i"
                 v-bind:class="{'ds-res':showDSBtn(n.response)}"
                 v-html="showDSBtn(n.response)?replaceHTML(n.response,n):n.response"
               ></div>
@@ -194,6 +195,7 @@ import smoothscroll from "smoothscroll-polyfill";
 var highlight = require("highlight.js");
 import "highlight.js/styles/atom-one-dark.css";
 import commonMixin from "@/mixins/common";
+import { mapGetters } from "vuex";
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -254,6 +256,9 @@ export default {
       audioConfig: ["mp3", "wav"],
     };
   },
+  computed: {
+    ...mapGetters('user', ['userAvatar'])
+  },
   watch: {
     sessionStatus: {
       handler(val, oldVal) {},
@@ -277,15 +282,15 @@ export default {
     clearTimeout(this.scrollTimeout);
   },
   methods: {
-    handleCitationClick(e) {
+      handleCitationClick(e) {
       // 调用 common.js 中的通用方法
       this.$handleCitationClick(e, {
         sessionStatus: this.sessionStatus,
         sessionData: this.session_data,
         citationSelector: '.citation',
-        subTagSelector: '.subTag',
         scrollElementId: 'timeScroll',
         onToggleCollapse: (item, collapse) => {
+          // 使用 Vue.set 确保响应式更新
           this.$set(item, 'collapse', collapse);
         }
       });
@@ -570,12 +575,6 @@ export default {
     },
     stopPending() {
       // this.session_data.history = this.session_data.history.filter(item =>{
-      //   if(item.pending){
-      //     item.responseLoading = false
-      //     item.pendingResponse = '本次回答已被终止'
-      //   }
-      //   return item;
-      // })
       this.session_data.history = this.session_data.history.map((item) => {
         if (item.pending) {
           return {
@@ -758,6 +757,7 @@ img.failed::after {
     white-space: pre-wrap !important;
   }
   .answer-content {
+    margin-top:5px !important;
     img {
       // height:100px;
       width: 100%;
@@ -879,6 +879,7 @@ img.failed::after {
       .logo {
         width: 30px;
         height: 30px;
+        border-radius: 6px;
         object-fit: cover;
         flex-shrink: 0; /* 防止头像被压缩 */
         background: none; /* 头像无背景色 */

@@ -1,14 +1,5 @@
 <template>
   <div class="session rl">
-    <!-- <div class="session-setting">
-      <el-dropdown class="right-setting" @command="gropdownClick">
-        <i class="el-icon-more more"  trigger="click" ></i>
-        <el-dropdown-menu :append-to-body="false" placement="bottom-end" slot="dropdown">
-          <el-dropdown-item command="clear">{{$t('agent.clearHistory')}}</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
-    </div> -->
-
     <div
       class="history-box showScroll"
       id="timeScroll"
@@ -27,7 +18,7 @@
           <div :class="['session-item','rl']">
             <img
               class="logo"
-              :src="'/user/api/'+ defaultUrl"
+              :src="'/user/api/'+ userAvatar"
             />
             <div class="answer-content">
               <div class="answer-content-query">
@@ -90,7 +81,7 @@
           <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div class="answer-content"><i class="el-icon-loading"></i></div>
           </div>
@@ -103,7 +94,7 @@
           <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div
               class="answer-content"
@@ -130,7 +121,7 @@
           >
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div
               class="session-wrap"
@@ -274,7 +265,7 @@
           <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div class="answer-content">
               <div
@@ -315,6 +306,7 @@ import { marked } from "marked";
 var highlight = require("highlight.js");
 import "highlight.js/styles/atom-one-dark.css";
 import commonMixin from "@/mixins/common";
+import { mapGetters } from "vuex";
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -374,8 +366,11 @@ export default {
       },
       imgConfig: ["jpeg", "PNG", "png", "JPG", "jpg", "bmp", "webp"],
       audioConfig: ["mp3", "wav"],
-      debounceTimer: null,
+      debounceTimer: null
     };
+  },
+  computed: {
+    ...mapGetters('user', ['userAvatar'])
   },
   watch: {
     sessionStatus: {
@@ -409,7 +404,6 @@ export default {
         sessionStatus: this.sessionStatus,
         sessionData: this.session_data,
         citationSelector: '.citation',
-        subTagSelector: '.subTag',
         scrollElementId: 'timeScroll',
         onToggleCollapse: (item, collapse) => {
           // 使用 Vue.set 确保响应式更新
@@ -895,7 +889,6 @@ export default {
     }
     section li,li {
       list-style-position: inside !important; /* 将标记符号放在内容框内 */
-      white-space: nowrap !important; /* 序号后面不换行 */
     }
    
     .citation {
@@ -959,6 +952,7 @@ export default {
           color: #fff;
           padding: 8px 10px 8px 20px;
           border-radius: 10px 0 10px 10px;
+          margin:0!important;
         }
         .session-setting-id {
           color: rgba(98, 98, 98, 0.5);
@@ -1222,6 +1216,7 @@ export default {
     .logo {
       width: 30px;
       height: 30px;
+      border-radius: 6px;
       object-fit: cover;
       flex-shrink: 0; /* 防止头像被压缩 */
       background: none; /* 头像无背景色 */

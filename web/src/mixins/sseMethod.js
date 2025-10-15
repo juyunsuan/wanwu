@@ -260,16 +260,16 @@ export default {
                         let data;
                         try {
                             data = JSON.parse(e.data);
-                            console.log('===>',new Date().getTime(),'12345', data);
+                            console.log('===>',new Date().getTime(), data);
                         } catch (error) {
                             return; // 如果解析失败，直接返回，不处理这条消息
                         }
                         
                         this.sseResponse = data;
-                        
+                        console.log(this.sseResponse,123);
                         //待替换的数据，需要前端组装
                         let commonData = {
-                            ...data,
+                            ...this.sseResponse,
                             ...this.sseParams,
                             "query": prompt,
                             "fileName":'',
@@ -277,7 +277,7 @@ export default {
                             "response": '',
                             "filepath": '',
                             "requestFileUrls":'',
-                            "searchList": data.data && data.data.searchList ? data.data.searchList: [],
+                            "searchList": this.sseResponse.data && this.sseResponse.data.searchList ? this.sseResponse.data.searchList: [],
                             "gen_file_url_list": [],
                             "thinkText":'思考中',
                             "isOpen":true,
@@ -296,7 +296,7 @@ export default {
                                         this.setStoreSessionStatus(0)
                                         endStr += worldObj.world
                                         endStr = convertLatexSyntax(endStr)
-                                        endStr = parseSub(endStr)
+                                        endStr = parseSub(endStr,lastIndex)
                                         let fillData = {
                                             ...commonData,
                                             "response": md.render(endStr),
@@ -484,7 +484,7 @@ export default {
                                         this.setStoreSessionStatus(0)
                                         endStr += worldObj.world
                                         endStr = convertLatexSyntax(endStr)
-                                        endStr = parseSub(endStr)
+                                        endStr = parseSub(endStr,lastIndex)
                                         const finalResponse = String(endStr)
                                         let fillData = {
                                             ...commonData,

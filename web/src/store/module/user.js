@@ -16,10 +16,14 @@ export const user = {
       defaultIcons: {
         agentIcon: '',
         ragIcon: ''
-      }
+      },
+      userAvatar: ''
   },
 
   mutations: {
+      setUserAvatar(state, userAvatar) {
+        state.userAvatar = userAvatar
+      },
       setDefaultIcons(state, defaultIcons) {
           state.defaultIcons = { ...state.defaultIcons, ...defaultIcons }
       },
@@ -96,6 +100,7 @@ export const user = {
 
               const permission = {...permissions, isAdmin, isSystem, isUpdatePassword: res.data.isUpdatePassword}
               if (res.code === 0) {
+                  commit('setUserAvatar', res.data.avatar.path)
                   commit('setPermission', permission)
                   if (res.data.language) commit('setLang', res.data.language)
                   replaceRouter(permission.orgPermission || [])
@@ -155,6 +160,9 @@ export const user = {
     },
     defaultIcons(state){
       return state.defaultIcons
+    },
+    userAvatar(state){
+      return state.userAvatar
     }
   }
 }
