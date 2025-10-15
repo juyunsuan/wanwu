@@ -156,6 +156,7 @@ type CustomInfoConfig struct {
 	Version              string        `json:"version" mapstructure:"version"`
 	RegisterByEmail      int           `json:"register_by_email" mapstructure:"register_by_email"`
 	ResetPasswordByEmail int           `json:"reset_password_by_email" mapstructure:"reset_password_by_email"`
+	LoginByEmail         int           `json:"login_by_email" mapstructure:"login_by_email"`
 }
 
 type CustomTheme struct {

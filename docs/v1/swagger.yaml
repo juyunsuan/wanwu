@@ -1225,6 +1225,24 @@ definitions:
     - appId
     - appType
     type: object
+  request.ChangeUserPasswordByEmail:
+    properties:
+      code:
+        description: 邮箱验证码
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      newPassword:
+        type: string
+      oldPassword:
+        type: string
+    required:
+    - code
+    - email
+    - newPassword
+    - oldPassword
+    type: object
   request.ChatRagRequest:
     properties:
       history:
@@ -1581,7 +1599,6 @@ definitions:
     required:
     - ChildChunkNoList
     - docId
-    - parentChunkNo
     - parentId
     type: object
   request.DeleteDocReq:
@@ -2033,6 +2050,26 @@ definitions:
     - password
     - username
     type: object
+  request.LoginEmailCheck:
+    properties:
+      code:
+        description: 邮箱验证码
+        type: string
+      email:
+        description: 邮箱
+        type: string
+    required:
+    - code
+    - email
+    type: object
+  request.LoginSendEmailCode:
+    properties:
+      email:
+        description: 邮箱
+        type: string
+    required:
+    - email
+    type: object
   request.MCPCreate:
     properties:
       desc:
@@ -2408,7 +2445,6 @@ definitions:
     required:
     - childChunk
     - docId
-    - parentChunkNo
     - parentId
     type: object
   request.UpdateDocSegmentReq:
@@ -2550,9 +2586,6 @@ definitions:
       company:
         description: 公司
         type: string
-      email:
-        description: 邮箱
-        type: string
       gender:
         description: 性别（0-女，1-男，空-未知）
         type: string
@@ -2629,9 +2662,6 @@ definitions:
     properties:
       company:
         description: 公司
-        type: string
-      email:
-        description: 邮箱
         type: string
       gender:
         description: 性别（0-女，1-男，空-未知）
@@ -3180,6 +3210,13 @@ definitions:
         description: 登录页欢迎标词
         type: string
     type: object
+  response.CustomLoginEmail:
+    properties:
+      email:
+        allOf:
+        - $ref: '#/definitions/response.CustomEmail'
+        description: 登录邮箱
+    type: object
   response.CustomRegister:
     properties:
       email:
@@ -3192,7 +3229,7 @@ definitions:
       email:
         allOf:
         - $ref: '#/definitions/response.CustomEmail'
-        description: 注册邮箱
+        description: 邮箱
     type: object
   response.CustomTab:
     properties:
@@ -3673,6 +3710,16 @@ definitions:
       username:
         type: string
     type: object
+  response.LoginByEmail:
+    properties:
+      isEmailCheck:
+        type: boolean
+      isUpdatePassword:
+        description: 是否已更新密码
+        type: boolean
+      token:
+        type: string
+    type: object
   response.LogoCustomInfo:
     properties:
       about:
@@ -3696,6 +3743,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/response.CustomLogin'
         description: 登录页标题信息
+      loginEmail:
+        allOf:
+        - $ref: '#/definitions/response.CustomLoginEmail'
+        description: 邮箱登录信息
       register:
         allOf:
         - $ref: '#/definitions/response.CustomRegister'
@@ -5764,6 +5815,32 @@ paths:
                   $ref: '#/definitions/response.Login'
               type: object
       summary: 用户登录
+      tags:
+      - guest
+  /base/login/email:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户名+密码
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.Login'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.LoginByEmail'
+              type: object
+      summary: 用户邮箱双因子登录
       tags:
       - guest
   /base/password/email:
@@ -9064,6 +9141,92 @@ paths:
       summary: 获取用户列表
       tags:
       - permission.user
+  /user/login:
+    post:
+      consumes:
+      - application/json
+      description: 二阶段用户非首次登录邮箱校验与绑定
+      parameters:
+      - description: 语言
+        in: header
+        name: X-Language
+        type: string
+      - description: 登录邮箱信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginEmailCheck'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Login'
+              type: object
+      security:
+      - JWT: []
+      summary: 非首次登录邮箱校验与绑定
+      tags:
+      - common
+    put:
+      consumes:
+      - application/json
+      description: 二阶段用户首次登录邮箱校验绑定与修改密码
+      parameters:
+      - description: 语言
+        in: header
+        name: X-Language
+        type: string
+      - description: 密码和邮箱信息
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.ChangeUserPasswordByEmail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.Login'
+              type: object
+      security:
+      - JWT: []
+      summary: 用户首次登录邮箱校验绑定与修改密码
+      tags:
+      - common
+  /user/login/email/code:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 邮箱地址
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginSendEmailCode'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: 登录邮箱验证码发送
+      tags:
+      - common
   /user/password:
     put:
       consumes:

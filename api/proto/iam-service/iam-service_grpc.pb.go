@@ -51,6 +51,10 @@ const (
 	IAMService_ChangeRoleStatus_FullMethodName           = "/iam_service.IAMService/ChangeRoleStatus"
 	IAMService_GetCaptcha_FullMethodName                 = "/iam_service.IAMService/GetCaptcha"
 	IAMService_Login_FullMethodName                      = "/iam_service.IAMService/Login"
+	IAMService_LoginByEmail_FullMethodName               = "/iam_service.IAMService/LoginByEmail"
+	IAMService_LoginSendEmailCode_FullMethodName         = "/iam_service.IAMService/LoginSendEmailCode"
+	IAMService_LoginEmailCheck_FullMethodName            = "/iam_service.IAMService/LoginEmailCheck"
+	IAMService_ChangeUserPasswordByEmail_FullMethodName  = "/iam_service.IAMService/ChangeUserPasswordByEmail"
 	IAMService_RegisterByEmail_FullMethodName            = "/iam_service.IAMService/RegisterByEmail"
 	IAMService_RegisterSendEmailCode_FullMethodName      = "/iam_service.IAMService/RegisterSendEmailCode"
 	IAMService_ResetPasswordSendEmailCode_FullMethodName = "/iam_service.IAMService/ResetPasswordSendEmailCode"
@@ -123,15 +127,23 @@ type IAMServiceClient interface {
 	GetCaptcha(ctx context.Context, in *GetCaptchaReq, opts ...grpc.CallOption) (*GetCaptchaResp, error)
 	// 登录
 	Login(ctx context.Context, in *LoginReq, opts ...grpc.CallOption) (*LoginResp, error)
+	// 一阶段登录
+	LoginByEmail(ctx context.Context, in *LoginByEmailReq, opts ...grpc.CallOption) (*LoginByEmailResp, error)
+	// 登录发送邮箱验证码
+	LoginSendEmailCode(ctx context.Context, in *LoginSendEmailCodeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// 二阶段登录邮箱校验
+	LoginEmailCheck(ctx context.Context, in *LoginEmailCheckReq, opts ...grpc.CallOption) (*LoginResp, error)
+	// 二阶段登录重置密码与邮箱校验
+	ChangeUserPasswordByEmail(ctx context.Context, in *ChangeUserPasswordByEmailReq, opts ...grpc.CallOption) (*LoginResp, error)
 	// --- register ---
 	// 邮箱注册用户
 	RegisterByEmail(ctx context.Context, in *RegisterByEmailReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// 邮箱注册发送邮件
 	RegisterSendEmailCode(ctx context.Context, in *RegisterSendEmailCodeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// --- reset password ---
-	// 邮箱注册用户
+	// 重置密码邮箱验证码发送
 	ResetPasswordSendEmailCode(ctx context.Context, in *ResetPasswordSendEmailCodeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// 邮箱注册发送邮件
+	// 邮箱重置密码
 	ResetPasswordByEmail(ctx context.Context, in *ResetPasswordByEmailReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -453,6 +465,46 @@ func (c *iAMServiceClient) Login(ctx context.Context, in *LoginReq, opts ...grpc
 	return out, nil
 }
 
+func (c *iAMServiceClient) LoginByEmail(ctx context.Context, in *LoginByEmailReq, opts ...grpc.CallOption) (*LoginByEmailResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginByEmailResp)
+	err := c.cc.Invoke(ctx, IAMService_LoginByEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) LoginSendEmailCode(ctx context.Context, in *LoginSendEmailCodeReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, IAMService_LoginSendEmailCode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) LoginEmailCheck(ctx context.Context, in *LoginEmailCheckReq, opts ...grpc.CallOption) (*LoginResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginResp)
+	err := c.cc.Invoke(ctx, IAMService_LoginEmailCheck_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *iAMServiceClient) ChangeUserPasswordByEmail(ctx context.Context, in *ChangeUserPasswordByEmailReq, opts ...grpc.CallOption) (*LoginResp, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginResp)
+	err := c.cc.Invoke(ctx, IAMService_ChangeUserPasswordByEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *iAMServiceClient) RegisterByEmail(ctx context.Context, in *RegisterByEmailReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
@@ -559,15 +611,23 @@ type IAMServiceServer interface {
 	GetCaptcha(context.Context, *GetCaptchaReq) (*GetCaptchaResp, error)
 	// 登录
 	Login(context.Context, *LoginReq) (*LoginResp, error)
+	// 一阶段登录
+	LoginByEmail(context.Context, *LoginByEmailReq) (*LoginByEmailResp, error)
+	// 登录发送邮箱验证码
+	LoginSendEmailCode(context.Context, *LoginSendEmailCodeReq) (*emptypb.Empty, error)
+	// 二阶段登录邮箱校验
+	LoginEmailCheck(context.Context, *LoginEmailCheckReq) (*LoginResp, error)
+	// 二阶段登录重置密码与邮箱校验
+	ChangeUserPasswordByEmail(context.Context, *ChangeUserPasswordByEmailReq) (*LoginResp, error)
 	// --- register ---
 	// 邮箱注册用户
 	RegisterByEmail(context.Context, *RegisterByEmailReq) (*emptypb.Empty, error)
 	// 邮箱注册发送邮件
 	RegisterSendEmailCode(context.Context, *RegisterSendEmailCodeReq) (*emptypb.Empty, error)
 	// --- reset password ---
-	// 邮箱注册用户
+	// 重置密码邮箱验证码发送
 	ResetPasswordSendEmailCode(context.Context, *ResetPasswordSendEmailCodeReq) (*emptypb.Empty, error)
-	// 邮箱注册发送邮件
+	// 邮箱重置密码
 	ResetPasswordByEmail(context.Context, *ResetPasswordByEmailReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedIAMServiceServer()
 }
@@ -671,6 +731,18 @@ func (UnimplementedIAMServiceServer) GetCaptcha(context.Context, *GetCaptchaReq)
 }
 func (UnimplementedIAMServiceServer) Login(context.Context, *LoginReq) (*LoginResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+}
+func (UnimplementedIAMServiceServer) LoginByEmail(context.Context, *LoginByEmailReq) (*LoginByEmailResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginByEmail not implemented")
+}
+func (UnimplementedIAMServiceServer) LoginSendEmailCode(context.Context, *LoginSendEmailCodeReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginSendEmailCode not implemented")
+}
+func (UnimplementedIAMServiceServer) LoginEmailCheck(context.Context, *LoginEmailCheckReq) (*LoginResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginEmailCheck not implemented")
+}
+func (UnimplementedIAMServiceServer) ChangeUserPasswordByEmail(context.Context, *ChangeUserPasswordByEmailReq) (*LoginResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeUserPasswordByEmail not implemented")
 }
 func (UnimplementedIAMServiceServer) RegisterByEmail(context.Context, *RegisterByEmailReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterByEmail not implemented")
@@ -1263,6 +1335,78 @@ func _IAMService_Login_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _IAMService_LoginByEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginByEmailReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).LoginByEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_LoginByEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).LoginByEmail(ctx, req.(*LoginByEmailReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_LoginSendEmailCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginSendEmailCodeReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).LoginSendEmailCode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_LoginSendEmailCode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).LoginSendEmailCode(ctx, req.(*LoginSendEmailCodeReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_LoginEmailCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginEmailCheckReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).LoginEmailCheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_LoginEmailCheck_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).LoginEmailCheck(ctx, req.(*LoginEmailCheckReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IAMService_ChangeUserPasswordByEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeUserPasswordByEmailReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IAMServiceServer).ChangeUserPasswordByEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IAMService_ChangeUserPasswordByEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IAMServiceServer).ChangeUserPasswordByEmail(ctx, req.(*ChangeUserPasswordByEmailReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _IAMService_RegisterByEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RegisterByEmailReq)
 	if err := dec(in); err != nil {
@@ -1465,6 +1609,22 @@ var IAMService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Login",
 			Handler:    _IAMService_Login_Handler,
+		},
+		{
+			MethodName: "LoginByEmail",
+			Handler:    _IAMService_LoginByEmail_Handler,
+		},
+		{
+			MethodName: "LoginSendEmailCode",
+			Handler:    _IAMService_LoginSendEmailCode_Handler,
+		},
+		{
+			MethodName: "LoginEmailCheck",
+			Handler:    _IAMService_LoginEmailCheck_Handler,
+		},
+		{
+			MethodName: "ChangeUserPasswordByEmail",
+			Handler:    _IAMService_ChangeUserPasswordByEmail_Handler,
 		},
 		{
 			MethodName: "RegisterByEmail",

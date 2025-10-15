@@ -111,12 +111,13 @@ func (c *Client) RegisterByEmail(ctx context.Context, username, email, code stri
 	return c.transaction(ctx, func(tx *gorm.DB) *errs.Status {
 		// create user
 		user := &model.User{
-			Status:    true,
-			CreatorID: config.AdminUserID(),
-			Name:      username,
-			Nick:      username,
-			Email:     email,
-			Password:  record.Password,
+			Status:       true,
+			CreatorID:    config.AdminUserID(),
+			Name:         username,
+			Nick:         username,
+			Email:        email,
+			Password:     record.Password,
+			IsEmailCheck: true,
 		}
 		if err := createUserTx(tx, user, config.TopOrgID(), nil); err != nil {
 			return err
