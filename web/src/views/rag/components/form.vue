@@ -41,9 +41,6 @@
     </div>
     <div class="agent_form">
       <div class="drawer-form">
-        <div class="block prompt-box">
-
-        </div>
         <div class="model-box">
           <div class="block prompt-box">
             <p class="block-title common-set">
@@ -724,6 +721,7 @@ export default {
     overflow-y: auto;
     display:flex;
     flex-direction: column;
+    margin:10px 0;
     .editIcon{
       font-size: 16px;
       margin-left: 5px;

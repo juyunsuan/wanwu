@@ -30,12 +30,13 @@
                 v-model="item.metaKey" 
                 placeholder="请选择"
                 class="field-select"
-                :disabled="item.metaId"
+                :disabled="item.metaId && item.metaId !== '' ? true : false"
+                @change="handleMetaKeyChange($event,item)"
               >
                 <el-option
                   v-for="meta in keyOptions"
                   :key="meta.metaKey"
-                  :label="meta.metaKey + ' | ' + '[ '+meta.metaValueType+' ]'"
+                  :label="meta.metaKey"
                   :value="meta.metaKey"
                 />
               </el-select>
@@ -43,7 +44,7 @@
 
             <div class="field-group type-group">
               <span class="type-label">类型:</span>
-              <span class="type-value">[{{ item.type }}]</span>
+              <span class="type-value">[{{ item.metaValueType }}]</span>
             </div>
 
             <el-divider direction="vertical" class="field-divider" />
@@ -51,7 +52,7 @@
             <div class="field-group">
               <label class="field-label">Value:</label>
               <el-tag 
-                  v-if="item.metaValue &&JSON.parse(item.metaValue).length > 1" 
+                  v-if="isJsonArray(item.metaValue)" 
                   type="info" 
                   closable 
                   @close="handleCloseArray(item)">
@@ -140,6 +141,16 @@ export default {
   created(){
   },
   methods: {
+    handleMetaKeyChange(val,item){
+      item.metaValueType = this.keyOptions.filter(i => i.metaKey === val).map(e => e.metaValueType)[0];
+    },
+    isJsonArray(val){
+      try{
+        return Array.isArray(val) && val.length > 1
+      }catch(e){
+        return false
+      }
+    },
     handleMetaValueChange(item, index) {
       if (item.metaId && item.originalMetaValue !== item.metaValue) {
         item.option = 'update';
@@ -153,7 +164,8 @@ export default {
       getDocMetaList({docIdList:this.selectedDocIds}).then(res =>{
         if(res.code === 0){
           this.metaDataList = (res.data.knowledgeMetaValues || []).map(item => ({
-            ...item,
+            ...item,         
+            metaValue:item.metaValue.length > 1 ? item.metaValue : item.metaValue[0],
             option:'existing',
             originalMetaValue: item.metaValue
           }))
@@ -173,34 +185,21 @@ export default {
     },
     showDialog() {
       this.dialogVisible = true;
+      this.applyToSelected = false;
       this.getList();
       this.getMetaList();
-      this.initData();
     },
     
     handleClose() {
       this.dialogVisible = false;
       this.$emit('reLoadDocList')
     },
-    
-    initData() {
-      this.metaDataList = [
-        {
-          metaKey: '',
-          metaValueType:'string',
-          metaValue: '',
-          option: 'add'
-        }
-      ];
-      this.applyToAll = false;
-    },
-    
     addMetaData() {
       this.metaDataList.push({
-        key: '',
-        type: 'string',
-        value: '',
-        stringValue: ''
+        metaKey: '',
+        metaValueType: 'string',    
+        metaValue: '',
+        option: 'add'
       });
     },
     
@@ -245,11 +244,11 @@ export default {
       
       for (let i = 0; i < this.metaDataList.length; i++) {
         const item = this.metaDataList[i];
-        if (!item.key) {
+        if (!item.metaKey) {
           this.$message.warning(`第${i + 1}行的Key不能为空`);
           return;
         }
-        if (!item.value) {
+        if (!item.metaValue) {
           this.$message.warning(`第${i + 1}行的Value不能为空`);
           return;
         }
