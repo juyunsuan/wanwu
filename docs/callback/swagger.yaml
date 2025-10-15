@@ -1005,6 +1005,8 @@ definitions:
     type: object
   response.CustomToolActionInfo:
     properties:
+      desc:
+        type: string
       method:
         type: string
       name:
@@ -1168,6 +1170,8 @@ definitions:
       needApiKeyInput:
         description: 是否需要apiKey输入
         type: boolean
+      schema:
+        type: string
       tags:
         description: 标签
         items:
