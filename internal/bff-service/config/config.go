@@ -196,6 +196,7 @@ type DefaultIconConfig struct {
 	RagIcon      string `json:"rag" mapstructure:"rag"`
 	AgentIcon    string `json:"agent" mapstructure:"agent"`
 	WorkflowIcon string `json:"workflow" mapstructure:"workflow"`
+	ToolIcon     string `json:"tool" mapstructure:"tool"`
 }
 
 func LoadConfig(in string) error {

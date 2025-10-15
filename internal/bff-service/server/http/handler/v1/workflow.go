@@ -107,3 +107,55 @@ func ImportWorkflow(ctx *gin.Context) {
 	resp, err := service.ImportWorkflow(ctx, getOrgID(ctx))
 	gin_util.Response(ctx, resp, err)
 }
+
+// GetWorkflowToolSelect
+//
+//	@Tags		workflow
+//	@Summary	工具列表（用于workflow）
+//	@Description工具列表（用于workflow）
+//	@Security	JWT
+//	@Accept		json
+//	@Produce	json
+//	@Param		toolType	query		string	true	"工具类型"	Enums(builtin,custom)
+//	@Param		name		query		string	false	"工具名称"
+//	@Success	200			{object}	response.Response{data=response.ListResult{list=[]response.ToolSelectWithActions}}
+//	@Router		/workflow/tool/select [get]
+func GetWorkflowToolSelect(ctx *gin.Context) {
+	// 获取查询参数
+	toolType := ctx.Query("toolType")
+	name := ctx.Query("name")
+	// 调用服务层获取工具列表
+	tools, err := service.GetWorkflowToolSelect(ctx, getUserID(ctx), getOrgID(ctx), toolType, name)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	gin_util.Response(ctx, tools, err)
+}
+
+// GetWorkflowToolDetail
+//
+//	@Tags		workflow
+//	@Summary	工具具体action（用于workflow）
+//	@Description工具具体action（用于workflow）
+//	@Security	JWT
+//	@Accept		json
+//	@Produce	json
+//	@Param		toolType	query		string	true	"工具类型"	Enums(builtin,custom)
+//	@Param		actionName	query		string	true	"工具具体action名称"
+//	@Param		toolId		query		string	true	"工具ID"
+//	@Success	200			{object}	response.Response{data=response.ToolDetail4Workflow}
+//	@Router		/workflow/tool/action [get]
+func GetWorkflowToolDetail(ctx *gin.Context) {
+	// 获取查询参数
+	toolType := ctx.Query("toolType")
+	name := ctx.Query("actionName")
+	toolId := ctx.Query("toolId")
+	// 调用服务层获取工具列表
+	data, err := service.GetWorkflowToolDetail(ctx, getUserID(ctx), getOrgID(ctx), toolId, toolType, name)
+	if err != nil {
+		gin_util.Response(ctx, nil, err)
+		return
+	}
+	gin_util.Response(ctx, data, err)
+}

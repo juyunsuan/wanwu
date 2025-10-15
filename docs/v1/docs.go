@@ -8175,6 +8175,145 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/workflow/tool/action": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflow"
+                ],
+                "summary": "工具具体action（用于workflow）",
+                "parameters": [
+                    {
+                        "enum": [
+                            "builtin",
+                            "custom"
+                        ],
+                        "type": "string",
+                        "description": "工具类型",
+                        "name": "toolType",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "工具具体action名称",
+                        "name": "actionName",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "工具ID",
+                        "name": "toolId",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.ToolDetail4Workflow"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/workflow/tool/select": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflow"
+                ],
+                "summary": "工具列表（用于workflow）",
+                "parameters": [
+                    {
+                        "enum": [
+                            "builtin",
+                            "custom"
+                        ],
+                        "type": "string",
+                        "description": "工具类型",
+                        "name": "toolType",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "工具名称",
+                        "name": "name",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/definitions/response.ListResult"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "list": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/definitions/response.ToolSelectWithActions"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -12117,6 +12256,20 @@ const docTemplate = `{
                 }
             }
         },
+        "response.ActionInfo": {
+            "type": "object",
+            "properties": {
+                "actionId": {
+                    "type": "string"
+                },
+                "actionName": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                }
+            }
+        },
         "response.AnalysisDocUrlResp": {
             "type": "object",
             "properties": {
@@ -14457,6 +14610,87 @@ const docTemplate = `{
                 },
                 "wordId": {
                     "description": "敏感词id",
+                    "type": "string"
+                }
+            }
+        },
+        "response.ToolActionParam4Workflow": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "input": {
+                    "type": "object"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ToolActionParam4Workflow"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ToolDetail4Workflow": {
+            "type": "object",
+            "properties": {
+                "actionId": {
+                    "type": "string"
+                },
+                "actionName": {
+                    "type": "string"
+                },
+                "iconUrl": {
+                    "type": "string"
+                },
+                "inputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ToolActionParam4Workflow"
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ToolActionParam4Workflow"
+                    }
+                }
+            }
+        },
+        "response.ToolSelectWithActions": {
+            "type": "object",
+            "properties": {
+                "actions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.ActionInfo"
+                    }
+                },
+                "apiKey": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "iconUrl": {
+                    "type": "string"
+                },
+                "toolId": {
+                    "type": "string"
+                },
+                "toolName": {
+                    "type": "string"
+                },
+                "toolType": {
                     "type": "string"
                 }
             }

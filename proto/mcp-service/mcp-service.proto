@@ -248,6 +248,7 @@ message GetSquareToolReq {
 message SquareToolDetail {
     ToolSquareInfo info = 1;
     BuiltInTools builtInTools = 2;
+    string schema =3;
 }
 
 message ToolSquareInfo {
