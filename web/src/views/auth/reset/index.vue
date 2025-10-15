@@ -7,14 +7,14 @@
         </p>
         <div class="auth-form">
           <el-form ref="form" :model="form" :rules="rules" label-position="top">
-            <el-form-item :label="$t('reset.form.email')" class="auth-form-item" prop="email">
+            <el-form-item class="auth-form-item" prop="email">
               <img class="auth-icon" src="@/assets/imgs/user.png" alt=""/>
               <el-input
                 v-model.trim="form.email"
                 :placeholder="$t('common.input.placeholder') + $t('reset.form.email')" clearable
               />
             </el-form-item>
-            <el-form-item :label="$t('reset.form.code')" class="auth-form-item" prop="code">
+            <el-form-item class="auth-form-item" prop="code">
               <img class="auth-icon" src="@/assets/imgs/code.png" alt=""/>
               <el-input
                 style="width: calc(100% - 90px)"
@@ -31,7 +31,7 @@
               </el-button>
             </el-form-item>
             <el-form-item
-              :label="$t('reset.action1') + $t('reset.form.password')" class="auth-form-item"
+              class="auth-form-item"
               prop="password1">
               <img class="auth-icon" src="@/assets/imgs/pwd.png" alt=""/>
               <el-input
@@ -48,7 +48,7 @@
                 @click="isShowPwd1 = false"/>
             </el-form-item>
             <el-form-item
-              :label="$t('reset.action2') + $t('reset.form.password')" class="auth-form-item"
+              class="auth-form-item"
               prop="password2">
               <img class="auth-icon" src="@/assets/imgs/pwd.png" alt=""/>
               <el-input
