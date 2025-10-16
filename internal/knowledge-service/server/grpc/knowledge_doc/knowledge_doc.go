@@ -655,7 +655,8 @@ func removeDuplicateMeta(metaDataList []*knowledgebase_doc_service.MetaData) []*
 
 // buildImportTask 构造导入任务
 func buildImportTask(req *knowledgebase_doc_service.ImportDocReq) (*model.KnowledgeImportTask, error) {
-	if req.DocSegment.SegmentType == "0" {
+	//是否是自动分段类型
+	if autoSegmentType(req.DocSegment.SegmentType, req.DocSegment.SegmentMethod) {
 		req.DocSegment.Overlap = 0.2
 		req.DocSegment.MaxSplitter = 500
 	}
@@ -726,6 +727,13 @@ func buildImportTask(req *knowledgebase_doc_service.ImportDocReq) (*model.Knowle
 		UserId:        req.UserId,
 		OrgId:         req.OrgId,
 	}, nil
+}
+
+func autoSegmentType(segmentType, segmentMethod string) bool {
+	if segmentMethod == model.CommonSegmentMethod || segmentMethod == "" {
+		return segmentType == "0"
+	}
+	return false
 }
 
 // buildSegmentListResp 构造文档分段列表
