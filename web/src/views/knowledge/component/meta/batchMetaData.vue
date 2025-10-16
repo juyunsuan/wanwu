@@ -81,7 +81,7 @@
                   placeholder="请选择时间"
                   class="field-input"
                   format="yyyy-MM-dd HH:mm:ss"
-                  value-format="yyyy-MM-dd HH:mm:ss"
+                  value-format="timestamp"
                   @change="handleMetaValueChange(item, index)"
                 />
               </template>
