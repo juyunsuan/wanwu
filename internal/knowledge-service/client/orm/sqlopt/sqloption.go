@@ -96,6 +96,18 @@ func WithDocID(id string) SQLOption {
 	})
 }
 
+func WithKey(key string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("`key` = ?", key)
+	})
+}
+
+func WithType(metaValueType string) SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("`type` = ?", metaValueType)
+	})
+}
+
 func WithIDs(ids []uint32) SQLOption {
 	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
 		return db.Where("id IN ?", ids)
@@ -171,6 +183,12 @@ func WithValue(value string) SQLOption {
 			return db.Where("value = ?", value)
 		}
 		return db
+	})
+}
+
+func WithNonEmptyValue() SQLOption {
+	return funcSQLOption(func(db *gorm.DB) *gorm.DB {
+		return db.Where("value != ''")
 	})
 }
 

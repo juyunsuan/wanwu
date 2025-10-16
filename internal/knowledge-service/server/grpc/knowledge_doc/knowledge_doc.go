@@ -214,18 +214,20 @@ func updateDocMetaData(ctx context.Context, req *knowledgebase_doc_service.Updat
 		return nil, util.ErrCode(errs.Code_KnowledgeDocUpdateMetaStatusFailed)
 	}
 	docMetaMap := buildMetaDocMap(metaDocList)
-	//5.更新标签
+	//5.构造元数据操作列表
 	metaDataList := removeDuplicateMeta(req.MetaDataList)
 	var fileName = service.RebuildFileName(doc.DocId, doc.FileType, doc.Name)
 	addList, updateList, deleteList := buildDocMetaModelList(metaDataList, doc.OrgId, doc.UserId, req.KnowledgeId, req.DocId)
 	if err1 := checkMetaKeyType(addList, updateList, docMetaMap); err1 != nil {
 		return nil, err1
 	}
+	//6.构造RAG请求参数
 	params, err := buildMetaRagParams(metaDataList)
 	if err != nil {
 		log.Errorf("docId %v update buildMetaRagParams fail %v", req.DocId, err)
 		return nil, util.ErrCode(errs.Code_KnowledgeDocUpdateMetaFailed)
 	}
+	//7.更新数据库并发送RAG请求
 	err = orm.UpdateDocStatusDocMeta(ctx, req.DocId, addList, updateList, deleteList,
 		&service.RagDocMetaParams{
 			FileName:      fileName,

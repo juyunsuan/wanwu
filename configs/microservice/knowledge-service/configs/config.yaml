@@ -141,17 +141,5 @@ knowledge-doc-config:
   doc-local-file-path: static/temp
 
 splitters:
-  - name: "中文叹号"
-    value: "！"
-  - name: "中文句号"
-    value: "。"
-  - name: "中文问号"
-    value: "？"
-  - name: "英文问号"
-    value: "?"
-  - name: "英文叹号"
-    value: "!"
-  - name: "英文句号"
-    value: "."
-  - name: "省略号"
-    value: "......"
+  - name: "\n\n"
+    value: "\n\n"

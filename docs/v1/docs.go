@@ -4282,6 +4282,94 @@ const docTemplate = `{
                 }
             }
         },
+        "/knowledge/meta/value": {
+            "get": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "获取文档元数据列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "获取文档元数据列表",
+                "parameters": [
+                    {
+                        "description": "文档元数据列表请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.KnowledgeMetaValueListReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.KnowledgeMetaValueListResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "更新知识库元数据值",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "knowledge"
+                ],
+                "summary": "更新知识库元数据值",
+                "parameters": [
+                    {
+                        "description": "更新知识库元数据值请求参数",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdateMetaValueReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/knowledge/select": {
             "post": {
                 "security": [
@@ -11229,6 +11317,20 @@ const docTemplate = `{
                 }
             }
         },
+        "request.KnowledgeMetaValueListReq": {
+            "type": "object",
+            "required": [
+                "docIdList"
+            ],
+            "properties": {
+                "docIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "request.KnowledgeSelectReq": {
             "type": "object",
             "properties": {
@@ -12013,6 +12115,30 @@ const docTemplate = `{
                 },
                 "tagName": {
                     "type": "string"
+                }
+            }
+        },
+        "request.UpdateMetaValueReq": {
+            "type": "object",
+            "required": [
+                "applyToSelected",
+                "docIdList"
+            ],
+            "properties": {
+                "applyToSelected": {
+                    "type": "boolean"
+                },
+                "docIdList": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "metaValueList": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request.DocMetaData"
+                    }
                 }
             }
         },
@@ -13559,6 +13685,42 @@ const docTemplate = `{
                 },
                 "metaKey": {
                     "type": "string"
+                },
+                "metaValue": {
+                    "description": "确定值",
+                    "type": "string"
+                },
+                "metaValueType": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.KnowledgeMetaValueListResp": {
+            "type": "object",
+            "properties": {
+                "knowledgeMetaValues": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/response.KnowledgeMetaValues"
+                    }
+                }
+            }
+        },
+        "response.KnowledgeMetaValues": {
+            "type": "object",
+            "properties": {
+                "metaId": {
+                    "type": "string"
+                },
+                "metaKey": {
+                    "type": "string"
+                },
+                "metaValue": {
+                    "description": "确定值",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "metaValueType": {
                     "type": "string"

@@ -54,4 +54,16 @@ type KnowledgeMetaItem struct {
 	MetaId        string `json:"metaId"`
 	MetaKey       string `json:"metaKey"`
 	MetaValueType string `json:"metaValueType"`
+	MetaValue     string `json:"metaValue"` // 确定值
+}
+
+type KnowledgeMetaValueListResp struct {
+	KnowledgeMetaValues []*KnowledgeMetaValues `json:"knowledgeMetaValues"`
+}
+
+type KnowledgeMetaValues struct {
+	MetaId        string   `json:"metaId"`
+	MetaKey       string   `json:"metaKey"`
+	MetaValue     []string `json:"metaValue"` // 确定值
+	MetaValueType string   `json:"metaValueType"`
 }

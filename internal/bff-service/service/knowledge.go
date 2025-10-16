@@ -125,6 +125,34 @@ func GetKnowledgeMetaSelect(ctx *gin.Context, userId, orgId string, r *request.G
 	return buildKnowledgeMetaList(metaList.MetaList), nil
 }
 
+// GetKnowledgeMetaValueList 获取文档元数据列表
+func GetKnowledgeMetaValueList(ctx *gin.Context, userId, orgId string, r *request.KnowledgeMetaValueListReq) (*response.KnowledgeMetaValueListResp, error) {
+	resp, err := knowledgeBase.GetKnowledgeMetaValueList(ctx.Request.Context(), &knowledgebase_service.KnowledgeMetaValueListReq{
+		UserId:    userId,
+		OrgId:     orgId,
+		DocIdList: r.DocIdList,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return buildKnowledgeMetaValueRespList(resp), nil
+}
+
+// UpdateKnowledgeMetaValue 更新知识库元数据值
+func UpdateKnowledgeMetaValue(ctx *gin.Context, userId, orgId string, r *request.UpdateMetaValueReq) error {
+	_, err := knowledgeBase.UpdateKnowledgeMetaValue(ctx.Request.Context(), &knowledgebase_service.UpdateKnowledgeMetaValueReq{
+		UserId:          userId,
+		OrgId:           orgId,
+		ApplyToSelected: r.ApplyToSelected,
+		DocIdList:       r.DocIdList,
+		MetaList:        buildKnowledgeMetaValueReqList(r.MetaValueList),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // buildKnowledgeMetaList 构造知识库元数据列表
 func buildKnowledgeMetaList(metaList []*knowledgebase_service.KnowledgeMetaData) *response.GetKnowledgeMetaSelectResp {
 	var retMetaList []*response.KnowledgeMetaItem
@@ -232,6 +260,37 @@ func buildMetaFilterParams(meta []*request.MetaFilterParams) []*knowledgebase_se
 			Value:     m.Value,
 			Type:      m.Type,
 			Condition: m.Condition,
+		})
+	}
+	return metaList
+}
+
+func buildKnowledgeMetaValueRespList(resp *knowledgebase_service.KnowledgeMetaValueListResp) *response.KnowledgeMetaValueListResp {
+	retList := make([]*response.KnowledgeMetaValues, 0)
+	for _, meta := range resp.MetaList {
+		retList = append(retList, &response.KnowledgeMetaValues{
+			MetaId:        meta.MetaId,
+			MetaKey:       meta.Key,
+			MetaValue:     meta.ValueList,
+			MetaValueType: meta.Type,
+		})
+	}
+	return &response.KnowledgeMetaValueListResp{
+		KnowledgeMetaValues: retList,
+	}
+}
+
+func buildKnowledgeMetaValueReqList(req []*request.DocMetaData) []*knowledgebase_service.MetaValueOperation {
+	metaList := make([]*knowledgebase_service.MetaValueOperation, 0)
+	for _, meta := range req {
+		metaList = append(metaList, &knowledgebase_service.MetaValueOperation{
+			MetaInfo: &knowledgebase_service.KnowledgeMetaData{
+				MetaId: meta.MetaId,
+				Key:    meta.MetaKey,
+				Value:  meta.MetaValue,
+				Type:   meta.MetaValueType,
+			},
+			Option: meta.Option,
 		})
 	}
 	return metaList

@@ -94,6 +94,25 @@ type GetKnowledgeMetaSelectReq struct {
 	CommonCheck
 }
 
+type KnowledgeMetaValueListReq struct {
+	DocIdList []string `json:"docIdList" form:"docIdList" validate:"required" `
+	CommonCheck
+}
+
+type UpdateMetaValueReq struct {
+	DocIdList       []string       `json:"docIdList"  validate:"required"`
+	MetaValueList   []*DocMetaData `json:"metaValueList"`
+	ApplyToSelected bool           `json:"applyToSelected"`
+}
+
+func (c *UpdateMetaValueReq) Check() error {
+	for _, v := range c.MetaValueList {
+		if v.Option == "" {
+			return errors.New("option为空")
+		}
+	}
+	return nil
+}
 func (c *CreateKnowledgeReq) Check() error {
 	if !util.IsAlphanumeric(c.Name) {
 		errMsg := fmt.Sprintf("知识库名称只能包含中文、数字、小写英文，符号之只能包含下划线和减号 参数(%v)", c.Name)
