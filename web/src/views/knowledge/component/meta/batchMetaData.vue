@@ -273,6 +273,7 @@ export default {
         });
     },
     unpdateMetaApi(data, type) {
+      this.loading = true;
       updateMetaData(data)
         .then((res) => {
           if (res.code === 0) {
@@ -287,7 +288,6 @@ export default {
         .catch(() => {});
     },
     handleConfirm() {
-      this.loading = true;
       if (this.metaDataList.length === 0) {
         this.$message.warning("请至少添加一个元数据值");
         return;
@@ -311,7 +311,6 @@ export default {
 
       if (updateData.length === 0) {
         this.$message.info("没有需要更新的数据");
-        this.loading = false;
         return;
       }
       const processedUpdateData = updateData.map((item) => ({

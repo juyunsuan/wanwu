@@ -200,6 +200,9 @@
                 class="full-width-textarea"
                 >
               </el-input>
+              <div  v-if="cardObj[0]['isParent']" style="display: flex;justify-content: flex-end;padding: 10px 0;">
+                <el-button type="primary" @click="handleSubmit"  :loading="submitLoading">保存并重新解析子分段</el-button>
+              </div>
               <div class="segment-list" v-if="scope.row.childContent.length > 0">
                 <el-collapse 
                   v-model="activeNames" 
@@ -252,7 +255,7 @@
 
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="handleSubmit" :loading="submitLoading" v-if="!cardObj[0]['isParent']">确定</el-button>
-        <el-button type="primary" @click="handleSubmit"  v-if="cardObj[0]['isParent']" :loading="submitLoading">保存并重新解析子分段</el-button>
+        <!-- <el-button type="primary" @click="handleSubmit"  v-if="cardObj[0]['isParent']" :loading="submitLoading">保存并重新解析子分段</el-button> -->
         <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent']" :disabled="submitLoading">新增子分段</el-button>
         <el-button type="primary" @click="handleClose" :disabled="submitLoading">{{$t('knowledgeManage.close')}}</el-button>
       </span>

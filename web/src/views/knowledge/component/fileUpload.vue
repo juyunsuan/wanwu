@@ -155,7 +155,7 @@
                     :disable-transitions="false"
                     class="splitterTag"
                   >
-                    {{tag.splitterName}}
+                    {{tag.splitterName.replace(/\n/g, '\\n')}}
                   </el-tag>
                   <el-button
                     class="button-new-tag"
@@ -231,7 +231,7 @@
                       :disable-transitions="false"
                       class="splitterTag"
                     >
-                      {{tag.splitterName}}
+                      {{tag.splitterName.replace(/\n/g, '\\n')}}
                     </el-tag>
                     <el-button
                       class="button-new-tag"
@@ -490,13 +490,13 @@ export default {
         docSegment: {
           segmentType: "0",
           // splitter: ["！", "。", "？", "?", "!", ".", "......"],
-          splitter:["\\n\\n"],
+          splitter:["\n\n"],
           maxSplitter: 1024,
           overlap: 0.2,
           segmentMethod:"0",//0是通用分段，1是父子分段
           subMaxSplitter:200,//父子分段必填
           // subSplitter:["！", "。", "？", "?", "!", ".", "......"]//父子分段必填
-          subSplitter:["\\n\\n"]
+          subSplitter:["\n\n"]
         },
         docInfoList: [],
         docImportType: 0,
@@ -578,12 +578,15 @@ export default {
       }
     },
     custom() {
-      const splitter = this.ruleForm.docSegment.splitter;
-      const data = this.splitOptions.filter((item) => {
-        return splitter.includes(item.splitterValue) && item.type === "preset";
+      this.$nextTick(() => {
+        const splitter = this.ruleForm.docSegment.splitter;
+        const data = this.splitOptions.filter((item) => {
+          return splitter.includes(item.splitterValue) && item.type === "preset";
+        });
+        this.checkSplitter['splitter'] = data;
+        this.checkSplitter['subSplitter'] = data;
+        console.log(this.checkSplitter);
       });
-      this.checkSplitter['splitter'] = data;
-      this.checkSplitter['subSplitter'] = data;
     },
     updateMeata(data) {
       this.ruleForm.docMetaData = data;
