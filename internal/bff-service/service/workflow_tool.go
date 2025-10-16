@@ -233,7 +233,7 @@ func openapiOperation2ToolActionOutputs4Workflow(operation *openapi3.Operation) 
 		}
 	}
 
-	if responseRef.Value != nil {
+	if responseRef != nil && responseRef.Value != nil {
 		for _, mediaType := range responseRef.Value.Content {
 			if mediaType.Schema != nil && mediaType.Schema.Value != nil {
 				outputs = append(outputs, openapiSchemaProperties2ToolActionParams4Workflow(mediaType.Schema.Value.Properties, mediaType.Schema.Value.Required)...)
@@ -246,22 +246,31 @@ func openapiOperation2ToolActionOutputs4Workflow(operation *openapi3.Operation) 
 
 func openapiSchemaProperties2ToolActionParams4Workflow(properties openapi3.Schemas, required []string) []response.ToolActionParam4Workflow {
 	if properties == nil {
-		return nil
+		return []response.ToolActionParam4Workflow{}
 	}
-	var ret []response.ToolActionParam4Workflow
+	var rets []response.ToolActionParam4Workflow
 	for propName, propSchema := range properties {
 		if propSchema.Value == nil {
 			continue
 		}
-		ret = append(ret, response.ToolActionParam4Workflow{
+		ret := response.ToolActionParam4Workflow{
 			Name:        propName,
 			Description: propSchema.Value.Description,
 			Type:        openaiSchemaType(propSchema.Value),
 			Required:    util.Exist(required, propName),
-			Children:    openapiSchemaProperties2ToolActionParams4Workflow(propSchema.Value.Properties, propSchema.Value.Required),
-		})
+			Children:    []response.ToolActionParam4Workflow{},
+		}
+		switch ret.Type {
+		case "object":
+			ret.Children = openapiSchemaProperties2ToolActionParams4Workflow(propSchema.Value.Properties, propSchema.Value.Required)
+		case "array":
+			if propSchema.Value.Items != nil && propSchema.Value.Items.Value != nil {
+				ret.Children = openapiSchemaProperties2ToolActionParams4Workflow(propSchema.Value.Items.Value.Properties, propSchema.Value.Required)
+			}
+		}
+		rets = append(rets, ret)
 	}
-	return ret
+	return rets
 }
 
 // openapiParameterType 获取参数类型
