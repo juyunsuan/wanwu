@@ -125,7 +125,7 @@ func PdfParser(ctx *gin.Context, provider, apiKey, url string, req *PdfParserReq
 	defer file.Close()
 	request := resty.New().
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}). // 关闭证书校验
-		SetTimeout(0).                                             // 关闭请求超时
+		SetTimeout(0). // 关闭请求超时
 		R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "multipart/form-data").
@@ -138,16 +138,17 @@ func PdfParser(ctx *gin.Context, provider, apiKey, url string, req *PdfParserReq
 	for _, header := range headers {
 		request.SetHeader(header.Key, header.Value)
 	}
-
 	resp, err := request.Post(url)
 	if err != nil {
 		return nil, fmt.Errorf("request %v %v pdfParser err: %v", url, provider, err)
-	} else if resp.StatusCode() >= 300 {
-		return nil, fmt.Errorf("request %v %v pdfParser http status %v msg: %v", url, provider, resp.StatusCode(), resp.String())
 	}
-	b, err := io.ReadAll(resp.RawResponse.Body)
+	bodyBytes, err := io.ReadAll(resp.RawResponse.Body)
 	if err != nil {
-		return nil, fmt.Errorf("request %v %v pdfParser read response body err: %v", url, provider, err)
+		return nil, fmt.Errorf("read response body failed: %v", err)
 	}
-	return b, nil
+	if resp.StatusCode() >= 300 {
+		return nil, fmt.Errorf("request %v %v pdfParser http status %v msg: %v", url, provider, resp.StatusCode(), string(bodyBytes))
+	}
+
+	return bodyBytes, nil
 }
