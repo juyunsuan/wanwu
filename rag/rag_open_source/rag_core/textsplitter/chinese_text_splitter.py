@@ -69,6 +69,16 @@ def generate_regex(punc_list):
     return re.compile('(' + '|'.join(escaped_punc) + ')')
 
 
+def replace_k_consecutive_nl(separator: str, text: str) -> (str, str):
+    normalized = separator.replace('\\n', '\n')
+    k = len(normalized) if re.fullmatch(r'\n+', normalized) else 0
+    if k == 0:
+        return separator, text
+
+    pattern = re.compile(rf'\n{{{k}}}')
+    return '<NL>', pattern.sub('<NL>', text)
+
+
 class ChineseTextSplitter(CharacterTextSplitter):
     def __init__(self, chunk_type: str = 'split_by_design', pdf: bool = False, excel: bool = False, sentence_size: int = 500, overlap_size: float = 0.0, separators: list = [], **kwargs):
         super().__init__(**kwargs)
@@ -360,11 +370,16 @@ class ChineseTextSplitter(CharacterTextSplitter):
 
 
     def split_text_by_custom_separators(self, text: str) -> list[str]:
+        new_separators = []
+        for separator in self.separators:
+            separator, text = replace_k_consecutive_nl(separator, text)
+            if separator not in new_separators:
+                new_separators.append(separator)
         # 如果分隔符里没有\n，先把原文中的\n替换为特殊标记
-        if "\n" not in self.separators and "\\n" not in self.separators:
+        if "\n" not in new_separators and "\\n" not in new_separators:
             text = text.replace("\n", "")
         regex_replacements = [
-            (generate_regex(self.separators), r"\1\n")
+            (generate_regex(new_separators), r"\1\n")
         ]
         for pattern, replacement in regex_replacements:
             text = re.sub(pattern, replacement, text)
@@ -373,6 +388,7 @@ class ChineseTextSplitter(CharacterTextSplitter):
 
         final_chunks = []
         for s in splits:
+            s= s.replace("<NL>", "")
             if len(s) < self.sentence_size:
                 final_chunks.append(s)
             else:
