@@ -63,12 +63,14 @@
           </div>
           <div class="bottom-text">{{ commonInfo.login.platformDesc }}</div>
         </div>
+        <dialog2FA ref="dialog2FA"></dialog2FA>
       </div>
     </template>
   </overview>
 </template>
 
 <script>
+import dialog2FA from './2FADialog'
 import overview from '@/views/auth/layout'
 import {mapActions, mapState} from 'vuex'
 import {getImgVerCode} from "@/api/user"
@@ -76,7 +78,7 @@ import {urlEncrypt} from "@/utils/crypto";
 import {redirectUrl} from "@/utils/util";
 
 export default {
-  components: {overview},
+  components: {overview, dialog2FA},
   data() {
     return {
       form: {
@@ -94,7 +96,7 @@ export default {
   },
   created() {
     // 如果已登录，重定向到有权限的页面
-    if (this.$store.state.user.token && localStorage.getItem("access_cert")) redirectUrl()
+    if (this.$store.state.user.token && localStorage.getItem("access_cert") && !this.$store.state.user.is2FA) redirectUrl()
 
     this.getImgCode()
   },
@@ -102,7 +104,7 @@ export default {
     ...mapState('login', ['commonInfo'])
   },
   methods: {
-    ...mapActions('user', ['LoginIn']),
+    ...mapActions('user', ['LoginIn','LoginIn2FA1']),
     isDisabled() {
       const {username, password, code} = this.form
       return !(username && password && code)
@@ -128,7 +130,10 @@ export default {
       }
 
       try {
-        await this.LoginIn(data)
+        if (this.commonInfo.loginEmail.email.status) {
+          const {isEmailCheck, isUpdatePassword} = await this.LoginIn2FA1(data)
+          this.$refs.dialog2FA.showDialog(isEmailCheck, isUpdatePassword)
+        } else await this.LoginIn(data)
       } catch (e) {
         await this.getImgCode()
       }

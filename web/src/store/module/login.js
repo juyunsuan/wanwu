@@ -11,6 +11,11 @@ export const login = {
             },
             home: {},
             tab: {},
+            loginEmail: {
+                email: {
+                    status: false,
+                }
+            },
             register: {
                 email: {
                     status: false,
