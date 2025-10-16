@@ -76,7 +76,7 @@ def replace_k_consecutive_nl(separator: str, text: str) -> (str, str):
         return separator, text
 
     pattern = re.compile(rf'\n{{{k}}}')
-    return '<NL>', pattern.sub('<NL>', text)
+    return '<NLS>', pattern.sub('<NLS>', text)
 
 
 class ChineseTextSplitter(CharacterTextSplitter):
@@ -376,8 +376,8 @@ class ChineseTextSplitter(CharacterTextSplitter):
             if separator not in new_separators:
                 new_separators.append(separator)
         # 如果分隔符里没有\n，先把原文中的\n替换为特殊标记
-        if "\n" not in new_separators and "\\n" not in new_separators:
-            text = text.replace("\n", "")
+        if "\n" not in self.separators and "\\n" not in self.separators:
+            text = text.replace("\n", "NL")
         regex_replacements = [
             (generate_regex(new_separators), r"\1\n")
         ]
@@ -388,7 +388,8 @@ class ChineseTextSplitter(CharacterTextSplitter):
 
         final_chunks = []
         for s in splits:
-            s= s.replace("<NL>", "")
+            s= s.replace("<NLS>", "")
+            s = s.replace("<NL>", "\n")
             if len(s) < self.sentence_size:
                 final_chunks.append(s)
             else:
