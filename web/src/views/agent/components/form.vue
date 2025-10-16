@@ -1171,18 +1171,14 @@ export default {
 .basicInfo {
   display: flex;
   align-items: center;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   .img {
-    margin-right: 12px;
+    margin-right: 10px;
     img {
-      border-radius: 50%;
-      border: 2px solid #f3f4f6;
-      width: 48px;
-      height: 48px;
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
       object-fit: cover;
       box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
     }
@@ -1193,9 +1189,8 @@ export default {
   .basicInfo-title {
     display: inline-block;
     font-weight: 600;
-    font-size: 16px;
+    font-size: 14px;
     color: #1f2937;
-    margin-bottom: 4px;
   }
   .editIcon {
     font-size: 16px;
@@ -1205,9 +1200,9 @@ export default {
   }
   p {
     color: #6b7280;
-    font-size: 14px;
+    font-size: 12px;
     margin: 0;
-    line-height: 1.4;
+    line-height: 1.2;
   }
 }
 .form-header {

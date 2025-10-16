@@ -677,7 +677,7 @@ export default {
       }
       p {
         color: #6b7280;
-        font-size: 14px;
+        font-size: 12px;
         margin: 0;
         line-height: 1.4;
       }
