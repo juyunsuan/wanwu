@@ -25,6 +25,9 @@ const (
 	MetaValueTypeTime     = "time"
 	MetaConditionEmpty    = "empty"
 	MetaConditionNotEmpty = "not empty"
+	MetaOperationAdd      = "add"
+	MetaOperationUpdate   = "update"
+	MetaOperationDelete   = "delete"
 )
 
 func (s *Service) SelectKnowledgeList(ctx context.Context, req *knowledgebase_service.KnowledgeSelectReq) (*knowledgebase_service.KnowledgeSelectListResp, error) {
@@ -178,6 +181,158 @@ func (s *Service) GetKnowledgeMetaSelect(ctx context.Context, req *knowledgebase
 		return nil, util.ErrCode(errs.Code_KnowledgeMetaFetchFailed)
 	}
 	return buildKnowledgeMetaSelectResp(metaList), nil
+}
+
+func (s *Service) GetKnowledgeMetaValueList(ctx context.Context, req *knowledgebase_service.KnowledgeMetaValueListReq) (*knowledgebase_service.KnowledgeMetaValueListResp, error) {
+	metaList, err := orm.SelectMetaByDocIds(ctx, req.UserId, req.OrgId, req.DocIdList)
+	if err != nil {
+		return nil, util.ErrCode(errs.Code_KnowledgeMetaFetchFailed)
+	}
+	return buildKnowledgeMetaValueListResp(metaList), nil
+}
+
+func (s *Service) UpdateKnowledgeMetaValue(ctx context.Context, req *knowledgebase_service.UpdateKnowledgeMetaValueReq) (*emptypb.Empty, error) {
+	//1.查询文档详情
+	docList, err := orm.SelectDocByDocIdList(ctx, req.DocIdList, req.UserId, req.OrgId)
+	if err != nil {
+		log.Errorf("没有操作该知识库文档的权限 参数(%v)", req)
+		return nil, err
+	}
+	doc := docList[0]
+	//2.状态校验
+	if util.BuildDocRespStatus(doc.Status) != model.DocSuccess {
+		log.Errorf("非处理完成文档无法修改元数据 状态(%d) 错误(%v) 参数(%v)", doc.Status, err, req)
+		return nil, util.ErrCode(errs.Code_KnowledgeDocUpdateMetaStatusFailed)
+	}
+	//3.查询知识库信息
+	knowledge, err := orm.SelectKnowledgeById(ctx, doc.KnowledgeId, req.UserId, req.OrgId)
+	if err != nil {
+		log.Errorf("没有操作该知识库的权限 参数(%v)", req)
+		return nil, err
+	}
+	//4.查询元数据
+	docMetaList, err := orm.SelectMetaByDocIds(ctx, req.UserId, req.OrgId, req.DocIdList)
+	if err != nil {
+		return nil, util.ErrCode(errs.Code_KnowledgeMetaFetchFailed)
+	}
+	//5.构造文档元数据map
+	docMetaMap := buildDocMetaMap(docMetaList)
+	//6.构造元数据列表
+	addList, updateList, deleteList := buildMetaList(req, docMetaMap, doc.KnowledgeId)
+	//7.更新数据库并发送rag请求
+	err = orm.BatchUpdateDocMetaValue(ctx, addList, updateList, deleteList, knowledge, docList, req.UserId)
+	if err != nil {
+		log.Errorf("更新文档元数据失败(%v)  参数(%v)", err, req)
+		return nil, util.ErrCode(errs.Code_KnowledgeMetaUpdateFailed)
+	}
+	return nil, nil
+}
+
+func buildDocMetaMap(docMetaList []*model.KnowledgeDocMeta) map[string]map[string][]*model.KnowledgeDocMeta {
+	docMetaMap := make(map[string]map[string][]*model.KnowledgeDocMeta)
+	for _, v := range docMetaList {
+		if _, exists := docMetaMap[v.DocId]; !exists {
+			docMetaMap[v.DocId] = make(map[string][]*model.KnowledgeDocMeta)
+		}
+		if v.Value != "" {
+			docMetaMap[v.DocId][v.Key] = append(docMetaMap[v.DocId][v.Key], v)
+		}
+	}
+	return docMetaMap
+}
+
+func buildMetaList(req *knowledgebase_service.UpdateKnowledgeMetaValueReq, docMetaMap map[string]map[string][]*model.KnowledgeDocMeta, knowledgeId string) (addList, updateList []*model.KnowledgeDocMeta, deleteList []string) {
+	// 处理请求数据
+	reqMetaList := handleReqMetaList(req.MetaList)
+	for _, meta := range reqMetaList {
+		switch meta.Option {
+		case MetaOperationAdd:
+			handleAddMeta(req, meta, docMetaMap, knowledgeId, &addList, &updateList, &deleteList)
+		case MetaOperationUpdate:
+			handleUpdateMeta(req, meta, docMetaMap, knowledgeId, &addList, &updateList, &deleteList)
+		case MetaOperationDelete:
+			handleDeleteMeta(req, meta, docMetaMap, &deleteList)
+		}
+	}
+	return
+}
+
+func handleReqMetaList(metaList []*knowledgebase_service.MetaValueOperation) (reqMetaList []*knowledgebase_service.MetaValueOperation) {
+	keyMap := make(map[string]*knowledgebase_service.MetaValueOperation)
+	for _, meta := range metaList {
+		if _, exists := keyMap[meta.MetaInfo.Key]; !exists {
+			keyMap[meta.MetaInfo.Key] = meta
+		} else {
+			if meta.Option == MetaOperationDelete {
+				keyMap[meta.MetaInfo.Key] = meta
+			} else if meta.Option == MetaOperationUpdate {
+				if keyMap[meta.MetaInfo.Key].Option == MetaOperationAdd {
+					keyMap[meta.MetaInfo.Key] = meta
+				}
+			}
+		}
+	}
+	for _, meta := range keyMap {
+		reqMetaList = append(reqMetaList, meta)
+	}
+	return
+}
+
+func handleAddMeta(req *knowledgebase_service.UpdateKnowledgeMetaValueReq, meta *knowledgebase_service.MetaValueOperation, docMetaMap map[string]map[string][]*model.KnowledgeDocMeta, knowledgeId string, addList, updateList *[]*model.KnowledgeDocMeta, deleteList *[]string) {
+	for _, docId := range req.DocIdList {
+		existMetaList := docMetaMap[docId][meta.MetaInfo.Key]
+		if len(existMetaList) > 0 {
+			existMetaList[0].Value = meta.MetaInfo.Value
+			*updateList = append(*updateList, existMetaList[0])
+			for i := 1; i < len(existMetaList); i++ {
+				*deleteList = append(*deleteList, existMetaList[i].MetaId)
+			}
+		} else {
+			*addList = append(*addList, &model.KnowledgeDocMeta{
+				MetaId:      generator.GetGenerator().NewID(),
+				DocId:       docId,
+				KnowledgeId: knowledgeId,
+				UserId:      req.UserId,
+				OrgId:       req.OrgId,
+				Key:         meta.MetaInfo.Key,
+				Value:       meta.MetaInfo.Value,
+				ValueType:   meta.MetaInfo.Type,
+			})
+		}
+	}
+}
+
+func handleUpdateMeta(req *knowledgebase_service.UpdateKnowledgeMetaValueReq, meta *knowledgebase_service.MetaValueOperation, docMetaMap map[string]map[string][]*model.KnowledgeDocMeta, knowledgeId string, addList, updateList *[]*model.KnowledgeDocMeta, deleteList *[]string) {
+	for _, docId := range req.DocIdList {
+		existMetaList := docMetaMap[docId][meta.MetaInfo.Key]
+		if len(existMetaList) > 0 {
+			existMetaList[0].Value = meta.MetaInfo.Value
+			*updateList = append(*updateList, existMetaList[0])
+			for i := 1; i < len(existMetaList); i++ {
+				*deleteList = append(*deleteList, existMetaList[i].MetaId)
+			}
+		} else if req.ApplyToSelected {
+			*addList = append(*addList, &model.KnowledgeDocMeta{
+				MetaId:      generator.GetGenerator().NewID(),
+				DocId:       docId,
+				KnowledgeId: knowledgeId,
+				UserId:      req.UserId,
+				OrgId:       req.OrgId,
+				Key:         meta.MetaInfo.Key,
+				Value:       meta.MetaInfo.Value,
+				ValueType:   meta.MetaInfo.Type,
+			})
+		}
+	}
+}
+
+func handleDeleteMeta(req *knowledgebase_service.UpdateKnowledgeMetaValueReq, meta *knowledgebase_service.MetaValueOperation, docMetaMap map[string]map[string][]*model.KnowledgeDocMeta, deleteList *[]string) {
+	for _, docId := range req.DocIdList {
+		existMetaList := docMetaMap[docId][meta.MetaInfo.Key]
+		for _, v := range existMetaList {
+			*deleteList = append(*deleteList, v.MetaId)
+		}
+	}
 }
 
 func buildRagHitParams(req *knowledgebase_service.KnowledgeHitReq, list []*model.KnowledgeBase, knowledgeIDToName map[string]string) (*rag_service.KnowledgeHitParams, error) {
@@ -531,4 +686,31 @@ func buildTermWeight(termWeight float32, termWeightEnable bool) float32 {
 		return termWeight
 	}
 	return 0.0
+}
+
+func buildKnowledgeMetaValueListResp(metaList []*model.KnowledgeDocMeta) *knowledgebase_service.KnowledgeMetaValueListResp {
+	retMap := make(map[string]*knowledgebase_service.KnowledgeMetaValues)
+	var retList []*knowledgebase_service.KnowledgeMetaValues
+	for _, meta := range metaList {
+		if meta.Value == "" || meta.Key == "" || meta.ValueType == "" {
+			continue
+		}
+		if _, exists := retMap[meta.Key]; !exists {
+			retMap[meta.Key] = &knowledgebase_service.KnowledgeMetaValues{
+				MetaId:    meta.MetaId,
+				Key:       meta.Key,
+				Type:      meta.ValueType,
+				ValueList: []string{meta.Value},
+			}
+		} else {
+			retMap[meta.Key].ValueList = append(retMap[meta.Key].ValueList, meta.Value)
+		}
+	}
+	for _, retMeta := range retMap {
+		retMeta.ValueList = lo.Uniq(retMeta.ValueList)
+		retList = append(retList, retMeta)
+	}
+	return &knowledgebase_service.KnowledgeMetaValueListResp{
+		MetaList: retList,
+	}
 }

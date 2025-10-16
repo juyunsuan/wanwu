@@ -25,6 +25,10 @@ service KnowledgeBaseService {
   rpc KnowledgeHit(KnowledgeHitReq) returns (KnowledgeHitResp) {}
   // 获取知识库元数据（key + type）
   rpc GetKnowledgeMetaSelect(SelectKnowledgeMetaReq) returns (SelectKnowledgeMetaResp) {}
+  // 获取知识库元数据值列表 (合并过的value)
+  rpc GetKnowledgeMetaValueList(KnowledgeMetaValueListReq) returns (KnowledgeMetaValueListResp) {}
+  // 更新知识库元数据值列表
+  rpc UpdateKnowledgeMetaValue(UpdateKnowledgeMetaValueReq) returns (google.protobuf.Empty) {}
 }
 
 message DeleteKnowledgeReq{
@@ -145,6 +149,7 @@ message KnowledgeMetaData{
   string metaId = 1;
   string key = 2;// key
   string type = 3; // type(time, string, number)
+  string value = 4;
 }
 
 message KnowledgeHitResp{
@@ -174,4 +179,34 @@ message SelectKnowledgeMetaReq{
 
 message SelectKnowledgeMetaResp{
   repeated KnowledgeMetaData metaList = 1;
+}
+
+message KnowledgeMetaValueListReq{
+  string userId = 1;
+  string orgId = 2;
+  repeated string docIdList = 3;
+}
+
+message KnowledgeMetaValueListResp{
+  repeated KnowledgeMetaValues metaList = 1;
+}
+
+message KnowledgeMetaValues{
+  string metaId = 1;
+  string key = 2;// key
+  string type = 3; // type(time, string, number)
+  repeated string valueList = 4;
+}
+
+message UpdateKnowledgeMetaValueReq{
+  string userId = 1;
+  string orgId = 2;
+  bool applyToSelected = 3;
+  repeated string docIdList = 4;
+  repeated MetaValueOperation metaList = 5;
+}
+
+message MetaValueOperation{
+  KnowledgeMetaData metaInfo = 1;
+  string option = 2; // add, delete, update
 }
