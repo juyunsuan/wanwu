@@ -299,15 +299,16 @@ func getUserInfoAndPermission(tx *gorm.DB, user *model.User, language string, no
 	var orgID uint32
 	if len(userInfo.Orgs) > 0 {
 		orgID = userInfo.Orgs[0].Org.ID
-	} else if len(userInfo.Orgs) > 1 {
+	}
+	if len(userInfo.Orgs) > 1 {
 		for _, org := range userInfo.Orgs {
 			if !org.Org.Status {
 				continue
 			}
 			if len(org.Roles) > 0 {
 				orgID = org.Org.ID
+				break
 			}
-			break
 		}
 	}
 	if orgID != 0 {
