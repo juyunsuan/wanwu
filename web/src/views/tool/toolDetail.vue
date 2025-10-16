@@ -1,6 +1,6 @@
 <template>
   <div class="mcp-detail" id="timeScroll">
-    <span class="back" @click="back">{{$t('menu.back') + '资源库'}}</span>
+    <span class="back" @click="back">{{$t('menu.back') + $t('menu.tool')}}</span>
     <div class="mcp-title">
       <img class="logo" v-if="detail.avatar && detail.avatar.path" :src="basePath + '/user/api/' + detail.avatar.path" />
       <div :class="['info',{fold:foldStatus}]">
