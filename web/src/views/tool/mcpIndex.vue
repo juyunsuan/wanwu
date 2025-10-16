@@ -21,7 +21,20 @@ export default {
       tabActive:0
     };
   },
-  created() {},
+  watch: {
+    $route: {
+      handler() {
+        if (this.$route.query.mcp === "mcp") this.tabActive = 0
+        if (this.$route.query.mcp === "server") this.tabActive = 1
+      },
+      // 深度观察监听
+      deep: true
+    }
+  },
+  mounted() {
+    if (this.$route.query.mcp === "mcp") this.tabActive = 0
+    if (this.$route.query.mcp === "server") this.tabActive = 1
+  },
   methods: {
     tabClick(status){
       this.tabActive = status

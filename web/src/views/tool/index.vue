@@ -11,8 +11,8 @@
         <div :class="['mcp-tab',{ 'active': tabActive === 1 }]" @click="tabClick(1)">工具</div>
       </div>
 
-      <mcpIndex ref="mcpIndex" v-show="tabActive === 0"/>
-      <toolIndex ref="autoTools" v-show="tabActive === 1"/>
+      <mcpIndex ref="mcpIndex" v-if="tabActive === 0"/>
+      <toolIndex ref="autoTools" v-if="tabActive === 1"/>
     </div>
   </div>
 </template>
@@ -29,18 +29,16 @@ export default {
   watch: {
     $route: {
       handler() {
-        this.tabActive = Number(this.$route.query.tabActive) || 0
-        this.$refs.mcpIndex.tabClick(Number(this.$route.query.tabActive2) || 0)
-        this.$refs.autoTools.tabClick(Number(this.$route.query.tabActive2) || 0)
+        if (this.$route.query.type === "mcp") this.tabActive = 0
+        if (this.$route.query.type === "tool") this.tabActive = 1
       },
       // 深度观察监听
       deep: true
     }
   },
   mounted() {
-    this.tabActive = Number(this.$route.query.tabActive) || 0
-    this.$refs.mcpIndex.tabClick(Number(this.$route.query.tabActive2) || 0)
-    this.$refs.autoTools.tabClick(Number(this.$route.query.tabActive2) || 0)
+    if (this.$route.query.type === "mcp") this.tabActive = 0
+    if (this.$route.query.type === "tool") this.tabActive = 1
   },
   methods: {
     tabClick(status) {
