@@ -154,7 +154,7 @@ func customToolActions4Workflow(actions []response.CustomToolActionInfo) []respo
 	return ret
 }
 
-func openapiSchema2ToolActionInputsAndOutputs4Workflow(ctx context.Context, schema, operationID string) ([]response.ToolActionParam4Workflow, []response.ToolActionParam4Workflow, error) {
+func openapiSchema2ToolActionInputsAndOutputs4Workflow(ctx context.Context, schema, operationID string) ([]interface{}, []interface{}, error) {
 	doc, err := openapi3_util.LoadFromData([]byte(schema))
 	if err != nil {
 		return nil, nil, err
@@ -163,7 +163,7 @@ func openapiSchema2ToolActionInputsAndOutputs4Workflow(ctx context.Context, sche
 		return nil, nil, err
 	}
 	var exist bool
-	var inputs, outputs []response.ToolActionParam4Workflow
+	var inputs, outputs []interface{}
 	for _, pathItem := range doc.Paths.Map() {
 		for _, operation := range pathItem.Operations() {
 			if operation.OperationID != operationID {
@@ -181,22 +181,12 @@ func openapiSchema2ToolActionInputsAndOutputs4Workflow(ctx context.Context, sche
 	return inputs, outputs, nil
 }
 
-func openapiOperation2ToolActionInputs4Workflow(operation *openapi3.Operation) []response.ToolActionParam4Workflow {
-	inputs := []response.ToolActionParam4Workflow{}
+func openapiOperation2ToolActionInputs4Workflow(operation *openapi3.Operation) []interface{} {
+	inputs := []interface{}{}
 
 	// 解析路径参数、查询参数、header 参数等
 	if operation.Parameters != nil {
-		for _, param := range operation.Parameters {
-			if param.Value != nil {
-				inputs = append(inputs, response.ToolActionParam4Workflow{
-					Name:        param.Value.In + "." + param.Value.Name,
-					Description: param.Value.Description,
-					Type:        openapiParameterType(param.Value),
-					Required:    param.Value.Required,
-					Children:    []response.ToolActionParam4Workflow{},
-				})
-			}
-		}
+		inputs = openapiParameters2ToolActionParams4Workflow(operation.Parameters)
 	}
 
 	// 解析请求体
@@ -210,9 +200,8 @@ func openapiOperation2ToolActionInputs4Workflow(operation *openapi3.Operation) [
 	return inputs
 }
 
-func openapiOperation2ToolActionOutputs4Workflow(operation *openapi3.Operation) []response.ToolActionParam4Workflow {
-	outputs := []response.ToolActionParam4Workflow{}
-
+func openapiOperation2ToolActionOutputs4Workflow(operation *openapi3.Operation) []interface{} {
+	outputs := []interface{}{}
 	if operation.Responses == nil {
 		return outputs
 	}
@@ -244,29 +233,86 @@ func openapiOperation2ToolActionOutputs4Workflow(operation *openapi3.Operation) 
 	return outputs
 }
 
-func openapiSchemaProperties2ToolActionParams4Workflow(properties openapi3.Schemas, required []string) []response.ToolActionParam4Workflow {
-	if properties == nil {
-		return []response.ToolActionParam4Workflow{}
+func openapiParameters2ToolActionParams4Workflow(parameters openapi3.Parameters) []interface{} {
+	rets := []interface{}{}
+	if parameters == nil {
+		return rets
 	}
-	var rets []response.ToolActionParam4Workflow
+
+	for _, param := range parameters {
+		if param.Value == nil {
+			continue
+		}
+		var ret interface{}
+		propType := openapiParameterType(param.Value)
+		switch propType {
+		case "list":
+			prop := response.ToolActionParamWithTypeList4Workflow{
+				Type:        propType,
+				Name:        param.Value.In + "-" + param.Value.Name,
+				Description: param.Value.Description,
+				Required:    param.Value.Required,
+				Schema:      response.ToolActionParamInTypeList4Workflow{},
+			}
+			if param.Value.Schema != nil && param.Value.Schema.Value != nil && param.Value.Schema.Value.Items != nil {
+				prop.Schema.Type = openaiSchemaType(param.Value.Schema.Value.Items.Value)
+				prop.Schema.Children = []interface{}{}
+			}
+			ret = prop
+		default:
+			prop := response.ToolActionParamWithoutTypeList4Workflow{
+				Type:        propType,
+				Name:        param.Value.In + "-" + param.Value.Name,
+				Description: param.Value.Description,
+				Required:    param.Value.Required,
+				Children:    []interface{}{},
+			}
+			if param.Value.Schema != nil && param.Value.Schema.Value != nil {
+				prop.Children = openapiSchemaProperties2ToolActionParams4Workflow(param.Value.Schema.Value.Properties, param.Value.Schema.Value.Required)
+			}
+			ret = prop
+		}
+		rets = append(rets, ret)
+	}
+	return rets
+}
+
+func openapiSchemaProperties2ToolActionParams4Workflow(properties openapi3.Schemas, required []string) []interface{} {
+	rets := []interface{}{}
+	if properties == nil {
+		return rets
+	}
+
 	for propName, propSchema := range properties {
 		if propSchema.Value == nil {
 			continue
 		}
-		ret := response.ToolActionParam4Workflow{
-			Name:        propName,
-			Description: propSchema.Value.Description,
-			Type:        openaiSchemaType(propSchema.Value),
-			Required:    util.Exist(required, propName),
-			Children:    []response.ToolActionParam4Workflow{},
-		}
-		switch ret.Type {
-		case "object":
-			ret.Children = openapiSchemaProperties2ToolActionParams4Workflow(propSchema.Value.Properties, propSchema.Value.Required)
-		case "array":
-			if propSchema.Value.Items != nil && propSchema.Value.Items.Value != nil {
-				ret.Children = openapiSchemaProperties2ToolActionParams4Workflow(propSchema.Value.Items.Value.Properties, propSchema.Value.Required)
+		var ret interface{}
+		propType := openaiSchemaType(propSchema.Value)
+		switch propType {
+		case "list":
+			prop := response.ToolActionParamWithTypeList4Workflow{
+				Type:        propType,
+				Name:        propName,
+				Description: propSchema.Value.Description,
+				Required:    util.Exist(required, propName),
+				Schema:      response.ToolActionParamInTypeList4Workflow{},
 			}
+			if propSchema.Value.Items != nil && propSchema.Value.Items.Value != nil {
+				prop.Schema.Type = openaiSchemaType(propSchema.Value.Items.Value)
+				prop.Schema.Children = openapiSchemaProperties2ToolActionParams4Workflow(propSchema.Value.Items.Value.Properties, propSchema.Value.Required)
+			}
+			ret = prop
+		default:
+			prop := response.ToolActionParamWithoutTypeList4Workflow{
+				Type:        propType,
+				Name:        propName,
+				Description: propSchema.Value.Description,
+				Required:    util.Exist(required, propName),
+				Children:    []interface{}{},
+			}
+			prop.Children = openapiSchemaProperties2ToolActionParams4Workflow(propSchema.Value.Properties, propSchema.Value.Required)
+			ret = prop
 		}
 		rets = append(rets, ret)
 	}
@@ -288,7 +334,7 @@ func openaiSchemaType(schema *openapi3.Schema) string {
 		if schema.Type.Is("object") {
 			return "object"
 		} else if schema.Type.Is("array") {
-			return "array"
+			return "list"
 		} else if schema.Type.Is("string") {
 			return "string"
 		} else if schema.Type.Is("number") {

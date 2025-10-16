@@ -14617,32 +14617,6 @@ const docTemplate = `{
                 }
             }
         },
-        "response.ToolActionParam4Workflow": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "input": {
-                    "type": "object"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "required": {
-                    "type": "boolean"
-                },
-                "schema": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ToolActionParam4Workflow"
-                    }
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
         "response.ToolDetail4Workflow": {
             "type": "object",
             "properties": {
@@ -14657,15 +14631,11 @@ const docTemplate = `{
                 },
                 "inputs": {
                     "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ToolActionParam4Workflow"
-                    }
+                    "items": {}
                 },
                 "outputs": {
                     "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/response.ToolActionParam4Workflow"
-                    }
+                    "items": {}
                 }
             }
         },

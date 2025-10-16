@@ -4269,23 +4269,6 @@ definitions:
       desc:
         type: string
     type: object
-  response.ToolActionParam4Workflow:
-    properties:
-      description:
-        type: string
-      input:
-        type: object
-      name:
-        type: string
-      required:
-        type: boolean
-      schema:
-        items:
-          $ref: '#/definitions/response.ToolActionParam4Workflow'
-        type: array
-      type:
-        type: string
-    type: object
   response.ToolDetail4Workflow:
     properties:
       actionId:
@@ -4295,12 +4278,10 @@ definitions:
       iconUrl:
         type: string
       inputs:
-        items:
-          $ref: '#/definitions/response.ToolActionParam4Workflow'
+        items: {}
         type: array
       outputs:
-        items:
-          $ref: '#/definitions/response.ToolActionParam4Workflow'
+        items: {}
         type: array
     type: object
   response.ToolSelect4Workflow:

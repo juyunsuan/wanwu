@@ -77,18 +77,43 @@ type CozeWorkflowExportData struct {
 }
 
 type ToolDetail4Workflow struct {
-	Inputs     []ToolActionParam4Workflow `json:"inputs"`
-	Outputs    []ToolActionParam4Workflow `json:"outputs"`
-	ActionName string                     `json:"actionName"`
-	ActionID   string                     `json:"actionId"`
-	IconUrl    string                     `json:"iconUrl"`
+	Inputs     []interface{} `json:"inputs"`
+	Outputs    []interface{} `json:"outputs"`
+	ActionName string        `json:"actionName"`
+	ActionID   string        `json:"actionId"`
+	IconUrl    string        `json:"iconUrl"`
 }
 
-type ToolActionParam4Workflow struct {
-	Input       struct{}                   `json:"input"`
-	Description string                     `json:"description"`
-	Name        string                     `json:"name"`
-	Type        string                     `json:"type"`
-	Required    bool                       `json:"required"`
-	Children    []ToolActionParam4Workflow `json:"schema"`
+// type ToolActionParam4Workflow struct {
+// 	Input       struct{}                   `json:"input"`
+// 	Description string                     `json:"description"`
+// 	Name        string                     `json:"name"`
+// 	Type        string                     `json:"type"`
+// 	Required    bool                       `json:"required"`
+// 	Children    []ToolActionParam4Workflow `json:"schema"`
+// }
+
+// ToolActionParamWithoutTypeList4Workflow type非list的定义
+type ToolActionParamWithoutTypeList4Workflow struct {
+	Input       struct{}      `json:"input"`
+	Description string        `json:"description"`
+	Name        string        `json:"name"`
+	Type        string        `json:"type"` // 非list
+	Required    bool          `json:"required"`
+	Children    []interface{} `json:"schema"`
+}
+
+// ToolActionParamWithTypeList4Workflow type是list的定义
+type ToolActionParamWithTypeList4Workflow struct {
+	Input       struct{}                           `json:"input"`
+	Description string                             `json:"description"`
+	Name        string                             `json:"name"`
+	Type        string                             `json:"type"` // list
+	Required    bool                               `json:"required"`
+	Schema      ToolActionParamInTypeList4Workflow `json:"schema"`
+}
+
+type ToolActionParamInTypeList4Workflow struct {
+	Type     string        `json:"type"`
+	Children []interface{} `json:"schema"`
 }
