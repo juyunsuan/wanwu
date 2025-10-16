@@ -271,6 +271,7 @@ export default {
                         let commonData = {
                             ...this.sseResponse,
                             ...this.sseParams,
+                            finish:data.finish,
                             "query": prompt,
                             "fileName":'',
                             "fileSize":'',
@@ -299,6 +300,7 @@ export default {
                                         endStr = parseSub(endStr,lastIndex)
                                         let fillData = {
                                             ...commonData,
+                                            finish:data.finish,
                                             "response": md.render(endStr),
                                             oriResponse:endStr,
                                             searchList:(search_list && search_list.length) ? search_list.map(n => ({

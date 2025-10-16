@@ -497,6 +497,7 @@ export default {
       }
       this.scrollBottom();
       this.$set(this.session_data.history, index, data);
+      console.log(this.session_data.history[index]);
       if (data.finish === 1) {
         const setCitations = this.setCitations(index);
         this.$set(this.session_data.history[index], "citations", setCitations);

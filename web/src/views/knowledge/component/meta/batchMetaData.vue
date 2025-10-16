@@ -153,6 +153,7 @@ export default {
     },
     handleMetaValueChange(item, index) {
       if (item.metaId && item.originalMetaValue !== item.metaValue) {
+        item.metaValue = String(item.metaValue);
         item.option = 'update';
       }
     },
