@@ -34,9 +34,9 @@
               >
                 {{ isCooldown ? `${cooldownTime}s` : $t('register.action') + $t('register.form.code') }}
               </el-button>
-              <p class="message" v-if="codeSentMessage">{{ codeSentMessage }}</p>
             </el-form-item>
           </el-form>
+          <p class="message" v-if="codeSentMessage">{{ codeSentMessage }}</p>
           <div class="nav-bt">
             {{ $t('register.askAccount') }}
             <span :style="{ color: '#384BF7', cursor: 'pointer' }" @click="$router.push({path: `/login`})">
@@ -122,7 +122,6 @@ export default {
       this.$refs.form.validateField(['email', 'username'], (err) => {
         if (!err) count++
         if (count === 2) {
-          this.codeSentMessage = this.$t('common.hint.codeSent')
           this.isCooldown = true
           this.cooldownTimer = setInterval(() => {
             if (this.cooldownTime > 1) {
@@ -137,7 +136,11 @@ export default {
             email: this.form.email,
             username: this.form.username
           }
-          registerCode(data)
+          registerCode(data).then(res => {
+            if (res.code === 0) {
+              this.codeSentMessage = this.$t('common.hint.codeSent')
+            }
+          })
         }
       })
     }
@@ -151,15 +154,9 @@ export default {
 
 <style lang="scss" scoped>
 .message {
-  position: absolute;
-  bottom: -45px;
-  left: 0;
   color: red;
-  font-size: 12px;
   width: 100%;
   text-align: left;
-  margin: 0;
-  padding: 0;
-  z-index: 10;
+  margin-bottom: 10px;
 }
 </style>

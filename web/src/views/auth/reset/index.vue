@@ -85,7 +85,6 @@
 
 <script>
 import overview from '@/views/auth/layout'
-import {mapState} from 'vuex'
 import {resetCode, reset} from "@/api/user"
 import {urlEncrypt} from "@/utils/crypto";
 
