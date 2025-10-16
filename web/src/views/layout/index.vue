@@ -555,7 +555,7 @@ export default {
         bottom: 0;
         width: 70px;
         text-align: center;
-        padding: 30px 0;
+        padding-bottom: 30px;
         img {
           cursor: pointer;
         }
