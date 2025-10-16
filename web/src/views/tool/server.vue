@@ -34,16 +34,17 @@
             <img class="card-logo" v-if="item.avatar && item.avatar.path" :src="basePath + '/user/api/' + item.avatar.path" />
             <div class="mcp_detailBox">
               <span class="mcp_name">{{ item.name }}</span>
+              <span class="mcp_from">
+                <label>
+                  已绑定{{ item.toolNum }}个工具
+                </label>
+              </span>
             </div>
-            <i class="el-icon-link action-icon"
-               style="margin-right: 40px"
-               @click.stop="$refs.urlDialog.showDialog(item.mcpServerId)"/>
             <i class="el-icon-edit-outline action-icon"
                style="margin-right: 20px"
-               @click.stop="handleAddServer(item.mcpServerId)"/>
+               @click.stop="handleAddServer(item)"/>
             <i class="el-icon-delete-solid action-icon"
-               @click.stop="handleDelete(item)"
-            ></i>
+               @click.stop="handleDelete(item)"/>
           </div>
           <div class="card-des">{{ item.desc }}</div>
         </div>
@@ -52,21 +53,17 @@
       <el-empty class="noData" v-if="!(list && list.length)" :description="$t('common.noData')"/>
     </div>
     <serverDialog ref="serverDialog" @handleFetch="fetchList()"/>
-    <urlDialog ref="urlDialog"/>
   </div>
 </template>
 <script>
 import serverDialog from "./serverDialog.vue";
-import urlDialog from "./urlDialog.vue";
 import SearchInput from "@/components/searchInput.vue"
 import { getServerList, deleteServer } from "@/api/mcp";
-import LinkIcon from "@/components/linkIcon.vue"
 export default {
-  components: { LinkIcon, SearchInput, serverDialog, urlDialog },
+  components: { SearchInput, serverDialog},
   data() {
     return {
       basePath: this.$basePath,
-      addressOpen: false, // 服务地址开关
       list: [],
     };
   },
@@ -85,10 +82,10 @@ export default {
           })
     },
     handleClick(mcpServerId) {
-      this.$router.push({path: `/mcp/detail/server?mcpServerId=${mcpServerId}`})
+      this.$router.push({path: `/tool/detail/server?mcpServerId=${mcpServerId}`})
     },
-    handleAddServer(mcpServerId) {
-      this.$refs.serverDialog.showDialog(mcpServerId)
+    handleAddServer(item) {
+      this.$refs.serverDialog.showDialog(item)
     },
     handleDelete(item) {
       this.$confirm(

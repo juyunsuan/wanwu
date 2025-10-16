@@ -2,48 +2,51 @@
   <div class="page-wrapper mcp-management">
     <div class="common_bg">
       <div class="page-title">
-        <img class="page-title-img" src="@/assets/imgs/mcp_menu.png" alt="" />
-        <span class="page-title-name">{{$t('menu.tool')}}</span>
+        <img class="page-title-img" src="@/assets/imgs/mcp_menu.png" alt=""/>
+        <span class="page-title-name">{{ $t('menu.tool') }}</span>
       </div>
       <!-- tabs -->
       <div class="mcp-tabs">
-        <div :class="['mcp-tab',{ 'active': tabActive === 0 }]" @click="tabClick(0)">导入MCP服务</div>
+        <div :class="['mcp-tab',{ 'active': tabActive === 0 }]" @click="tabClick(0)">MCP服务</div>
         <div :class="['mcp-tab',{ 'active': tabActive === 1 }]" @click="tabClick(1)">工具</div>
       </div>
 
-      <customize ref="customize" v-if="tabActive === 0"/>
+      <mcpIndex ref="mcpIndex" v-if="tabActive === 0"/>
       <toolIndex ref="autoTools" v-if="tabActive === 1"/>
     </div>
   </div>
 </template>
 <script>
-import customize from './customize'
+import mcpIndex from './mcpIndex'
 import toolIndex from './toolIndex'
+
 export default {
   data() {
     return {
-      tabActive:0
+      tabActive: 1
     };
   },
   watch: {
     $route: {
       handler() {
-        this.tabActive = Number(this.$route.query.tabActive) || 0
+        if (this.$route.query.type === "mcp") this.tabActive = 0
+        if (this.$route.query.type === "tool") this.tabActive = 1
       },
       // 深度观察监听
       deep: true
     }
   },
   mounted() {
-    this.tabActive = Number(this.$route.query.tabActive) || 0
+    if (this.$route.query.type === "mcp") this.tabActive = 0
+    if (this.$route.query.type === "tool") this.tabActive = 1
   },
   methods: {
-    tabClick(status){
+    tabClick(status) {
       this.tabActive = status
     },
   },
   components: {
-    customize,
+    mcpIndex,
     toolIndex
   },
 };
@@ -51,14 +54,17 @@ export default {
 <style lang="scss">
 .mcp-management {
   height: calc(100% - 50px);
-  .common_bg{
+
+  .common_bg {
     height: 100%;
   }
+
   .title {
     font-size: 20px;
     margin: 0;
     padding: 0 0 20px 0;
     text-align: center;
+
     .svg-icon {
       width: 1.6em;
       height: 1.6em;
@@ -66,9 +72,11 @@ export default {
       vertical-align: -0.25em;
     }
   }
-  .mcp-tabs{
+
+  .mcp-tabs {
     margin: 20px;
-    .mcp-tab{
+
+    .mcp-tab {
       display: inline-block;
       vertical-align: middle;
       width: 160px;
@@ -78,29 +86,36 @@ export default {
       text-align: center;
       cursor: pointer;
     }
-    .active{
+
+    .active {
       background: #333;
       color: #fff;
       font-weight: bold;
     }
   }
-  .mcp-content-box{
+
+  .mcp-content-box {
     height: calc(100% - 145px);
   }
+
   .mcp-content {
     padding: 0 20px;
     width: 100%;
     height: 100%;
   }
+
   .el-tabs__nav-wrap {
     text-align: center;
   }
+
   .el-tabs__nav-scroll {
     display: inline-block;
   }
+
   .el-tabs__nav-wrap::after {
     display: none;
   }
+
   .action-icon {
     display: none;
     position: absolute;
@@ -112,6 +127,7 @@ export default {
       color: $color;
     }
   }
+
   .card-box {
     display: flex;
     flex-wrap: wrap;
@@ -130,6 +146,7 @@ export default {
       margin: 0 10px 20px;
       box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
       border: 1px solid rgba(0, 0, 0, 0);
+
       &:hover {
         cursor: pointer;
         box-shadow: 0 2px 8px #171a220d, 0 4px 16px #0000000f;
@@ -139,16 +156,19 @@ export default {
           display: block;
         }
       }
+
       .card-title {
         display: flex;
         width: 100%;
         height: 58px;
         border-bottom: 1px solid #ddd;
         padding-bottom: 7px;
+
         .svg-icon {
           width: 50px;
           height: 50px;
         }
+
         .mcp_detailBox {
           width: calc(100% - 70px);
           margin-left: 10px;
@@ -156,6 +176,7 @@ export default {
           flex-direction: column;
           justify-content: space-between;
           padding: 3px 0;
+
           .mcp_name {
             display: block;
             font-size: 15px;
@@ -165,6 +186,7 @@ export default {
             text-overflow: ellipsis;
             color: #5d5d5d;
           }
+
           .mcp_from {
             label {
               padding: 3px 7px;
@@ -184,6 +206,7 @@ export default {
 
         margin-bottom: 13px;
       }
+
       .card-des {
         width: 100%;
         display: -webkit-box;
@@ -202,8 +225,9 @@ export default {
 
     .card-item-create {
       background: #F4F5FF;
-      box-shadow: 0 1px 4px 0 rgba(0,0,0,0.15);
-      border: 1px solid rgba(56,75,247,0.47);
+      box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(56, 75, 247, 0.47);
+
       .app-card-create {
         width: 100%;
         height: 100%;
@@ -212,11 +236,13 @@ export default {
         display: flex;
         align-items: center;
         justify-content: center;
+
         .create-img-wrap {
           display: inline-block;
           vertical-align: middle;
           margin-right: 10px;
           position: relative;
+
           .create-img {
             width: 40px;
             height: 40px;
@@ -224,6 +250,7 @@ export default {
             background: $color;
             padding: 10px;
           }
+
           .create-filter {
             width: 40px;
             height: 8px;
@@ -232,10 +259,11 @@ export default {
             position: absolute;
             bottom: -6px;
           }
+
           .create-type {
             width: 30px;
             position: absolute;
-            background: rgba(171,198,255,0.5);
+            background: rgba(171, 198, 255, 0.5);
             backdrop-filter: blur(6.55px);
             border-radius: 5px;
             padding: 6px;
@@ -243,6 +271,7 @@ export default {
             left: -12px;
           }
         }
+
         span {
           display: inline-block;
           vertical-align: middle;
@@ -253,6 +282,7 @@ export default {
       }
     }
   }
+
   .no-list {
     display: flex;
     justify-content: center;
@@ -262,44 +292,53 @@ export default {
     font-size: 30px;
     // color: #ddd;
     text-align: center;
+
     i {
       font-size: 50px;
       color: $color;
       cursor: pointer;
     }
+
     span {
       padding-top: 20px;
       display: block;
     }
   }
+
   .card-search {
     text-align: right;
     padding: 10px 0;
   }
+
   .el-tabs__content {
     max-width: 1500px;
     margin: 0 auto;
   }
+
   .card-search-cust {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
     .card-search-des {
       color: #585a73;
       font-size: 12px;
 
       .el-button {
         padding: 5px 12px;
+
         span {
           font-size: 12px;
         }
       }
     }
-    .radio-box{
+
+    .radio-box {
       margin: 10px 0;
       padding: 0;
     }
   }
+
   .el-radio__input.is-checked .el-radio__inner {
     border-color: $color;
     background: $color;

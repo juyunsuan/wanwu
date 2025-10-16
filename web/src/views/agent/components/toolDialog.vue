@@ -94,11 +94,11 @@ export default {
         },
         goCreate(){
             if(this.activeValue === 'auto'){
-                this.$router.push({path:'/mcp'})
+                this.$router.push({path:'/tool?type=tool&mcp=custom'})
             }else if(this.activeValue === 'mcp'){
-                this.$router.push({path:'/mcp'})
+                this.$router.push({path:'/tool?type=mcp&mcp=mcp'})
             }else{
-               this.$router.push({path:'/appSpace/workflow'})
+                this.$router.push({path:'/appSpace/workflow'})
             }
         },
         createText(){

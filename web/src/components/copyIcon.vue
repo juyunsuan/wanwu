@@ -1,23 +1,28 @@
 <template>
-  <el-button @click="handleCopy" class="copy-icon">
-    <i class="el-icon-document-copy"></i>
-    复制
+  <el-button v-bind="$attrs" @click="handleCopy" class="copy-icon">
+    <i v-if="showIcon" class="el-icon-document-copy"></i>
+    {{ $t('common.button.copy') }}
   </el-button>
 </template>
 
 <script>
 export default {
   name: "CopyIcon",
+  inheritAttrs: false,
   props: {
-    iconClass: {
+    text: {
       type: String,
       required: true
-    }
+    },
+    showIcon: {
+      type: Boolean,
+      default: true
+    },
   },
   methods: {
     async handleCopy() {
       try {
-        const text = this.iconClass;
+        const text = this.text;
 
         // 优先使用现代 Clipboard API
         if (navigator.clipboard && window.isSecureContext) {
@@ -45,7 +50,5 @@ export default {
 </script>
 
 <style scoped>
-.copy-icon {
-  margin-left: 10px;
-}
+
 </style>
