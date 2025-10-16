@@ -185,6 +185,7 @@ export default {
         },
         info:{
             delInfo:'删除成功',
+            edit:'编辑成功',
             create:'创建成功'
         }
     },

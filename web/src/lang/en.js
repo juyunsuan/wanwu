@@ -167,6 +167,11 @@ export default {
             noSource: '若没有可选资源，请先释放卡资源',
             hint: '一次启动一个实例(一个实例可以占多张卡)',
             reload: '刷新数据'
+        },
+        info:{
+            delInfo:'删除成功',
+            edit:'编辑成功',
+            create:'创建成功'
         }
     },
     docDownload: {
