@@ -34,6 +34,7 @@
 
               <div class="content_title">
                 <el-button size="mini" type="primary" icon="el-icon-refresh" @click="reload">{{$t('common.gpuDialog.reload')}}</el-button>
+                <el-button size="mini" type="primary" @click="showBatchMeta">批量编辑元数据值</el-button>
                 <el-button size="mini" type="primary" @click="showMeta">元数据管理</el-button>
                 <el-button size="mini" type="primary" @click="$router.push(`/knowledge/hitTest?knowledgeId=${docQuery.knowledgeId}&name=${knowledgeName}`)">命中测试</el-button>
                 <el-button
@@ -56,10 +57,18 @@
                 v-if="showTips"
               ></el-alert>
               <el-table
+                ref="dataTable"
                 :data="tableData"
                 style="width: 100%"
+                :row-key="'docId'"
                 :header-cell-style="{ background: '#F9F9F9', color: '#999999' }"
+                @selection-change="handleSelectionChange"
               >
+                <el-table-column
+                  type="selection"
+                  reserve-selection
+                  width="55">
+                </el-table-column>
                 <el-table-column
                   prop="docName"
                   :label="$t('knowledgeManage.fileName')"
@@ -167,6 +176,9 @@
         <el-button type="primary" @click="submitMeta" :disabled="isDisabled">确 定</el-button>
       </span>
     </el-dialog>
+    
+    <!-- 批量编辑元数据值弹窗 -->
+    <batchMetaData ref="batchMetaData" :selectedDocIds="selectedDocIds" @reLoadDocList="reLoadDocList" />
   </div>
 </template>
 
@@ -174,9 +186,10 @@
 import Pagination from "@/components/pagination.vue";
 import SearchInput from "@/components/searchInput.vue";
 import mataData from './metadata.vue'
+import batchMetaData from './meta/batchMetaData.vue'
 import {getDocList,delDocItem,uploadFileTips,updateDocMeta} from "@/api/knowledge";
 export default {
-  components: { Pagination,SearchInput,mataData},
+  components: { Pagination,SearchInput,mataData,batchMetaData},
   data() {
     return {
       knowledgeName:this.$route.query.name || '',
@@ -200,7 +213,9 @@ export default {
       tagList:[],
       metaVisible:false,
       metaData:[],
-      isDisabled:false
+      isDisabled:false,
+      selectedTableData:[],
+      selectedDocIds:[]
     };
   },
   watch:{
@@ -229,6 +244,35 @@ export default {
     this.clearTimer()
   },
   methods: {
+    reLoadDocList(){
+      this.getTableData(this.docQuery)
+      this.selectedTableData = []
+      this.selectedDocIds = []
+      
+      // 取消所有表格数据的选中状态
+      this.$nextTick(() => {
+        const table = this.$refs.dataTable
+        if (table) {
+          table.clearSelection()
+        }
+      })
+      
+    },
+    showBatchMeta(){
+      if(!this.selectedTableData || this.selectedTableData.length === 0){
+        this.$message.warning('请先选中要编辑的文档');
+        return;
+      }
+      this.$refs.batchMetaData.showDialog();
+    },
+    handleSelectionChange(val){ 
+      if (val.length > 100) {
+        this.$message.warning('最多只能选择100个文件');
+        return;
+      }
+      this.selectedTableData = val
+      this.selectedDocIds = val.map(item => item.docId)
+    },
     getSegmentMethodText(value){
       switch (value) {
         case '0':
@@ -474,6 +518,7 @@ export default {
     },
     refreshData(data) {
       this.tableData = data
+      // 分页组件刷新当前页数据后，基于全局已选集合恢复当前页的勾选
     }
   }
 };

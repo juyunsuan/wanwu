@@ -20,7 +20,7 @@ export const store = new Vuex.Store({
         login,
         user,
         app,
-        workflow
+        workflow,
     },
     plugins: [vuexLocal.plugin]
 })

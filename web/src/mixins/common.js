@@ -171,11 +171,9 @@ export default {
         sessionStatus = 0,
         sessionData = null,
         citationSelector = '.citation',
-        subTagSelector = '.subTag',
         scrollElementId = 'timeScroll',
         onToggleCollapse = null
       } = options
-
       // 检查会话状态
       if (sessionStatus === 0) return
 
@@ -187,46 +185,33 @@ export default {
       const tagIndex = parseInt(citationElement.textContent, 10)
       if (isNaN(tagIndex) || tagIndex <= 0) return
 
-      // 查找所有子标签
-      const allSubTag = document.querySelectorAll(subTagSelector)
-      if (allSubTag.length === 0) return
-
-      // 检查索引是否有效
-      if (tagIndex > allSubTag.length) return
-
-      // 获取目标元素
-      const targetElement = allSubTag[tagIndex - 1]
-      if (!targetElement) return
-
       // 获取父级索引和折叠状态
-      const parentsIndex = targetElement.dataset.parentsIndex
-      const collapse = targetElement.dataset.collapse
-
+      const parentsIndexAttr = citationElement.getAttribute('data-parents-index')
+      const parentsIndex = parentsIndexAttr ? parseInt(parentsIndexAttr, 10) : null
+      // 检查 parentsIndex 是否有效
+      if (isNaN(parentsIndex)) return
+      
       // 检查会话数据结构
       if (!sessionData || 
           !sessionData.history || 
           !sessionData.history[parentsIndex] || 
           !sessionData.history[parentsIndex].searchList || 
-          !sessionData.history[parentsIndex].searchList[tagIndex - 1]) {
+          !sessionData.history[parentsIndex].searchList[tagIndex - 1]
+        ) {
         return
       }
-
-      // 切换折叠状态
-      if (collapse === 'false') {
-        if (onToggleCollapse && typeof onToggleCollapse === 'function') {
-          // 使用自定义回调函数
-          onToggleCollapse(sessionData.history[parentsIndex].searchList[tagIndex - 1], true)
+      // 切换折叠状态 - 严格按照组件中的collapseClick方法逻辑
+      const searchItem = sessionData.history[parentsIndex].searchList[tagIndex - 1]
+      const currentCollapse = searchItem.collapse
+      const newCollapse = !currentCollapse
+      if (onToggleCollapse && typeof onToggleCollapse === 'function') {
+        onToggleCollapse(searchItem, newCollapse)
+      } else {
+        const updatedItem = { ...searchItem, collapse: newCollapse }
+        if (this.$set) {
+          this.$set(sessionData.history[parentsIndex].searchList, tagIndex - 1, updatedItem)
         } else {
-          // 默认使用 Vue.set 或直接赋值
-          if (this.$set) {
-            this.$set(
-              sessionData.history[parentsIndex].searchList[tagIndex - 1],
-              'collapse',
-              true
-            )
-          } else {
-            sessionData.history[parentsIndex].searchList[tagIndex - 1].collapse = true
-          }
+          sessionData.history[parentsIndex].searchList[tagIndex - 1] = updatedItem
         }
       }
 

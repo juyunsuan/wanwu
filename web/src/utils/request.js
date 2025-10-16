@@ -19,9 +19,9 @@ service.interceptors.request.use(
       const lang = localStorage.getItem('locale') || ZH // store.getters['user/lang']
       config.headers = {
       ...config.headers,
-      ...(!config.isOpeanUrl && {'Authorization': 'Bearer ' + token}),
-      ...(!config.isOpeanUrl && {'x-user-id': user.uid}),
-      ...(!config.isOpeanUrl && {"x-org-id": user.orgId}),
+      ...(!config.isOpenUrl && {'Authorization': 'Bearer ' + token}),
+      ...(!config.isOpenUrl && {'x-user-id': user.uid}),
+      ...(!config.isOpenUrl && {"x-org-id": user.orgId}),
       ...(config.hasLang && { 'x-language': lang })
       }
       

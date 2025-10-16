@@ -8,28 +8,34 @@
         :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
         border
       >
-        <el-table-column prop="name" label="成员" width="200">
+        <el-table-column prop="userName" label="成员" width="200">
           <template slot-scope="scope">
             <div class="name-cell">
-              <span class="name-text">{{ scope.row.name }}</span>
+              <span class="name-text">{{ scope.row.userName }}</span>
             </div>
           </template>
         </el-table-column>
-        
-        <el-table-column prop="type" label="权限">
+        <el-table-column prop="organization" label="组织" width="200">
+          <template slot-scope="scope">
+            <div class="org-cell">
+              <span class="org-text">{{ scope.row.organization || '-' }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="permissionType" label="权限">
           <template slot-scope="scope">
             <div class="type-cell">
-              <span v-if="!scope.row.editing" class="type-text">{{ scope.row.type }}</span>
+              <span v-if="!scope.row.editing" class="type-text">{{ powerType[scope.row.permissionType] }}</span>
               <el-select 
                 v-else 
-                v-model="scope.row.type" 
+                v-model="scope.row.permissionType" 
                 size="small" 
                 @change="handlePermissionChange(scope.row)"
                 class="permission-select"
               >
-                <el-option label="可读" value="可读"></el-option>
-                <el-option label="可编辑" value="可编辑"></el-option>
-                <el-option label="管理员" value="管理员"></el-option>
+                <el-option label="可读" :value="0"></el-option>
+                <el-option label="可编辑" :value="10"></el-option>
+                <el-option label="管理员" :value="20"></el-option>
               </el-select>
             </div>
           </template>
@@ -102,39 +108,49 @@
 </template>
 
 <script>
+import { getUserPower } from "@/api/knowledge";
+import { POWER_TYPE } from "@/views/knowledge/config";
 export default {
   name: 'PowerList',
+  props: {
+    knowledgeId: {
+      type: String,
+      default: ''
+    }
+  },
   data() {
     return {
+      powerType: POWER_TYPE,
       tableData: [
         {
-          name: '管理员权限',
-          type: '管理员',
-          description: '拥有系统所有功能的访问权限',
-          status: '启用',
-          editing: false,
-          originalType: '管理员'
+          userName: '管理员权限',
+          organization: '技术部',
+          permissionType: 20,
+          editing: false
         },
         {
-          name: '用户管理',
-          type: '可编辑',
-          description: '可以管理用户账户信息',
-          status: '启用',
-          editing: false,
-          originalType: '可编辑'
+          userName: '用户管理',
+          organization: '产品部',
+          permissionType: 10,
+          editing: false
         },
         {
-          name: '数据查看',
-          type: '可读',
-          description: '可以查看系统中的数据',
-          status: '禁用',
-          editing: false,
-          originalType: '可读'
+          userName: '数据查看',
+          organization: '运营部',
+          permissionType: 0,
+          editing: false
         }
       ]
     }
   },
   methods: {
+    getUserPower() {
+      getUserPower({knowledgeId:this.knowledgeId}).then(res => {
+        if(res.code === 0){
+          this.tableData = res.data.knowledgeUserInfoList||[]
+        }
+      }).catch(() => {})
+    },
     handleEdit(row) {
       // 进入编辑模式
       row.editing = true
@@ -224,12 +240,12 @@ export default {
       }
     }
     
-    .name-cell, .type-cell {
+    .name-cell, .org-cell, .type-cell {
       display: flex;
       align-items: center;
       justify-content: center;
       
-      .name-text, .type-text {
+      .name-text, .org-text, .type-text {
         color: #606266;
         font-size: 14px;
       }

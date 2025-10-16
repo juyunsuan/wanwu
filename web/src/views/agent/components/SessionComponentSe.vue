@@ -1,14 +1,5 @@
 <template>
   <div class="session rl">
-    <!-- <div class="session-setting">
-      <el-dropdown class="right-setting" @command="gropdownClick">
-        <i class="el-icon-more more"  trigger="click" ></i>
-        <el-dropdown-menu :append-to-body="false" placement="bottom-end" slot="dropdown">
-          <el-dropdown-item command="clear">{{$t('agent.clearHistory')}}</el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
-    </div> -->
-
     <div
       class="history-box showScroll"
       id="timeScroll"
@@ -27,7 +18,7 @@
           <div :class="['session-item','rl']">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ userAvatar"
             />
             <div class="answer-content">
               <div class="answer-content-query">
@@ -87,7 +78,7 @@
           v-if="n.responseLoading"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
               :src="'/user/api/'+ defaultUrl"
@@ -100,7 +91,7 @@
           v-if="n.pendingResponse"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
               :src="'/user/api/'+ defaultUrl"
@@ -126,7 +117,7 @@
         >
           <div
             v-if="[0,1,2,3,4,6,20,21,10].includes(n.qa_type)"
-            :class="['session-item','rl']"
+            class="session-answer-wrapper"
           >
             <img
               class="logo"
@@ -164,7 +155,7 @@
           </div>
           <div
             v-else
-            :class="['session-item','rl']"
+            class="session-answer-wrapper"
           >
             <img
               class="logo"
@@ -271,10 +262,10 @@
           v-if="!n.response && n.gen_file_url_list && n.gen_file_url_list.length"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="'/user/api/'+defaultUrl || basePath + '/img/b.png'"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div class="answer-content">
               <div
@@ -315,6 +306,7 @@ import { marked } from "marked";
 var highlight = require("highlight.js");
 import "highlight.js/styles/atom-one-dark.css";
 import commonMixin from "@/mixins/common";
+import { mapGetters } from "vuex";
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -374,8 +366,11 @@ export default {
       },
       imgConfig: ["jpeg", "PNG", "png", "JPG", "jpg", "bmp", "webp"],
       audioConfig: ["mp3", "wav"],
-      debounceTimer: null,
+      debounceTimer: null
     };
+  },
+  computed: {
+    ...mapGetters('user', ['userAvatar'])
   },
   watch: {
     sessionStatus: {
@@ -409,7 +404,6 @@ export default {
         sessionStatus: this.sessionStatus,
         sessionData: this.session_data,
         citationSelector: '.citation',
-        subTagSelector: '.subTag',
         scrollElementId: 'timeScroll',
         onToggleCollapse: (item, collapse) => {
           // 使用 Vue.set 确保响应式更新
@@ -893,9 +887,10 @@ export default {
     img {
       width: 80% !important;
     }
-    section li {
-      list-style-position: inside; /* 将标记符号放在内容框内 */
+    section li,li {
+      list-style-position: inside !important; /* 将标记符号放在内容框内 */
     }
+   
     .citation {
       display: inline-flex;
       color: #384bf7;
@@ -944,19 +939,20 @@ export default {
       border-radius: 6px;
     }
     .answer-content {
-      padding: 0 15px 10px 15px;
+      padding: 0 10px 10px 15px;
       position: relative;
       color: #333;
       .answer-content-query {
         display: flex;
         flex-wrap: wrap;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: flex-end;
         .answer-text {
           background: #7288fa;
           color: #fff;
-          padding: 8px 20px 8px 10px;
-          border-radius: 0 10px 10px 10px;
+          padding: 8px 10px 8px 20px;
+          border-radius: 10px 0 10px 10px;
+          margin:0!important;
         }
         .session-setting-id {
           color: rgba(98, 98, 98, 0.5);
@@ -994,7 +990,7 @@ export default {
     }
   }
   .session-answer {
-    background-color: #eceefe;
+    // background-color: #eceefe;
     border-radius: 10px;
     .answer-annotation {
       line-height: 0 !important;
@@ -1018,7 +1014,7 @@ export default {
     }
     /*出处*/
     .search-list {
-      padding: 0 20px 3px 54px;
+      padding: 10px 20px 3px 54px;
       .search-list-item {
         margin-bottom: 5px;
         line-height: 22px;
@@ -1048,7 +1044,7 @@ export default {
       display: flex;
       // justify-content: space-between;
       align-items: center;
-      padding: 15px 20px 15px 53px;
+      padding: 5px 20px 15px 63px;
       color: #777;
       .opera-left {
         // flex: 8;
@@ -1199,6 +1195,43 @@ export default {
   }
 }
 
+/* 仅通过样式调整位置：
+   问题在右侧（内容在右、头像在最右），答案在左侧（默认） */
+.session-question {
+  .session-item {
+    flex-direction: row-reverse;
+    margin-left: auto;
+    width: auto;
+  }
+}
+.session-answer {
+  .session-answer-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px; /* 头像和内容之间10px距离 */
+    padding: 20px 20px 0 20px;
+    min-height: 80px;
+    background: none; /* 确保外层容器无背景色 */
+    
+    .logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      object-fit: cover;
+      flex-shrink: 0; /* 防止头像被压缩 */
+      background: none; /* 头像无背景色 */
+    }
+    
+    .answer-content {
+      flex: 1;
+      background-color: #eceefe; /* 只有内容区域有背景色 */
+      border-radius: 0 10px 10px 10px;
+      padding: 20px;
+      line-height:1.6;
+    }
+  }
+}
+
 /* 图片加载失败时的样式 */
 img.failed {
   position: relative;
@@ -1247,7 +1280,7 @@ img.failed::after {
 .text-loading {
   width: 54px;
   height: 18px;
-  margin: 0 0 0 55px;
+  margin: 6px 0 0 55px;
 }
 
 .text-loading > div {

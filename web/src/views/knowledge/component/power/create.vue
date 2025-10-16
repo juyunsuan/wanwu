@@ -1,13 +1,30 @@
 <template>
   <div class="add-permission-content">
     <div class="content-wrapper" :class="{ 'transfer-mode': transferMode }">
-      <!-- 左侧选择面板 -->
       <div class="left-panel">
         <div class="search-section">
+          <el-select
+            v-model="selectedOrganization"
+            placeholder="选择组织"
+            filterable
+            clearable
+            class="org-select"
+            @change="handleOrgChange"
+          >
+            <el-option
+              v-for="org in organizationList"
+              :key="org.id"
+              :label="org.name"
+              :value="org.id"
+            >
+            </el-option>
+          </el-select>
           <el-input
             v-model="searchKeyword"
-            placeholder="搜索用户名/组织/群组名称"
+            placeholder="搜索用户名"
             class="search-input"
+            :disabled="!selectedOrganization"
+            @focus="handleInputFocus"
           >
           </el-input>
         </div>
@@ -36,29 +53,37 @@
         </div>
       </div>
       
-      <!-- 右侧已选择面板 - 转让模式下不显示 -->
       <div class="right-panel" v-if="!transferMode">
         <div class="permission-section">
           <div class="permission-label">权限:</div>
           <el-select v-model="selectedPermission" placeholder="请选择权限" class="permission-select">
-            <el-option
-              v-for="item in permissionOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            ></el-option>
+            <el-option label="可读" :value="0"></el-option>
+            <el-option label="可编辑" :value="10"></el-option>
+            <el-option label="管理员" :value="20"></el-option>
           </el-select>
         </div>
         
         <div class="selected-users-section">
           <div class="selected-users-list">
             <div
-              v-for="user in selectedUsers"
-              :key="user.id"
-              class="selected-user-item"
+              v-for="orgGroup in groupedSelectedUsers"
+              :key="orgGroup.organization"
+              class="org-group"
             >
-              <span class="user-info">{{ user.name }} {{ user.organization }}</span>
-              <i class="el-icon-close remove-icon" @click="removeSelectedUser(user)"></i>
+              <div class="org-group-header">
+                <span class="org-name">{{ orgGroup.organization }}</span>
+                <span class="user-count">({{ orgGroup.users.length }})</span>
+              </div>
+              <div class="org-users">
+                <div
+                  v-for="user in orgGroup.users"
+                  :key="user.id"
+                  class="selected-user-item"
+                >
+                  <span class="user-info">{{ user.name }}</span>
+                  <i class="el-icon-close remove-icon" @click="removeSelectedUser(user)"></i>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -71,6 +96,12 @@
 export default {
   name: 'AddPermission',
   props: {
+    knowledgeId: {
+      type: String,
+      default: ''
+    }
+  },
+  props: {
     transferMode: {
       type: Boolean,
       default: false
@@ -81,20 +112,41 @@ export default {
     }
   },
   computed: {
-    // 转让模式下默认选择管理员权限
     defaultPermission() {
       return this.transferMode ? '管理员' : '可读'
+    },
+    groupedSelectedUsers() {
+      // 按组织分组选中的用户
+      const groups = {};
+      this.selectedUsers.forEach(user => {
+        if (!groups[user.organization]) {
+          groups[user.organization] = {
+            organization: user.organization,
+            users: []
+          };
+        }
+        groups[user.organization].users.push(user);
+      });
+      
+      // 转换为数组并按组织名称排序
+      return Object.values(groups).sort((a, b) => a.organization.localeCompare(b.organization));
     }
   },
   data() {
     return {
       searchKeyword: '',
+      selectedOrganization: '',
       selectedPermission: '可读',
-      permissionOptions: [
-        { label: '管理员', value: '管理员' },
-        { label: '编辑者', value: '编辑者' },
-        { label: '查看者', value: '查看者' }
+      organizationList: [
+        { id: 'org1', name: '组织1' },
+        { id: 'group1', name: '群组1' },
+        { id: 'group1_user1', name: '群组1-用户1' },
+        { id: 'group1_user2', name: '群组1-用户2' },
+        { id: 'org2', name: '技术部' },
+        { id: 'org3', name: '产品部' },
+        { id: 'org4', name: '运营部' }
       ],
+      originalTreeData: null,
       treeProps: {
         children: 'children',
         label: 'name'
@@ -117,15 +169,15 @@ export default {
           name: '群组1',
           type: 'group',
           children: [
-            { id: 'user1_group1', name: '用户1', type: 'user', organization: '群组1', selected: true },
-            { id: 'user2_group1', name: '用户2', type: 'user', organization: '群组1', selected: true }
+            { id: 'user1_group1', name: '用户1', type: 'user', organization: '群组1', selected: false },
+            { id: 'user2_group1', name: '用户2', type: 'user', organization: '群组1', selected: false },
+            { id: 'user3_group1', name: '用户3', type: 'user', organization: '群组1', selected: false },
+            { id: 'user4_group1', name: '用户4', type: 'user', organization: '群组1', selected: false }
           ]
         }
+
       ],
-      selectedUsers: [
-        { id: 'user1_group1', name: '用户1', organization: '组织1' },
-        { id: 'user2_group1', name: '用户2', organization: '组织1' }
-      ]
+      selectedUsers: []
     }
   },
   watch: {
@@ -138,12 +190,13 @@ export default {
       immediate: true
     },
     searchKeyword(val){
-      console.log('搜索关键词:', val)
-      this.$refs.tree.filter(val);
+      // 只有在选择了组织时才进行搜索
+      if (this.selectedOrganization) {
+        this.$refs.tree.filter(val);
+      }
     }
   },
   methods: {
-    // 判断节点是否被选中
     isNodeSelected(nodeId) {
       return this.selectedUsers.some(user => user.id === nodeId)
     },
@@ -151,64 +204,98 @@ export default {
       if (!value) return true;
       return data.name.indexOf(value) !== -1;
     },
+    handleOrgChange(orgId) {
+      // 当组织选择改变时，过滤树形数据
+      this.filterTreeByOrganization(orgId);
+      
+      // 如果清空了组织选择，同时清空用户名搜索
+      if (!orgId) {
+        this.searchKeyword = '';
+      }
+    },
+    handleInputFocus() {
+      // 当用户名输入框获得焦点时，如果没有选择组织，给出提示
+      if (!this.selectedOrganization) {
+        this.$message.warning('请先选择组织');
+      }
+    },
+    filterTreeByOrganization(orgId) {
+      if (!orgId) {
+        // 如果没有选择组织，显示所有数据
+        this.$refs.tree.filter('');
+        return;
+      }
+      
+      // 根据选择的组织过滤树形数据
+      const filterData = (nodes) => {
+        return nodes.filter(node => {
+          if (node.id === orgId) {
+            return true; // 显示选中的组织节点
+          }
+          if (node.children) {
+            const filteredChildren = filterData(node.children);
+            if (filteredChildren.length > 0) {
+              return {
+                ...node,
+                children: filteredChildren
+              };
+            }
+          }
+          return false;
+        });
+      };
+      
+      // 临时保存原始数据
+      if (!this.originalTreeData) {
+        this.originalTreeData = JSON.parse(JSON.stringify(this.treeData));
+      }
+      
+      // 应用过滤
+      this.treeData = filterData(this.originalTreeData);
+    },
     handleTreeCheck(data, checkedInfo) {
-      // 处理树形选择（多选模式）
       console.log('选择变化:', data, checkedInfo)
       
-      // 获取所有选中的节点
       const checkedNodes = checkedInfo.checkedNodes || []
       const halfCheckedNodes = checkedInfo.halfCheckedNodes || []
       
-      // 只处理用户类型的节点
       const selectedUserNodes = checkedNodes.filter(node => node.type === 'user')
       
-      // 更新选中用户列表
       this.selectedUsers = selectedUserNodes.map(node => ({
         id: node.id,
         name: node.name,
         organization: node.organization
       }))
       
-      // 更新树形数据中的选中状态
       this.updateTreeSelectionState(checkedNodes)
     },
     handleNodeClick(data, node) {
-      // 处理节点点击（单选模式）
       if (this.transferMode && data.type === 'user') {
-        // 转让模式下，只允许选择用户类型的节点
         this.selectedUsers = [{
           id: data.id,
           name: data.name,
           organization: data.organization
         }]
         
-        // 更新树形数据中的选中状态
         this.updateTreeSelectionState([data])
         
-        // 更新选中节点的背景色
         this.updateSelectedNodeBackground()
       }
     },
     removeUser(user) {
-      // 移除用户
       user.selected = false
       this.selectedUsers = this.selectedUsers.filter(u => u.id !== user.id)
     },
     removeSelectedUser(user) {
-      // 移除已选择的用户
       this.selectedUsers = this.selectedUsers.filter(u => u.id !== user.id)
       
-      // 同时更新左侧树形控件的选中状态
       this.updateTreeSelection(user.id, false)
       
-      // 更新树形控件的选中状态
       this.$nextTick(() => {
         if (this.$refs.tree) {
           if (this.transferMode) {
-            // 转让模式下，清空所有选中状态
             this.$refs.tree.setCheckedKeys([])
           } else {
-            // 多选模式下，移除被删除用户的选中状态
             const checkedKeys = this.$refs.tree.getCheckedKeys()
             const newCheckedKeys = checkedKeys.filter(key => key !== user.id)
             this.$refs.tree.setCheckedKeys(newCheckedKeys)
@@ -217,7 +304,6 @@ export default {
       })
     },
     updateTreeSelection(userId, selected) {
-      // 更新树形数据中的选中状态
       const updateNode = (nodes) => {
         nodes.forEach(node => {
           if (node.id === userId) {
@@ -246,7 +332,6 @@ export default {
       updateNode(this.treeData)
     },
     createNewGroup() {
-      // 创建新群组
       this.$message.info('创建新群组功能')
     },
     updateSelectedNodeBackground() {
@@ -295,6 +380,16 @@ export default {
     
       .search-section {
         margin-bottom: 15px;
+        display: flex;
+        gap: 10px;
+        
+        .org-select {
+          flex: 1;
+        }
+        
+        .search-input {
+          flex: 1;
+        }
       }
       
       .selection-tree {
@@ -379,45 +474,75 @@ export default {
           max-height: 300px;
           overflow-y: auto;
           
-          .selected-user-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-            background-color: #f5f7fa;
-            border: 1px solid transparent;
-            transition: all 0.3s ease;
-            margin-bottom: 8px;
+          .org-group {
+            margin-bottom: 16px;
             
             &:last-child {
               margin-bottom: 0;
             }
             
-            &:hover {
-              background-color: #f5f7fa;
-              border-color: #384BF7;
+            .org-group-header {
+              display: flex;
+              align-items: center;
+              margin-bottom: 8px;
+              padding: 4px 0;
+              border-bottom: 1px solid #e4e7ed;
+              
+              .org-name {
+                font-size: 14px;
+                font-weight: 600;
+                color: #384BF7;
+              }
+              
+              .user-count {
+                font-size: 12px;
+                color: #909399;
+                margin-left: 8px;
+              }
             }
             
-            .user-info {
-              font-size: 14px;
-              color: #606266;
+            .org-users {
+              .selected-user-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 6px 8px;
+                cursor: pointer;
+                border-radius: 4px;
+                background-color: #f5f7fa;
+                border: 1px solid transparent;
+                transition: all 0.3s ease;
+                margin-bottom: 6px;
+                
+                &:last-child {
+                  margin-bottom: 0;
+                }
+                
+                &:hover {
+                  background-color: #f0f2ff;
+                  border-color: #384BF7;
+                }
+                
+                .user-info {
+                  font-size: 13px;
+                  color: #606266;
+                }
+                
+                .remove-icon {
+                  color: #384BF7;
+                  cursor: pointer;
+                  font-size: 12px;
+                  padding: 2px;
+                  border-radius: 2px;
+                  opacity: 0;
+                  transition: opacity 0.3s ease;
+                }
+              }
+              
+              .selected-user-item:hover .remove-icon {
+                opacity: 1;
+              }
             }
-            
-            .remove-icon {
-              color: #384BF7;
-              cursor: pointer;
-              font-size: 12px;
-              padding: 2px;
-              border-radius: 2px;
-              opacity: 0;
-              transition: opacity 0.3s ease;
-            }
-          }
-          
-          .selected-user-item:hover .remove-icon {
-            opacity: 1;
           }
         }
       }

@@ -71,7 +71,6 @@
           type="primary"
           @click="createChunk(false)"
           size="mini"
-          v-if="res.segmentMethod === '0'"
           :loading="loading.start"
           >新增分段</el-button
         >
@@ -199,7 +198,6 @@
                 v-model="scope.row.content"
                 :autosize="{ minRows: 3, maxRows: 5}"
                 class="full-width-textarea"
-                :disabled="scope.row.isParent"
                 >
               </el-input>
               <div class="segment-list" v-if="scope.row.childContent.length > 0">
@@ -254,8 +252,9 @@
 
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="handleSubmit" :loading="submitLoading" v-if="!cardObj[0]['isParent']">确定</el-button>
-        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent']">新增子分段</el-button>
-        <el-button type="primary" @click="handleClose">{{$t('knowledgeManage.close')}}</el-button>
+        <el-button type="primary" @click="handleSubmit"  v-if="cardObj[0]['isParent']" :loading="submitLoading">保存并重新解析子分段</el-button>
+        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent']" :disabled="submitLoading">新增子分段</el-button>
+        <el-button type="primary" @click="handleClose" :disabled="submitLoading">{{$t('knowledgeManage.close')}}</el-button>
       </span>
     </el-dialog>
     <dataBaseDialog ref="dataBase" @updateData="updateData" :knowledgeId="obj.knowledgeId" :name="obj.knowledgeName"/>
@@ -326,7 +325,9 @@ export default {
       this.$refs.createChunk.showDiglog(this.obj.id,isChildChunk)
     },
     updateChildData(){
-      this.handleParse();
+      setTimeout(() => {
+        this.handleParse();
+      }, 1000);
     },
     formatScore(score) {
       if (typeof score !== 'number') {
@@ -361,7 +362,7 @@ export default {
       updateSegmentChild({
         childChunk:{
           content: newContent.trim(),
-          chunkNo:index
+          chunkNo:row['childContent'][index].childNum
         },
         docId: this.obj.id,
         parentChunkNo: row.contentNum,
@@ -393,12 +394,14 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-       delSegmentChild({docId:this.obj.id,parentId:row['childContent'][index].parentId,parentChunkNo:row.contentNum,ChildChunkNoList:[index]}).then(res =>{
+        delSegmentChild({docId:this.obj.id,parentId:row['childContent'][index].parentId,parentChunkNo:row.contentNum,ChildChunkNoList:[row['childContent'][index].childNum]}).then(res =>{
           if(res.code === 0){
             this.$message.success('删除成功');
             this.handleParse();
           }
-        })
+        }).catch(() => {
+          this.$message.error('删除失败');
+        });
       });
     },
     updateDataBatch(){
@@ -434,9 +437,9 @@ export default {
       editSegment({content:this.cardObj[0]['content'],contentId:this.cardObj[0]['contentId'],docId:this.obj.id}).then(res =>{
         if(res.code === 0){
           this.$message.success('操作成功');
-          this.dialogVisible = false;
-          this.submitLoading = false;
-          this.getList();
+            this.dialogVisible = false;
+            this.submitLoading = false;
+            this.getList();
         }
       }).catch(() =>{
         this.submitLoading = false;

@@ -3,8 +3,18 @@
     <div class="form-header">
       <div class="header-left">
         <span class="el-icon-arrow-left btn" @click="goBack"></span>
-        <span class="header-left-title">文本问答编辑</span>
-        <LinkIcon type="rag" />
+        <!-- <span class="header-left-title">文本问答编辑</span> -->
+        <div class="basicInfo">
+          <div class="img">
+            <img :src="editForm.avatar.path ? `/user/api`+ editForm.avatar.path : '@/assets/imgs/bg-logo.png'"  />
+          </div>
+          <div class="basicInfo-desc">
+            <span class="basicInfo-title">{{editForm.name || '无信息'}}</span>
+            <span class="el-icon-edit-outline editIcon" @click="editAgent"></span>
+            <LinkIcon type="rag" />
+            <p>{{editForm.desc || '无信息'}}</p>
+          </div>
+          </div>
       </div>
       <div class="header-right">
         <div class="header-api">
@@ -31,18 +41,6 @@
     </div>
     <div class="agent_form">
       <div class="drawer-form">
-        <div class="block prompt-box">
-          <div class="basicInfo">
-            <div class="img">
-              <img :src="editForm.avatar.path ? `/user/api`+ editForm.avatar.path : '@/assets/imgs/bg-logo.png'"  />
-            </div>
-            <div class="basicInfo-desc">
-              <span class="basicInfo-title">{{editForm.name || '无信息'}}</span>
-              <span class="el-icon-edit-outline editIcon" @click="editAgent"></span>
-              <p>{{editForm.desc || '无信息'}}</p>
-            </div>
-          </div>
-        </div>
         <div class="model-box">
           <div class="block prompt-box">
             <p class="block-title common-set">
@@ -636,6 +634,8 @@ export default {
     }
   }
   .header-left{
+    display: flex;
+    align-items: center;
     .btn{
       margin-right:10px;
       font-size:18px;
@@ -645,6 +645,42 @@ export default {
       font-size:18px;
       color: #434C6C;
       font-weight: bold;
+    }
+    .basicInfo{
+      display: flex;
+      align-items:center;
+      border-radius:8px;
+      padding:10px 0;
+      .img{
+        padding:10px;
+        img{
+          border:1px solid #eee;
+          border-radius:6px;
+          width:32px;
+          height:32px;
+          object-fit: cover;
+        }
+      }
+      .basicInfo-desc{
+        flex:1;
+        .editIcon{
+          cursor: pointer;
+          margin-left: 5px;
+          font-size: 16px;
+          color: #6b7280;
+        }
+      }
+      .basicInfo-title{
+        display:inline-block;
+        font-weight:800;
+        font-size:14px;
+      }
+      p {
+        color: #6b7280;
+        font-size: 12px;
+        margin: 0;
+        line-height: 1.4;
+      }
     }
   }
   .header-right{
@@ -685,6 +721,7 @@ export default {
     overflow-y: auto;
     display:flex;
     flex-direction: column;
+    margin:10px 0;
     .editIcon{
       font-size: 16px;
       margin-left: 5px;
@@ -750,33 +787,6 @@ export default {
   /*通用*/
   .block {
     margin-bottom: 24px;
-    .basicInfo{
-      display: flex;
-      align-items:center;
-      background:#F7F8FA;
-      box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
-      border-radius:8px;
-      padding:10px 0;
-      margin-top:10px;
-      .img{
-        padding:10px;
-        img{
-          border:1px solid #eee;
-          border-radius:50%;
-          width:60px;
-          height:60px;
-          object-fit: cover;
-        }
-      }
-      .basicInfo-desc{
-        flex:1;
-      }
-      .basicInfo-title{
-        display:inline-block;
-        font-weight:800;
-        font-size:18px;
-      }
-    }
     .block-title {
       line-height: 30px;
       font-size: 15px;

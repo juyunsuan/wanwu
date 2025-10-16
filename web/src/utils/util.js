@@ -100,10 +100,10 @@ export function isSub(data){
     return /\【([0-9]{0,2})\^\】/.test(data)
 }
 
-export function parseSub(data){
+export function parseSub(data,index){
     return data.replace(/\【([0-9]{0,2})\^\】/g,(item)=>{
         let result = item.match(/\【([0-9]{0,2})\^\】/)[1]
-        return `<sup class='citation'>${result}</sup>`
+        return `<sup class='citation' data-parents-index='${index}'>${result}</sup>`
     })
 }
 
@@ -165,4 +165,8 @@ export function formatScore(score) {
         return '0.00000';
     }
     return score.toFixed(5);
+}
+
+export function avatarSrc(path){
+    return basePath + '/user/api/' + path
 }

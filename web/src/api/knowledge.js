@@ -435,3 +435,51 @@ export const updateSegmentChild = (data)=>{
         data
     })
 };
+// 获取知识库用户权限列表
+export const getUserPower = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/user`,
+        method: 'get',
+        params:data
+    })
+};
+// 新增知识库用户权限
+export const addUserPower = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/user/add`,
+        method: 'post',
+        data
+    })
+};
+// 转让知识库管理权限
+export const transferUserPower = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/user/admin/transfer`,
+        method: 'post',
+        data
+    })
+};
+// 修改知识库用户权限
+export const editUserPower = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/user/edit`,
+        method: 'post',
+        data
+    })
+};
+//更新文档元数据
+export const updateMetaData = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/meta/value/update`,
+        method: 'post',
+        data
+    })
+};
+//获取文档元数据列表
+export const getDocMetaList = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/meta/value/list`,
+        method: 'post',
+        data
+    })
+};
