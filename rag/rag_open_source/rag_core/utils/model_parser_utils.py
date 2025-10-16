@@ -63,7 +63,7 @@ def get_page_data(page_num, add_file_path, ocr_model_id):
         new_pdf.save(output_pdf_path)
         new_pdf.close()
 
-        files = {"file": open(output_pdf_path, 'rb').read()}
+        files = {"file": (output_pdf_path, open(output_pdf_path, 'rb'))}
 
         data = {
             "file_name": page_pdf_path,
@@ -107,7 +107,7 @@ def get_page_data(page_num, add_file_path, ocr_model_id):
                     try:
                         status_code = getattr(e.response, "status_code", "N/A")
                         error_body = e.response.text if hasattr(e.response, "text") else "N/A"
-                        error_details += f" | HTTP {status_code}: {error_body[:200]}"
+                        error_details += f" | HTTP {status_code}: {error_body}"
                     except Exception as parse_err:
                         error_details += f" | Failed to parse error: {parse_err}"
 
