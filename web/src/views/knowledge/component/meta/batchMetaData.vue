@@ -215,6 +215,7 @@ export default {
           docIdList:this.selectedDocIds,
           metaValueList:[{
             metaId:item.metaId,
+            metaKey:item.metaKey,
             option:'delete'
           }]
           }
@@ -267,7 +268,7 @@ export default {
         ...item,
         metaValue: String(item.metaValue)
       }));
-      
+
       const data = {
         applyToSelected:this.applyToSelected,
         docIdList:this.selectedDocIds,
@@ -360,7 +361,7 @@ export default {
           flex: 1;
           
           &.type-group {
-            flex: 0 0 8%;
+            flex: 0 0 10%;
             justify-content: center;
           }
           
