@@ -1,6 +1,7 @@
 package service
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -8,6 +9,7 @@ import (
 	"github.com/UnicomAI/wanwu/internal/knowledge-service/pkg/http"
 	http_client "github.com/UnicomAI/wanwu/pkg/http-client"
 	"github.com/UnicomAI/wanwu/pkg/log"
+	"slices"
 	"time"
 )
 
@@ -152,9 +154,9 @@ type RagGetDocChildSegmentResp struct {
 }
 
 type ChildContentListResp struct {
-	ParentChunkId      string                   `json:"parent_chunk_id"`
-	ChildChunkTotalNum int                      `json:"child_chunk_total_num"` // 以这个字段为准
-	ChildContentList   []*ChildFileSplitContent `json:"child_content_list"`
+	ParentChunkId      string                  `json:"parent_chunk_id"`
+	ChildChunkTotalNum int                     `json:"child_chunk_total_num"` // 以这个字段为准
+	ChildContentList   []ChildFileSplitContent `json:"child_content_list"`
 }
 
 type ChildFileSplitContent struct {
@@ -325,6 +327,10 @@ func RagGetDocSegmentList(ctx context.Context, ragGetDocSegmentParams *RagGetDoc
 	if resp.Data == nil || len(resp.Data.List) == 0 {
 		return nil, errors.New("doc segment response is empty")
 	}
+	// 排序
+	slices.SortFunc(resp.Data.List, func(a, b FileSplitContent) int {
+		return cmp.Compare(a.MetaData.ChunkCurrentNum, b.MetaData.ChunkCurrentNum)
+	})
 	return resp.Data, nil
 }
 
@@ -443,5 +449,9 @@ func RagGetDocChildSegmentList(ctx context.Context, ragGetDocChildSegmentParams 
 	if resp.Data == nil || len(resp.Data.ChildContentList) == 0 {
 		return nil, errors.New("doc child segment response is empty")
 	}
+	// 按排序
+	slices.SortFunc(resp.Data.ChildContentList, func(a, b ChildFileSplitContent) int {
+		return cmp.Compare(a.MetaData.ChildChunkCurrentNum, b.MetaData.ChildChunkCurrentNum)
+	})
 	return resp.Data, nil
 }
