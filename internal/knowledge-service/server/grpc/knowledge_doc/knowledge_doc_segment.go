@@ -56,8 +56,10 @@ func (s *Service) CreateDocSegment(ctx context.Context, req *knowledgebase_doc_s
 	if len(req.Content) == 0 {
 		return nil, util.ErrCode(errs.Code_KnowledgeDocSegmentEmpty)
 	}
-	if utf8.RuneCountInString(req.Content) > segmentConfig.MaxSplitter {
-		return nil, util.ErrCode(errs.Code_KnowledgeDocSegmentExceedMaxSize)
+
+	if err1 := checkContentLength([]string{req.Content}, segmentConfig.MaxSplitter); err1 != nil {
+		log.Errorf("内容长度超出最大分段长度 错误(%v) 参数(%v)", err1, req)
+		return nil, err1
 	}
 	//8.发送rag请求
 	var labels = req.Labels
@@ -173,8 +175,9 @@ func (s *Service) UpdateDocSegment(ctx context.Context, req *knowledgebase_doc_s
 	if len(req.Content) == 0 {
 		return nil, util.ErrCode(errs.Code_KnowledgeDocSegmentEmpty)
 	}
-	if utf8.RuneCountInString(req.Content) > segmentConfig.MaxSplitter {
-		return nil, util.ErrCode(errs.Code_KnowledgeDocSegmentExceedMaxSize)
+	if err1 := checkContentLength([]string{req.Content}, segmentConfig.MaxSplitter); err1 != nil {
+		log.Errorf("内容长度超出最大分段长度 错误(%v) 参数(%v)", err1, req)
+		return nil, err1
 	}
 	//8.发送rag请求
 	err = service.RagUpdateDocSegment(ctx, &service.RagUpdateDocSegmentParams{
@@ -383,8 +386,9 @@ func (s *Service) UpdateDocChildSegment(ctx context.Context, req *knowledgebase_
 		log.Errorf("SegmentConfig process error %s", err.Error())
 		return nil, err
 	}
+
 	if err1 := checkContentLength([]string{req.ChildChunk.Content}, segmentConfig.SubMaxSplitter); err1 != nil {
-		log.Errorf("内容长度超出最大分段长度 错误(%v) 参数(%v)", err1, req)
+		log.Errorf("内容长度超出最大分段长度 错误(%v) 参数(%v), 分段最大值（%v）", err1, req, segmentConfig.SubMaxSplitter)
 		return nil, err1
 	}
 	//6.修改子分段信息
@@ -448,7 +452,7 @@ func (s *Service) DeleteDocChildSegment(ctx context.Context, req *knowledgebase_
 // checkContentLength 检查内容长度
 func checkContentLength(contentList []string, maxLength int) error {
 	for _, content := range contentList {
-		if len(content) > maxLength {
+		if utf8.RuneCountInString(content) > maxLength {
 			return util.ErrCode(errs.Code_KnowledgeDocSegmentExceedMaxSize)
 		}
 	}
