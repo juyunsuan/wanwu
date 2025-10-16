@@ -31,7 +31,7 @@ router.beforeEach(async (to, from, next) => {
   if(access_cert){
       token = access_cert.user.token
   }
-  if (token) {
+  if (token && !access_cert.user.is2FA) {
       if (to.path === '/') {
           const {path} = fetchPermFirPath()
           next({path})

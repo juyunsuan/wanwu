@@ -11,6 +11,18 @@ export default {
         register: '立即注册',
         forgetPassword: '忘记密码？',
         button: '登 录',
+        twoFA: {
+            title: '两步验证',
+            form: {
+                oldPassword: '旧密码',
+                newPassword: '新密码',
+                email: '邮箱',
+                code: '验证码'
+            },
+            bind: '绑定',
+            action: '获取',
+            button: '确 认'
+        },
     },
     register: {
         title: '注 册',
