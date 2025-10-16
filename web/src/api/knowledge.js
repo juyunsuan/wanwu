@@ -435,6 +435,22 @@ export const updateSegmentChild = (data)=>{
         data
     })
 };
+// 获取知识库组织列表
+export const getOrgList = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/org`,
+        method: 'get',
+        params:data
+    })
+};
+// 获取知识库组织列表
+export const getOrgUser = (data)=>{
+    return service({
+        url: `${BASE_URL}/knowledge/user/no/permit`,
+        method: 'get',
+        params:data
+    })
+};
 // 获取知识库用户权限列表
 export const getUserPower = (data)=>{
     return service({
@@ -475,6 +491,7 @@ export const updateMetaData = (data)=>{
         data
     })
 };
+
 //获取文档元数据列表
 export const getDocMetaList = (data)=>{
     return service({

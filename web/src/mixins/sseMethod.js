@@ -298,20 +298,20 @@ export default {
                                         endStr = parseSub(endStr,lastIndex)
                                         let fillData = {
                                             ...commonData,
-                                            finish:data.finish,
                                             "response": md.render(endStr),
                                             oriResponse:endStr,
+                                            finish:worldObj.finish,
                                             searchList:(search_list && search_list.length) ? search_list.map(n => ({
                                                   ...n, // 复制原有的对象属性
                                                   snippet: md.render(n.snippet) // 对snippet进行Markdown渲染
                                                 }))
                                             : []
-                                    }
-                                    this.$refs['session-com'].replaceLastData(lastIndex, fillData)
-                                    if(worldObj.isEnd && worldObj.finish === 1){
-                                        this.setStoreSessionStatus(-1)
-                                    }
-                                })
+                                        }
+                                        this.$refs['session-com'].replaceLastData(lastIndex, fillData)
+                                        if(worldObj.isEnd && worldObj.finish === 1){
+                                            this.setStoreSessionStatus(-1)
+                                        }
+                                    })
                             // this.$nextTick(()=>{
                             //     this.$refs['session-com'].scrollBottom()
                             // })
@@ -489,7 +489,7 @@ export default {
                                         let fillData = {
                                             ...commonData,
                                             response: [0,1,2,3,4,6,20,21,10].includes(commonData.qa_type)?md.render(finalResponse):finalResponse.replaceAll('\n-','<br/>•').replaceAll('\n','<br/>'),
-                                            // response:finalResponse,
+                                            finish:worldObj.finish,
                                             oriResponse:endStr,
                                             searchList:(search_list && search_list.length) ? search_list.map(n => ({
                                                   ...n, // 复制原有的对象属性

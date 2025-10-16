@@ -489,12 +489,14 @@ export default {
         docPreprocess: ["replaceSymbols"], //'deleteLinks','replaceSymbols'
         docSegment: {
           segmentType: "0",
-          splitter: ["！", "。", "？", "?", "!", ".", "......"],
+          // splitter: ["！", "。", "？", "?", "!", ".", "......"],
+          splitter:["\\n\\n"],
           maxSplitter: 1024,
           overlap: 0.2,
           segmentMethod:"0",//0是通用分段，1是父子分段
           subMaxSplitter:200,//父子分段必填
-          subSplitter:["！", "。", "？", "?", "!", ".", "......"]//父子分段必填
+          // subSplitter:["！", "。", "？", "?", "!", ".", "......"]//父子分段必填
+          subSplitter:["\\n\\n"]
         },
         docInfoList: [],
         docImportType: 0,

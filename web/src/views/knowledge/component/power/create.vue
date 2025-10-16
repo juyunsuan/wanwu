@@ -13,9 +13,9 @@
           >
             <el-option
               v-for="org in organizationList"
-              :key="org.id"
-              :label="org.name"
-              :value="org.id"
+              :key="org.orgId"
+              :label="org.orgName"
+              :value="org.orgId"
             >
             </el-option>
           </el-select>
@@ -93,6 +93,7 @@
 </template>
 
 <script>
+import { getOrgList, getOrgUser } from '@/api/knowledge'
 export default {
   name: 'AddPermission',
   props: {
@@ -196,7 +197,22 @@ export default {
       }
     }
   },
+  created(){
+    this.getOrgList()
+  },
   methods: {
+    getOrgList(){
+      getOrgList({}).then(res => {
+         if(res.code === 0){
+          this.organizationList = res.data
+         }
+      })
+    },
+    getOrgUser(){
+      getOrgUser().then(res => {
+        console.log(res)
+      })
+    },
     isNodeSelected(nodeId) {
       return this.selectedUsers.some(user => user.id === nodeId)
     },
@@ -254,8 +270,6 @@ export default {
       this.treeData = filterData(this.originalTreeData);
     },
     handleTreeCheck(data, checkedInfo) {
-      console.log('选择变化:', data, checkedInfo)
-      
       const checkedNodes = checkedInfo.checkedNodes || []
       const halfCheckedNodes = checkedInfo.halfCheckedNodes || []
       
