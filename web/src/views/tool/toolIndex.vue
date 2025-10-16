@@ -7,7 +7,7 @@
         <div :class="['mcp-tab',{ 'active': tabActive === 1 }]" @click="tabClick(1)">自定义</div>
       </div>
 
-      <builtInTools ref="customize" v-if="tabActive === 0"/>
+      <builtInTools ref="builtInTools" v-if="tabActive === 0"/>
       <autoTools ref="autoTools" v-if="tabActive === 1"/>
     </div>
   </div>
@@ -21,7 +21,20 @@ export default {
       tabActive: 0
     };
   },
-  created() {},
+  watch: {
+    $route: {
+      handler() {
+        if (this.$route.query.mcp === "builtIn") this.tabActive = 0
+        if (this.$route.query.mcp === "custom") this.tabActive = 1
+      },
+      // 深度观察监听
+      deep: true
+    }
+  },
+  mounted() {
+    if (this.$route.query.mcp === "builtIn") this.tabActive = 0
+    if (this.$route.query.mcp === "custom") this.tabActive = 1
+  },
   methods: {
     tabClick(status){
       this.tabActive = status
