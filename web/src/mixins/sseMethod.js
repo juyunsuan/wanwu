@@ -266,12 +266,10 @@ export default {
                         }
                         
                         this.sseResponse = data;
-                        console.log(this.sseResponse,123);
                         //待替换的数据，需要前端组装
                         let commonData = {
                             ...this.sseResponse,
                             ...this.sseParams,
-                            finish:data.finish,
                             "query": prompt,
                             "fileName":'',
                             "fileSize":'',
@@ -300,7 +298,6 @@ export default {
                                         endStr = parseSub(endStr,lastIndex)
                                         let fillData = {
                                             ...commonData,
-                                            finish:data.finish,
                                             "response": md.render(endStr),
                                             oriResponse:endStr,
                                             searchList:(search_list && search_list.length) ? search_list.map(n => ({
@@ -309,6 +306,7 @@ export default {
                                                 }))
                                             : []
                                     }
+                                    console.log(fillData,123);
                                     this.$refs['session-com'].replaceLastData(lastIndex, fillData)
                                     if(worldObj.isEnd && worldObj.finish === 1){
                                         this.setStoreSessionStatus(-1)

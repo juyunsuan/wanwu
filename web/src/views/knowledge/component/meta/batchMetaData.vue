@@ -153,7 +153,6 @@ export default {
     },
     handleMetaValueChange(item, index) {
       if (item.metaId && item.originalMetaValue !== item.metaValue) {
-        item.metaValue = String(item.metaValue);
         item.option = 'update';
       }
     },
@@ -264,10 +263,15 @@ export default {
         this.loading = false;
         return;
       }
+      const processedUpdateData = updateData.map(item => ({
+        ...item,
+        metaValue: String(item.metaValue)
+      }));
+      
       const data = {
         applyToSelected:this.applyToSelected,
         docIdList:this.selectedDocIds,
-        metaValueList:updateData
+        metaValueList:processedUpdateData
       }
       this.unpdateMetaApi(data,'submit')
     }
