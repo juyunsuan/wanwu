@@ -801,6 +801,7 @@ export default {
             slogan:'可绑定已发布的应用，创建自己的MCP server，并对外提供服务。',
             search:'请输入MCP名称进行搜索',
             create:'创建MCP',
+            avatar:'MCP图标',
             name:'服务名称',
             desc:'服务描述',
             bind: {
