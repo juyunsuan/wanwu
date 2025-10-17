@@ -106,7 +106,7 @@ func UpdateDocStatusDocMeta(ctx context.Context, docId string, addList []*model.
 	})
 }
 
-func BatchUpdateDocMetaValue(ctx context.Context, addList, updateList []*model.KnowledgeDocMeta, deleteDataIdList []string, knowledge *model.KnowledgeBase, docList []*model.KnowledgeDoc, userId string) error {
+func BatchUpdateDocMetaValue(ctx context.Context, addList, updateList []*model.KnowledgeDocMeta, deleteDataIdList []string, knowledge *model.KnowledgeBase, docList []*model.KnowledgeDoc, userId string, docIds []string) error {
 	return db.GetHandle(ctx).Transaction(func(tx *gorm.DB) error {
 		if len(addList) > 0 {
 			//插入数据
@@ -133,65 +133,41 @@ func BatchUpdateDocMetaValue(ctx context.Context, addList, updateList []*model.K
 				return err
 			}
 		}
-		ragParamsList, err := buildBatchUpdateMetaRAGParams(ctx, knowledge, docList, userId)
+		ragParams, err := buildBatchUpdateMetaRAGParams(tx, knowledge, docList, userId, docIds)
 		if err != nil {
 			return err
 		}
-		for _, ragParams := range ragParamsList {
-			err2 := service.RagDocMeta(ctx, ragParams)
-			if err2 != nil {
-				return err2
-			}
+		err = service.BatchRagDocMeta(ctx, ragParams)
+		if err != nil {
+			return err
 		}
 		return nil
 	})
 }
 
-func buildBatchUpdateMetaRAGParams(ctx context.Context, knowledge *model.KnowledgeBase, docList []*model.KnowledgeDoc, userId string) ([]*service.RagDocMetaParams, error) {
-	ragParamsList := make([]*service.RagDocMetaParams, 0)
+func buildBatchUpdateMetaRAGParams(tx *gorm.DB, knowledge *model.KnowledgeBase, docList []*model.KnowledgeDoc, userId string, docIds []string) (*service.BatchRagDocMetaParams, error) {
+	docNameMap := make(map[string]string)
 	for _, doc := range docList {
-		docMetaList, err := SelectDocMetaList(ctx, "", "", doc.DocId)
-		if err != nil {
-			log.Errorf("docId %v select doc meta fail %v", doc.DocId, err)
-			return nil, err
-		}
-		ragMetaList, err := buildMetaRagParams(docMetaList)
-		if err != nil {
-			log.Errorf("docId %v build meta rag params fail %v", doc.DocId, err)
-			return nil, err
-		}
-		ragParams := &service.RagDocMetaParams{
-			FileName:      service.RebuildFileName(doc.DocId, doc.FileType, doc.Name),
-			KnowledgeBase: knowledge.Name,
-			MetaList:      ragMetaList,
-			UserId:        userId,
-		}
-		ragParamsList = append(ragParamsList, ragParams)
+		docNameMap[doc.DocId] = service.RebuildFileName(doc.DocId, doc.FileType, doc.Name)
 	}
-	return ragParamsList, nil
-}
-
-func buildMetaRagParams(metaDataList []*model.KnowledgeDocMeta) ([]*service.MetaData, error) {
-	if len(metaDataList) == 0 {
-		return make([]*service.MetaData, 0), nil
+	docMetaList := make([]*model.KnowledgeDocMeta, 0)
+	err := tx.Where("doc_id in ?", docIds).Find(&docMetaList).Error
+	if err != nil {
+		log.Errorf("docId %v select meta fail %v", docIds, err)
+		return nil, err
 	}
-	var retList = make([]*service.MetaData, 0)
-	for _, data := range metaDataList {
-		if data.Value == "" {
-			continue
-		}
-		valueData, err := buildValueData(data.ValueType, data.Value)
-		if err != nil {
-			log.Errorf("buildValueData error %s", err.Error())
-			return nil, err
-		}
-		retList = append(retList, &service.MetaData{
-			Key:       data.Key,
-			Value:     valueData,
-			ValueType: data.ValueType,
-		})
+	metaList, err := buildBatchMetaParamsList(docMetaList, docNameMap, docIds)
+	if err != nil {
+		log.Errorf("docId %v build meta params fail %v", docIds, err)
+		return nil, err
 	}
-	return retList, nil
+	ragParams := &service.BatchRagDocMetaParams{
+		UserId:        userId,
+		KnowledgeBase: knowledge.Name,
+		KnowledgeId:   knowledge.KnowledgeId,
+		MetaList:      metaList,
+	}
+	return ragParams, nil
 }
 
 // UpdateBatchStatusDocMeta 批量更新文档tag
@@ -237,6 +213,53 @@ func UpdateBatchStatusDocMeta(ctx context.Context, knowledgeId string, docNameMa
 	})
 }
 
+// buildBatchMetaParamsList 构建rag元数据参数
+func buildBatchMetaParamsList(docMetaList []*model.KnowledgeDocMeta, docNameMap map[string]string, docIds []string) ([]*service.DocMetaInfo, error) {
+	var docMetaMap = make(map[string][]*model.KnowledgeDocMeta)
+	for _, meta := range docMetaList {
+		metas := docMetaMap[meta.DocId]
+		if len(metas) == 0 {
+			metas = make([]*model.KnowledgeDocMeta, 0)
+		}
+		metas = append(metas, meta)
+		docMetaMap[meta.DocId] = metas
+	}
+	var docTrueMap = make(map[string]bool)
+	for _, docId := range docIds {
+		docTrueMap[docId] = false
+	}
+	dataList := make([]*service.DocMetaInfo, 0)
+	for docId, metas := range docMetaMap {
+		var retList = make([]*service.MetaData, 0)
+		for _, meta := range metas {
+			valueData, err := buildValueData(meta.ValueType, meta.Value)
+			if err != nil {
+				log.Errorf("buildValueData error %s", err.Error())
+				return nil, err
+			}
+			retList = append(retList, &service.MetaData{
+				Key:       meta.Key,
+				Value:     valueData,
+				ValueType: meta.ValueType,
+			})
+		}
+		dataList = append(dataList, &service.DocMetaInfo{
+			FileName:     docNameMap[docId],
+			MetaDataList: retList,
+		})
+		docTrueMap[docId] = true
+	}
+	for docId, isTrue := range docTrueMap {
+		if !isTrue {
+			dataList = append(dataList, &service.DocMetaInfo{
+				FileName:     docNameMap[docId],
+				MetaDataList: []*service.MetaData{},
+			})
+		}
+	}
+	return dataList, nil
+}
+
 // buildMetaParamsList 构建rag元数据参数
 func buildMetaParamsList(docMetaList []*model.KnowledgeDocMeta, docNameMap map[string]string) ([]*service.DocMetaInfo, error) {
 	var docMetaMap = make(map[string][]*model.KnowledgeDocMeta)
@@ -248,7 +271,7 @@ func buildMetaParamsList(docMetaList []*model.KnowledgeDocMeta, docNameMap map[s
 		metas = append(metas, meta)
 		docMetaMap[meta.DocId] = metas
 	}
-	var dataList []*service.DocMetaInfo
+	dataList := make([]*service.DocMetaInfo, 0)
 	for docId, metas := range docMetaMap {
 		var retList = make([]*service.MetaData, 0)
 		for _, meta := range metas {

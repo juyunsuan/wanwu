@@ -114,6 +114,7 @@ rag-server:
   doc-child-segment-delete-uri: '/rag/batch-delete-child-chunks'
   batch-delete-meta-key-uri: '/rag/delete-meta-by-keys'
   batch-rename-meta-key-uri: '/rag/rename-meta-keys'
+  update-file-metas-uri: '/rag/update-file-metas'
   timeout: 60
 
 usage-limit:
@@ -143,3 +144,5 @@ knowledge-doc-config:
 splitters:
   - name: "\n\n"
     value: "\n\n"
+  - name: "\n"
+    value: "\n"
