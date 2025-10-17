@@ -220,7 +220,7 @@ func (s *Service) UpdateKnowledgeMetaValue(ctx context.Context, req *knowledgeba
 	//6.构造元数据列表
 	addList, updateList, deleteList := buildMetaList(req, docMetaMap, doc.KnowledgeId)
 	//7.更新数据库并发送rag请求
-	err = orm.BatchUpdateDocMetaValue(ctx, addList, updateList, deleteList, knowledge, docList, req.UserId)
+	err = orm.BatchUpdateDocMetaValue(ctx, addList, updateList, deleteList, knowledge, docList, req.UserId, req.DocIdList)
 	if err != nil {
 		log.Errorf("更新文档元数据失败(%v)  参数(%v)", err, req)
 		return nil, util.ErrCode(errs.Code_KnowledgeMetaUpdateFailed)
