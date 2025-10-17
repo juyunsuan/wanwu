@@ -8,11 +8,11 @@
           ref="searchInput"
           @handleSearch="getTableData"
         />
-        <el-button v-if="!isSystem" style="margin-left: 13px" class="add-bt" size="mini" type="primary" @click="preInsert">
+        <el-button v-if="!isSystem && isAdmin" style="margin-left: 13px" class="add-bt" size="mini" type="primary" @click="preInsert">
           <img src="@/assets/imgs/addUser.png" alt="" />
           <span>{{$t('user.button.create')}}</span>
         </el-button>
-        <el-button v-if="!isSystem" class="add-bt invite-bt" size="mini" @click="handleInviteUser">
+        <el-button v-if="!isSystem && isAdmin" class="add-bt invite-bt" size="mini" @click="handleInviteUser">
           <img src="@/assets/imgs/inviteUser.png" alt="" />
           <span>{{$t('user.button.invite')}}</span>
         </el-button>
@@ -40,7 +40,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="createdAt" :label="$t('user.table.createAt')" align="left" />
-          <el-table-column v-if="isSystem" align="left" :label="$t('user.table.status')">
+          <el-table-column v-if="isAdmin" align="left" :label="$t('user.table.status')">
             <template slot-scope="scope">
               <div style="height: 26px">
                 <el-switch
@@ -53,7 +53,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column align="left" :label="$t('common.table.operation')" width="300">
+          <el-table-column v-if="isAdmin" align="left" :label="$t('common.table.operation')" width="300">
             <template slot-scope="scope">
               <el-button class="operation" type="text" @click="preUpdate(scope.row)">{{$t('common.button.edit')}}</el-button>
               <el-button class="operation" type="text" @click="preDel(scope.row)">{{$t('common.button.delete')}}</el-button>
@@ -103,8 +103,8 @@
             <el-option v-for="item in roleList" :key="item.id" :label="item.name" :value="item.id" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('user.dialog.email')" prop="email">
-          <el-input v-model="form.email" :placeholder="$t('common.input.placeholder')" clearable />
+        <el-form-item v-if="isEdit" :label="$t('user.dialog.email')" prop="email">
+          <el-input :disabled="isEdit" v-model="form.email" :placeholder="$t('common.noBindEmail')" clearable />
         </el-form-item>
         <el-form-item :label="$t('user.dialog.remark')" prop="remark" class="mark-textArea">
           <el-input type="textarea" :rows="3" v-model="form.remark" :placeholder="$t('common.input.placeholder')" maxlength="100" show-word-limit clearable />
@@ -179,10 +179,9 @@
         }
       }
       return {
+        isSystem: this.$store.state.user.permission.isSystem || false,
+        isAdmin: this.$store.state.user.permission.isAdmin || false,
         listApi: fetchUserList,
-        isSystem: localStorage.getItem('access_cert')
-            ? JSON.parse(localStorage.getItem('access_cert')).user.permission.isSystem
-            : false,
         loading: false,
         isEdit: false,
         inviteLoading: false,
@@ -219,7 +218,7 @@
             { validator: checkPhone, trigger: 'blur' }
           ],
           email: [
-            { required: true, message: this.$t('common.input.placeholder'), trigger: 'blur' },
+            // { required: true, message: this.$t('common.input.placeholder'), trigger: 'blur' },
             { pattern: /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(.[a-zA-Z0-9_-]+)+$/, message: this.$t('common.hint.emailError'), trigger: "blur"}
           ],
           remark: [

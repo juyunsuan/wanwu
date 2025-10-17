@@ -1,5 +1,5 @@
 <template>
-  <overview>
+  <overview @getCommonInfo="handleCommonInfo">
     <template #default="{ commonInfo }">
       <div class="auth-box">
         <p class="auth-header">
@@ -7,20 +7,20 @@
         </p>
         <div class="auth-form">
           <el-form ref="form" :model="form" :rules="rules" label-position="top">
-            <el-form-item :label="$t('register.form.username')" class="auth-form-item" prop="username">
+            <el-form-item class="auth-form-item" prop="username">
               <img class="auth-icon" src="@/assets/imgs/user.png" alt=""/>
               <el-input
                 v-model.trim="form.username"
                 :placeholder="$t('common.input.placeholder') + $t('register.form.username')" clearable
               />
             </el-form-item>
-            <el-form-item :label="$t('register.form.email')" class="auth-form-item" prop="email">
+            <el-form-item class="auth-form-item" prop="email">
               <img class="auth-icon" src="@/assets/imgs/user.png" alt=""/>
               <el-input
                 v-model.trim="form.email"
                 :placeholder="$t('common.input.placeholder') + $t('register.form.email')" clearable/>
             </el-form-item>
-            <el-form-item :label="$t('register.form.code')" class="auth-form-item" prop="code">
+            <el-form-item class="auth-form-item" prop="code">
               <img class="auth-icon" src="@/assets/imgs/code.png" alt=""/>
               <el-input
                 style="width: calc(100% - 90px)"
@@ -34,9 +34,9 @@
               >
                 {{ isCooldown ? `${cooldownTime}s` : $t('register.action') + $t('register.form.code') }}
               </el-button>
-              <p class="message" v-if="codeSentMessage">{{ codeSentMessage }}</p>
             </el-form-item>
           </el-form>
+          <p class="message" v-if="codeSentMessage">{{ codeSentMessage }}</p>
           <div class="nav-bt">
             {{ $t('register.askAccount') }}
             <span :style="{ color: '#384BF7', cursor: 'pointer' }" @click="$router.push({path: `/login`})">
@@ -96,6 +96,12 @@ export default {
     }
   },
   methods: {
+    handleCommonInfo(commonInfo) {
+      // 如果功能未开启，重定向到登录页
+      if (!commonInfo.register.email.status) {
+        this.$router.push({path: `/login`})
+      }
+    },
     addByEnterKey(e) {
       if (e.keyCode === 13) {
         this.doRegister()
@@ -116,7 +122,6 @@ export default {
       this.$refs.form.validateField(['email', 'username'], (err) => {
         if (!err) count++
         if (count === 2) {
-          this.codeSentMessage = this.$t('common.hint.codeSent')
           this.isCooldown = true
           this.cooldownTimer = setInterval(() => {
             if (this.cooldownTime > 1) {
@@ -131,7 +136,11 @@ export default {
             email: this.form.email,
             username: this.form.username
           }
-          registerCode(data)
+          registerCode(data).then(res => {
+            if (res.code === 0) {
+              this.codeSentMessage = this.$t('common.hint.codeSent')
+            }
+          })
         }
       })
     }
@@ -145,15 +154,9 @@ export default {
 
 <style lang="scss" scoped>
 .message {
-  position: absolute;
-  bottom: -45px;
-  left: 0;
   color: red;
-  font-size: 12px;
   width: 100%;
   text-align: left;
-  margin: 0;
-  padding: 0;
-  z-index: 10;
+  margin-bottom: 10px;
 }
 </style>

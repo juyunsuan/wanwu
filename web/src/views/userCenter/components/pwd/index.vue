@@ -60,7 +60,7 @@
                 }
             };
             return{
-                userId: JSON.parse(localStorage.getItem('access_cert')).user.userInfo.uid,
+                userId: this.$store.state.user.userInfo.uid,
                 form:{
                     oldPassword:'',
                     newPassword:'',

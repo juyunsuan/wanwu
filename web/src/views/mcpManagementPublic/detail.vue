@@ -154,10 +154,16 @@
 <script>
 import sendDialog from './sendDialog'
 import { md } from '@/mixins/marksown-it'
-import { getRecommendsList, getPublicMcpInfo, getDetail, getTools, getServer, getServerTools } from "@/api/mcp"
+import { getRecommendsList, getPublicMcpInfo, getDetail, getTools } from "@/api/mcp"
 import { formatTools } from "@/utils/util"
 
 export default {
+  props: {
+    type: {
+      type: String,
+      required: true
+    }
+  },
   data() {
     return {
       basePath: this.$basePath,
@@ -165,7 +171,6 @@ export default {
       isFromSquare: true,
       mcpSquareId:'',
       mcpId: '',
-      mcpServerId: '',
       detail: {},
       tools: [],
       foldStatus:false,
@@ -191,8 +196,7 @@ export default {
     initData(){
       this.mcpSquareId = this.$route.query.mcpSquareId
       this.mcpId = this.$route.query.mcpId
-      this.mcpServerId = this.$route.query.mcpServerId
-      this.isFromSquare = this.$route.params.type === 'square'
+      this.isFromSquare = this.type === 'square'
       this.tabActive = 0
       this.getDetailData()
 
@@ -208,21 +212,10 @@ export default {
         })
       } else {
         if (!this.mcpSquareId) this.tabActive = 1
-        if (this.mcpId) {
-          getDetail({mcpId:this.mcpId}).then((res) => {
-            this.detail = res.data || {}
-          })
-          this.getToolsList()
-        } else {
-          getServer({mcpServerId:this.mcpServerId}).then((res) => {
-            this.detail = res.data || {}
-          })
-          getServerTools({
-            mcpServerId:this.mcpServerId,
-          }).then((res) => {
-            this.tools = formatTools(res.data.tools)
-          })
-        }
+        getDetail({mcpId:this.mcpId}).then((res) => {
+          this.detail = res.data || {}
+        })
+        this.getToolsList()
       }
     },
     getToolsList(){

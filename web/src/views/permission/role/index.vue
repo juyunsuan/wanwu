@@ -2,8 +2,13 @@
   <div>
     <div class="table-wrap list-common wrap-fullheight">
       <div class="table-box">
-        <search-input :placeholder="$t('role.form.role')" ref="searchInput" @handleSearch="getTableData" />
-        <el-button class="add-bt" size="mini" type="primary" @click="preInsert">
+        <search-input
+          style="margin-bottom: 20px"
+          :placeholder="$t('role.form.role')"
+          ref="searchInput"
+          @handleSearch="getTableData"
+        />
+        <el-button v-if="isAdmin" class="add-bt" size="mini" type="primary" @click="preInsert">
           <img src="@/assets/imgs/addRole.png" alt="" />
           <span>{{$t('role.button.create')}}</span>
         </el-button>
@@ -16,7 +21,7 @@
           <el-table-column prop="name" :label="$t('role.table.name')" align="left" />
           <el-table-column prop="creator.name" :label="$t('role.table.creator')" align="left" />
           <el-table-column prop="createdAt" :label="$t('role.table.createAt')" align="left" />
-          <el-table-column align="left" :label="$t('role.table.status')">
+          <el-table-column v-if="isAdmin" align="left" :label="$t('role.table.status')">
             <template slot-scope="scope">
               <div style="height: 26px">
                 <el-switch
@@ -29,7 +34,7 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column align="left" :label="$t('common.table.operation')" width="240">
+          <el-table-column v-if="isAdmin" align="left" :label="$t('common.table.operation')" width="240">
             <template slot-scope="scope">
               <el-button class="operation" type="text" @click="preUpdate(scope.row)">{{$t('common.button.edit')}}</el-button>
               <el-button type="text" @click="preDel(scope.row)">{{$t('common.button.delete')}}</el-button>
@@ -86,6 +91,7 @@ export default {
   components: { Pagination, SearchInput, SelectTree },
   data(){
     return {
+      isAdmin: this.$store.state.user.permission.isAdmin || false,
       listApi: fetchRoleList,
       loading: false,
       isEdit: false,

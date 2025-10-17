@@ -94,11 +94,11 @@ export default {
         },
         goCreate(){
             if(this.activeValue === 'auto'){
-                this.$router.push({path:'/mcp'})
+                this.$router.push({path:'/tool?type=tool&mcp=custom'})
             }else if(this.activeValue === 'mcp'){
-                this.$router.push({path:'/mcp'})
+                this.$router.push({path:'/tool?type=mcp&mcp=mcp'})
             }else{
-               this.$router.push({path:'/appSpace/workflow'})
+                this.$router.push({path:'/appSpace/workflow'})
             }
         },
         createText(){
@@ -225,10 +225,6 @@ export default {
         clickTool(item,i){
             this.toolIndex = i;
             this.activeValue = item.value;
-        },
-        submit(){
-            this.$emit('selectTool',this.activeValue);
-            this.dialogVisible = false;
         }
     }
 }

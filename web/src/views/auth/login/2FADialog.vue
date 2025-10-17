@@ -1,36 +1,41 @@
 <template>
-  <overview @getCommonInfo="handleCommonInfo">
-    <template #default="{ commonInfo }">
-      <div class="auth-box">
+  <div>
+    <el-dialog
+      :visible.sync="dialogVisible"
+      width="50%"
+      min-width="400px"
+      append-to-body
+      :close-on-click-modal="false"
+      custom-class="auth-box"
+    >
+      <div>
         <p class="auth-header">
-          <span style="font-weight: bold">{{ $t('reset.title') }}</span>
+          <span style="font-weight: bold">{{ $t('login.twoFA.title') }}</span>
         </p>
         <div class="auth-form">
           <el-form ref="form" :model="form" :rules="rules" label-position="top">
-            <el-form-item class="auth-form-item" prop="email">
-              <img class="auth-icon" src="@/assets/imgs/user.png" alt=""/>
+            <el-form-item
+              v-if="!isUpdatePassword"
+              :label="$t('login.twoFA.form.oldPassword')"
+              class="auth-form-item"
+              prop="passwordOld">
+              <img class="auth-icon" src="@/assets/imgs/pwd.png" alt=""/>
               <el-input
-                v-model.trim="form.email"
-                :placeholder="$t('common.input.placeholder') + $t('reset.form.email')" clearable
+                :type="isShowPwdOld ? '' : 'password'"
+                class="auth-pwd-input"
+                v-model.trim="form.passwordOld"
+                :placeholder="$t('common.input.placeholder') + $t('login.twoFA.form.oldPassword')"
               />
-            </el-form-item>
-            <el-form-item class="auth-form-item" prop="code">
-              <img class="auth-icon" src="@/assets/imgs/code.png" alt=""/>
-              <el-input
-                style="width: calc(100% - 90px)"
-                v-model.trim="form.code"
-                @keyup.enter.native="addByEnterKey"
-                :placeholder="$t('common.input.placeholder') + $t('reset.form.code')" clearable
-              />
-              <el-button
-                style="height: 32px; width: 80px; margin-left: 10px; vertical-align: middle; padding-left: 8px; padding-top: 8px"
-                @click="requestEmailCode({email: form.email})"
-                :disabled="isCooldown"
-              >
-                {{ isCooldown ? `${cooldownTime}s` : $t('reset.action') + $t('reset.form.code') }}
-              </el-button>
+              <img
+                v-if="!isShowPwdOld" class="pwd-icon" src="@/assets/imgs/showPwd.png" alt=""
+                @click="isShowPwdOld = true"/>
+              <img
+                v-else class="pwd-icon" src="@/assets/imgs/hidePwd.png" alt=""
+                @click="isShowPwdOld = false"/>
             </el-form-item>
             <el-form-item
+              v-if="!isUpdatePassword"
+              :label="$t('login.twoFA.form.newPassword')"
               class="auth-form-item"
               prop="password1">
               <img class="auth-icon" src="@/assets/imgs/pwd.png" alt=""/>
@@ -48,6 +53,8 @@
                 @click="isShowPwd1 = false"/>
             </el-form-item>
             <el-form-item
+              v-if="!isUpdatePassword"
+              :label="$t('reset.action2') + $t('login.twoFA.form.newPassword')"
               class="auth-form-item"
               prop="password2">
               <img class="auth-icon" src="@/assets/imgs/pwd.png" alt=""/>
@@ -55,7 +62,7 @@
                 :type="isShowPwd2 ? '' : 'password'"
                 class="auth-pwd-input"
                 v-model.trim="form.password2"
-                :placeholder="$t('reset.action2') + $t('reset.form.password')"/>
+                :placeholder="$t('reset.action2') + $t('login.twoFA.form.newPassword')"/>
               <img
                 v-if="!isShowPwd2" class="pwd-icon" src="@/assets/imgs/showPwd.png" alt=""
                 @click="isShowPwd2 = true"/>
@@ -63,33 +70,48 @@
                 v-else class="pwd-icon" src="@/assets/imgs/hidePwd.png" alt=""
                 @click="isShowPwd2 = false"/>
             </el-form-item>
+            <el-form-item :label="$t('login.twoFA.form.email')" class="auth-form-item" prop="email">
+              <img class="auth-icon" src="@/assets/imgs/user.png" alt=""/>
+              <el-input
+                v-model.trim="form.email"
+                :placeholder="$t('common.input.placeholder') + $t('login.twoFA.form.email')" clearable
+              />
+            </el-form-item>
+            <el-form-item :label="$t('login.twoFA.form.code')" class="auth-form-item" prop="code">
+              <img class="auth-icon" src="@/assets/imgs/code.png" alt=""/>
+              <el-input
+                style="width: calc(100% - 90px)"
+                v-model.trim="form.code"
+                @keyup.enter.native="addByEnterKey"
+                :placeholder="$t('common.input.placeholder') + $t('login.twoFA.form.code')" clearable
+              />
+              <el-button
+                style="height: 32px; width: 80px; margin-left: 10px; vertical-align: middle; padding-left: 8px; padding-top: 8px"
+                @click="requestEmailCode({email: form.email})"
+                :disabled="isCooldown"
+              >
+                {{ isCooldown ? `${cooldownTime}s` : $t('login.twoFA.action') + $t('login.twoFA.form.code') }}
+              </el-button>
+            </el-form-item>
           </el-form>
-          <div class="nav-bt">
-            {{ $t('reset.askAccount') }}
-            <span :style="{ color: '#384BF7', cursor: 'pointer' }" @click="$router.push({path: `/login`})">
-              {{ $t('reset.login') }}
-            </span>
-          </div>
           <div class="auth-bt">
             <p class="primary-bt" :style="`background: ${commonInfo.login.loginButtonColor} !important`"
-               @click="doReset">
-              {{ $t('reset.button') }}
+               @click="doLogin">
+              {{ $t('login.twoFA.button') }}
             </p>
           </div>
-          <div class="bottom-text">{{ commonInfo.login.platformDesc }}</div>
         </div>
       </div>
-    </template>
-  </overview>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
-import overview from '@/views/auth/layout'
-import {resetCode, reset} from "@/api/user"
+import {mapState, mapActions} from 'vuex'
+import {login2FA2Code, reset} from "@/api/user"
 import {urlEncrypt} from "@/utils/crypto";
 
 export default {
-  components: {overview},
   data() {
     let checkPassword2 = (rule, value, callback) => {
       if (this.form.password1 !== this.form.password2) callback(new Error(this.$t('resetPwd.differError')))
@@ -104,9 +126,11 @@ export default {
       }
     }
     return {
+      dialogVisible: false,
       form: {
         email: '',
         code: '',
+        passwordOld: '',
         password1: '',
         password2: ''
       },
@@ -122,6 +146,9 @@ export default {
         code: [
           {required: true, message: this.$t('common.input.placeholder'), trigger: 'blur'}
         ],
+        passwordOld: [
+          {required: true, message: this.$t('common.input.placeholder'), trigger: 'blur'},
+        ],
         password1: [
           {required: true, message: this.$t('common.input.placeholder'), trigger: 'blur'},
           {validator: checkPassword1, trigger: "blur"}
@@ -136,8 +163,11 @@ export default {
       cooldownTime: 60,
       cooldownTimer: '',
       codeSentMessage: '',
+      isShowPwdOld: false,
       isShowPwd1: false,
       isShowPwd2: false,
+      isEmailCheck: false,
+      isUpdatePassword: false,
       codeData: {
         key: '',
         b64: ''
@@ -145,32 +175,41 @@ export default {
       basePath: this.$basePath
     }
   },
+  computed: {
+    ...mapState('login', ['commonInfo'])
+  },
   methods: {
-    handleCommonInfo(commonInfo) {
-      // 如果功能未开启，重定向到登录页
-      if (!commonInfo.resetPassword.email.status) {
-        this.$router.push({path: `/login`})
-      }
+    ...mapActions('user', ['LoginIn2FA2']),
+    showDialog(isEmailCheck, isUpdatePassword) {
+      this.$store.commit('user/setIs2FA', true)
+      this.dialogVisible = true
+      this.isEmailCheck = isEmailCheck
+      this.isUpdatePassword = isUpdatePassword
     },
     addByEnterKey(e) {
       if (e.keyCode === 13) {
-        this.doReset()
+        this.doLogin()
       }
     },
-    doReset() {
-      this.$refs.form.validate((valid) => {
+    doLogin() {
+      this.$refs.form.validate(async (valid) => {
         if (!valid) return
+
         const data = {
           email: this.form.email,
-          password: urlEncrypt(this.form.password1),
+          newPassword: urlEncrypt(this.form.password1),
+          oldPassword: urlEncrypt(this.form.passwordOld),
           code: this.form.code
         }
-        reset(data).then(res => {
-          if (res.code === 0) {
-            this.$router.push({path: `/login`})
-          }
-        })
+
+        if (this.isUpdatePassword) {
+          delete data.newPassword
+          delete data.oldPassword
+        }
+
+        await this.LoginIn2FA2(data)
       })
+
     },
     requestEmailCode(data) {
       this.$refs.form.validateField(['email'], err => {
@@ -186,7 +225,7 @@ export default {
             clearInterval(this.cooldownTimer)
           }
         }, 1000)
-        resetCode(data)
+        login2FA2Code(data)
       })
     }
   },
@@ -198,7 +237,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.auth-box {
-  height: 550px !important;
+@import "@/style/auth.scss";
+/deep/ .auth-box {
+  min-width: 400px;
+  background: rgba(244, 247, 255, 0.7);
+  border-radius: 4px;
+  backdrop-filter: blur(10px);
 }
 </style>

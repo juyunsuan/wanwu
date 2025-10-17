@@ -1,23 +1,23 @@
 <template>
   <el-dialog
-      :title="title"
-      :visible.sync="dialogBasicVisible"
-      width="50%"
-      :before-close="cancel">
+    :title="title"
+    :visible.sync="dialogBasicVisible"
+    width="50%"
+    :before-close="cancel">
     <div class="action">
       <el-form
-          :model="form"
-          :rules="rules"
-          ref="form">
+        :model="form"
+        :rules="rules"
+        ref="form">
         <el-col :span="24" class="left-col">
           <div class="action-form">
             <div class="block prompt-box" v-show="!dialogDetailVisible">
-              <p class="block-title required-label rl">工具名称</p>
+              <p class="block-title required-label rl">{{ dialogToolVisible ? '应用名称' : '工具名称' }}</p>
               <el-form-item prop="name">
                 <el-input class="name-input" v-model="form.name" placeholder="输入工具名称"></el-input>
               </el-form-item>
             </div>
-            <div class="block prompt-box">
+            <div class="block prompt-box" v-show="!dialogToolVisible">
               <p class="block-title required-label rl">工具描述</p>
               <div v-show="dialogDetailVisible">{{ form.description }}</div>
               <el-form-item prop="description" v-show="!dialogDetailVisible">
@@ -56,26 +56,35 @@
             <div class="block prompt-box">
               <p class="block-title required-label rl">可用API</p>
               <div class="api-list">
-                <el-table
+                <el-form-item prop="apiTable">
+                  <el-table
+                    ref="apiTable"
                     :data="apiList"
                     border
                     size="mini"
                     class="api-table"
                     :header-cell-style="{ textAlign: 'center' }"
-                >
-                  <el-table-column
+                  >
+                    <el-table-column
+                      v-if="dialogToolVisible"
+                      type="selection"
+                      width="55"
+                      align="center">
+                    </el-table-column>
+                    <el-table-column
                       prop="name"
                       label="Name">
-                  </el-table-column>
-                  <el-table-column
+                    </el-table-column>
+                    <el-table-column
                       prop="method"
                       label="Method">
-                  </el-table-column>
-                  <el-table-column
+                    </el-table-column>
+                    <el-table-column
                       prop="path"
                       label="Path">
-                  </el-table-column>
-                </el-table>
+                    </el-table-column>
+                  </el-table>
+                </el-form-item>
               </div>
             </div>
             <div class="block prompt-box" v-show="!dialogDetailVisible">
@@ -91,12 +100,12 @@
 
       <!--认证弹窗-->
       <el-dialog
-          title="鉴权"
-          :visible.sync="dialogAuthVisible"
-          width="600px"
-          append-to-body
-          :close-on-click-modal="false"
-          @close="beforeApiAuthClose"
+        title="鉴权"
+        :visible.sync="dialogAuthVisible"
+        width="600px"
+        append-to-body
+        :close-on-click-modal="false"
+        @close="beforeApiAuthClose"
       >
         <div class="action-form">
           <el-form :rules="apiAuthRules" ref="apiAuthForm" :inline="false" :model="form.apiAuth">
@@ -135,26 +144,33 @@
     <span slot="footer" class="dialog-footer" v-show="!dialogDetailVisible">
         <el-button @click="cancel">{{ $t('common.button.cancel') }}</el-button>
         <el-button
-            type="primary"
-            @click="submit"
-            :loading="loading">{{ $t('common.button.confirm') }}</el-button>
+          type="primary"
+          @click="submit"
+          :loading="loading">{{ $t('common.button.confirm') }}</el-button>
     </span>
     <span slot="footer" class="dialog-footer" v-show="dialogDetailVisible">
         <el-button
-            type="primary"
-            @click="dialogDetailVisible = false; title = '修改自定义工具'">编辑</el-button>
+          type="primary"
+          @click="dialogDetailVisible = false; title = '修改自定义工具'">编辑</el-button>
     </span>
   </el-dialog>
 </template>
 <script>
-import {getCustom, addCustom, editCustom, getSchema} from "@/api/mcp";
+import {getCustom, addCustom, editCustom, getSchema, addOpenapi} from "@/api/mcp";
 import {schemaConfig} from '@/utils/schema.conf';
 
 export default {
   data() {
     const validateApiAuthFields = (rule, value, callback) => {
       if (this.form.apiAuth.type === 'API Key' &&
-          (!this.form.apiAuth.apiKey || !this.form.apiAuth.customHeaderName)) {
+        (!this.form.apiAuth.apiKey || !this.form.apiAuth.customHeaderName)) {
+        callback(new Error(rule.message));
+      } else {
+        callback();
+      }
+    }
+    const validateApiTableFields = (rule, value, callback) => {
+      if (this.dialogToolVisible && this.$refs.apiTable.selection.length === 0) {
         callback(new Error(rule.message));
       } else {
         callback();
@@ -163,16 +179,17 @@ export default {
     return {
       dialogBasicVisible: false,
       dialogDetailVisible: false,
+      dialogToolVisible: false,
       title: '',
       apiList: [],
       example: '',
       form: {
         description: '',
         customToolId: '',
+        mcpServerId: '',
         name: '',
         schema: '',
         privacyPolicy: '',
-        flag: '0',
         apiAuth: {
           type: 'None',
           authType: 'Custom',
@@ -186,7 +203,8 @@ export default {
         description: [{required: true, message: '请输入', trigger: 'blur'}],
         name: [{required: true, message: '请输入', trigger: 'blur'}],
         schema: [{required: true, message: '请输入', trigger: 'blur'}],
-        apiAuth: [{validator: validateApiAuthFields, message: '请完善API身份认证信息', trigger: 'blur'}]
+        apiAuth: [{validator: validateApiAuthFields, message: '请完善API身份认证信息', trigger: 'blur'}],
+        apiTable: [{validator: validateApiTableFields, message: '请选择API', trigger: 'blur'}],
       },
       apiAuthRules: {
         apiKey: [{required: true, message: '请输入', trigger: 'blur'}],
@@ -197,7 +215,7 @@ export default {
     }
   },
   methods: {
-    showDialog(customToolId, dialogDetailVisible, title) {
+    showDialog(customToolId, dialogDetailVisible) {
       this.dialogDetailVisible = dialogDetailVisible
       this.dialogBasicVisible = true
       if (customToolId) {
@@ -206,20 +224,22 @@ export default {
           customToolId: customToolId
         }
         getCustom(params)
-            .then((res) => {
-              const {list, ...form} = res.data
-              this.form = form
-              if (dialogDetailVisible) {
-                this.title = form.name
-              }
-              this.listenerSchema()
-            })
+          .then((res) => {
+            const {list, ...form} = res.data
+            this.form = form
+            if (dialogDetailVisible) {
+              this.title = form.name
+            }
+            this.listenerSchema()
+          })
       } else this.title = '新增自定义工具'
-      if (title) {
-        this.title = title
-        // 区分自定义工具和用户导入的openapi 0:自定义工具 1:用户导入的openapi
-        this.form.flag = '1'
-      }
+    },
+    showToolDialog(mcpServerId) {
+      this.form.mcpServerId = mcpServerId
+      this.dialogBasicVisible = true
+      this.dialogToolVisible = true
+      this.form.description = ' '
+      this.title = '创建工具'
     },
     exampleChange(value) {
       this.form.schema = this.schemaConfig[value]
@@ -231,7 +251,7 @@ export default {
     },
     listenerApiKey() {
       this.$refs.apiAuthForm.validate(async (valid) => {
-        if (!valid && this.form.apiAuth.type === 'API Key') return;
+        if (!valid) return;
         this.dialogAuthVisible = false
       })
     },
@@ -240,9 +260,9 @@ export default {
         schema: this.form.schema
       })
       getSchema(params)
-          .then((res) => {
-            this.apiList = res.data.list || []
-          })
+        .then((res) => {
+          this.apiList = res.data.list || []
+        })
     },
     preAuthorize() {
       this.dialogAuthVisible = true
@@ -261,26 +281,33 @@ export default {
         }
         if (this.form.customToolId) {
           editCustom(params)
-              .then((res) => {
-                if (res.code === 0) {
-                  this.$message.success("修改成功")
-                  this.$emit("handleFetch", false)
-                  this.cancel()
-                }
-              }).finally(() => this.loading = false)
+            .then((res) => {
+              if (res.code === 0) {
+                this.$message.success("修改成功")
+                this.$emit("handleFetch", false)
+                this.cancel()
+              }
+            }).finally(() => this.loading = false)
         } else {
           delete params.customToolId
-          if (this.form.flag === '1') {
-            this.$emit('addOpenapi', params);
-            this.dialogBasicVisible = false
-            this.cancel()
-          } else addCustom(params).then((res) => {
-            if (res.code === 0) {
-              this.$message.success("新增成功")
-              this.$emit("handleFetch", false)
-              this.cancel()
-            }
-          }).finally(() => this.loading = false)
+          if (this.dialogToolVisible) {
+            params.methodNames = this.$refs.apiTable.selection.map(item => item.name)
+            addOpenapi(params).then((res) => {
+              if (res.code === 0) {
+                this.$message.success("新增成功")
+                this.$emit("handleFetch", false)
+                this.cancel()
+              }
+            }).finally(() => this.loading = false)
+          } else {
+            addCustom(params).then((res) => {
+              if (res.code === 0) {
+                this.$message.success("新增成功")
+                this.$emit("handleFetch", false)
+                this.cancel()
+              }
+            }).finally(() => this.loading = false)
+          }
         }
       })
     },
@@ -288,6 +315,8 @@ export default {
       this.$emit("handleClose", false)
       this.loading = false
       this.dialogBasicVisible = false
+      this.dialogDetailVisible = false
+      this.dialogToolVisible = false
       this.apiList = []
       this.example = ''
       this.title = ''
@@ -295,10 +324,10 @@ export default {
       this.form = {
         description: '',
         customToolId: '',
+        mcpServerId: '',
         name: '',
         schema: '',
         privacyPolicy: '',
-        flag: '0',
         apiAuth: {
           type: 'None',
           authType: 'Custom',

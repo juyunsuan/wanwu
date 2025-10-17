@@ -10,9 +10,14 @@ VueRouter.prototype.push = function(location){
 
 Vue.use(VueRouter)
 
-const orgPermission = localStorage.getItem('access_cert')
-    ? JSON.parse(localStorage.getItem('access_cert')).user.permission.orgPermission
-    : []
+let orgPermission = []
+
+try{
+    orgPermission = JSON.parse(localStorage.getItem('access_cert')).user.permission.orgPermission || []
+}catch(e){
+    // console.log(e)
+    orgPermission = []
+}
 
 const constantRoutes = [
     {
@@ -76,19 +81,31 @@ const constantRoutes = [
                 meta:{perm: [PERMS.TOOL]},
             },
             {
-                path: '/tool/detail/:type',
+                path: '/tool/detail/builtIn',
                 component:resolve =>require(['@/views/tool/toolDetail'],resolve),
                 meta:{perm: [PERMS.TOOL]},
             },
+            {
+                path: '/tool/detail/custom',
+                component:resolve =>require(['@/views/mcpManagementPublic/detail'],resolve),
+                meta:{perm: [PERMS.TOOL]},
+                props: { type: 'custom' }
+            },
+            // {
+            //     path: '/tool/detail/server',
+            //     component:resolve =>require(['@/views/tool/serverDetail'],resolve),
+            //     meta:{perm: [PERMS.TOOL]},
+            // },
             {
                 path: '/mcp',
                 component:resolve => require(['@/views/mcpManagementPublic/square'],resolve),
                 meta:{perm: [PERMS.MCP]},
             },
             {
-                path: '/mcp/detail/:type',
+                path: '/mcp/detail/square',
                 component:resolve =>require(['@/views/mcpManagementPublic/detail'],resolve),
                 meta:{perm: [PERMS.MCP]},
+                props: { type: 'square' }
             },
             {
                 path: '/explore',

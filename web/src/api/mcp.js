@@ -59,38 +59,6 @@ export const getServerList = (data)=>{
     })
 };
 
-export const getServerBind = (data)=>{
-    return request({
-        url: `${BASE_URL}/mcp/server/bind/apps`,
-        method: 'get',
-        params: data
-    })
-};
-
-export const getAppList = (data)=>{
-    return request({
-        url: `${BASE_URL}/mcp/server/app/list`,
-        method: 'get',
-        params: data
-    })
-};
-
-export const getServerTools = (data)=>{
-    return request({
-        url: `${BASE_URL}/mcp/server/tool/list`,
-        method: 'get',
-        params: data
-    })
-};
-
-export const getServerUrl = (data)=>{
-    return request({
-        url: `${BASE_URL}/mcp/server/url`,
-        method: 'get',
-        params: data
-    })
-};
-
 export const getServer = (data)=>{
     return request({
         url: `${BASE_URL}/mcp/server`,
@@ -119,6 +87,46 @@ export const deleteServer = (data)=>{
     return request({
         url: `${BASE_URL}/mcp/server`,
         method: 'delete',
+        data: data
+    })
+};
+
+export const addServerTool = (data)=>{
+    return request({
+        url: `${BASE_URL}/mcp/server/tool`,
+        method: 'post',
+        data: data
+    })
+};
+
+export const editServerTool = (data)=>{
+    return request({
+        url: `${BASE_URL}/mcp/server/tool`,
+        method: 'put',
+        data: data
+    })
+};
+
+export const deleteServerTool = (data)=>{
+    return request({
+        url: `${BASE_URL}/mcp/server/tool`,
+        method: 'delete',
+        data: data
+    })
+};
+
+export const getServerToolListCustom = (data)=>{
+    return request({
+        url: `${BASE_URL}/mcp/server/tool/custom/select`,
+        method: 'get',
+        params: data
+    })
+};
+
+export const addOpenapi = (data)=>{
+    return request({
+        url: `${BASE_URL}/mcp/server/tool/openapi`,
+        method: 'post',
         data: data
     })
 };

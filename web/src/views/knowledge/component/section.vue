@@ -32,7 +32,7 @@
           String(res.maxSegmentSize)
         }}</el-descriptions-item>
         <el-descriptions-item :label="$t('knowledgeManage.markSplit')">{{
-          res.splitter
+          String(res.splitter).replace(/\n/g, '\\n')
         }}</el-descriptions-item>
         <el-descriptions-item label="元数据">
           <template v-if="metaDataList && metaDataList.length > 0">
@@ -69,9 +69,8 @@
       <div class="btn">
          <el-button
           type="primary"
-          @click="createChunk"
+          @click="createChunk(false)"
           size="mini"
-          v-if="res.segmentMethod === '0'"
           :loading="loading.start"
           >新增分段</el-button
         >
@@ -159,7 +158,6 @@
       </div>
     </div>
 
-    <!-- 详情弹框 -->
     <el-dialog
       v-if="dialogVisible"
       :title="$t('knowledgeManage.detailView')"
@@ -200,9 +198,11 @@
                 v-model="scope.row.content"
                 :autosize="{ minRows: 3, maxRows: 5}"
                 class="full-width-textarea"
-                :disabled="scope.row.isParent"
                 >
               </el-input>
+              <div  v-if="cardObj[0]['isParent']" style="display: flex;justify-content: flex-end;padding: 10px 0;">
+                <el-button type="primary" @click="handleSubmit"  :loading="submitLoading">保存并重新解析子分段</el-button>
+              </div>
               <div class="segment-list" v-if="scope.row.childContent.length > 0">
                 <el-collapse 
                   v-model="activeNames" 
@@ -216,14 +216,35 @@
                   >
                     <template slot="title">
                       <span class="segment-badge">C-{{ index + 1 }}</span>
+                      <div class="segment-actions">
+                        <span v-if="!editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn edit-btn" @click.stop="editSegment(scope.row, index)">
+                          <i class="el-icon-edit-outline"></i>编辑
+                        </span>
+                        <span v-if="!editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn delete-btn" @click.stop="deleteSegment(scope.row, index)">
+                          <i class="el-icon-delete"></i>删除
+                        </span>
+                        <span v-if="editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn save-btn" @click.stop="confirmEdit(scope.row, index)">
+                          <i class="el-icon-check"></i>保存
+                        </span>
+                        <span v-if="editingSegments[`${scope.row.contentId}-${index}`]" class="action-btn cancel-btn" @click.stop="cancelEdit(scope.row, index)">
+                          <i class="el-icon-close"></i>取消
+                        </span>
+                      </div>
                     </template>
                     <div class="segment-content">
-                      {{ index + 1 }}、{{ segment.content }}
+                      <div v-if="!editingSegments[`${scope.row.contentId}-${index}`]" class="content-display">
+                        {{ segment.content }}
+                      </div>
+                      <div v-else class="content-edit">
+                        <el-input
+                          v-model="editingContent[`${scope.row.contentId}-${index}`]"
+                          type="textarea"
+                          :rows="3"
+                          placeholder="请输入内容"
+                          class="edit-input"
+                        />
+                      </div>
                     </div>
-                    <!-- <div class="segment-actions">
-                      <i class="el-icon-edit-outline edit-icon" @click="editSegment(scope.row, index)"></i>
-                      <i class="el-icon-delete delete-icon" @click="deleteSegment(scope.row, index)"></i>
-                    </div> -->
                   </el-collapse-item>
                 </el-collapse>
               </div>
@@ -234,20 +255,21 @@
 
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="handleSubmit" :loading="submitLoading" v-if="!cardObj[0]['isParent']">确定</el-button>
-        <!-- <el-button type="primary" @click="handleParse" v-if="cardObj[0]['isParent']">保存并重新解析子分段</el-button> -->
-        <el-button type="primary" @click="handleClose">{{$t('knowledgeManage.close')}}</el-button>
+        <!-- <el-button type="primary" @click="handleSubmit"  v-if="cardObj[0]['isParent']" :loading="submitLoading">保存并重新解析子分段</el-button> -->
+        <el-button type="primary" @click="createChunk(true)" v-if="cardObj[0]['isParent']" :disabled="submitLoading">新增子分段</el-button>
+        <el-button type="primary" @click="handleClose" :disabled="submitLoading">{{$t('knowledgeManage.close')}}</el-button>
       </span>
     </el-dialog>
     <dataBaseDialog ref="dataBase" @updateData="updateData" :knowledgeId="obj.knowledgeId" :name="obj.knowledgeName"/>
     <tagDialog ref="tagDialog" type="section" :title="title" :currentList="currentList" @sendList="sendList" />
-    <createChunk ref="createChunk"  @updateDataBatch="updateDataBatch" @updateData="updateData"/>
+    <createChunk ref="createChunk"  @updateDataBatch="updateDataBatch" @updateData="updateData" :parentId="cardObj[0]['contentId']" @updateChildData="updateChildData"/>
   </div>
 </template>
 <script>
-import { getSectionList,setSectionStatus,sectionLabels,delSegment,editSegment,getSegmentChild } from "@/api/knowledge";
+import { getSectionList,setSectionStatus,sectionLabels,delSegment,editSegment,getSegmentChild,delSegmentChild,updateSegmentChild } from "@/api/knowledge";
 import dataBaseDialog from './dataBaseDialog';
 import tagDialog from './tagDialog.vue';
-import createChunk from './createChunk.vue'
+import createChunk from './chunk/createChunk.vue'
 export default {
   components:{dataBaseDialog,tagDialog,createChunk},
   data() {
@@ -256,7 +278,9 @@ export default {
       oldContent:'',
       title:'创建关键词',
       dialogVisible: false,
-      obj: {}, // 路由参数对象
+      editingSegments: {},
+      editingContent: {},
+      obj: {},
       cardObj: [
         {
           available: false,
@@ -265,10 +289,10 @@ export default {
           contentId: "",
           len: 20,
         },
-      ], // 单独卡片存储对象
+      ],
       value: true,
       activeStatus: false,
-      activeNames: [], // 用于控制 el-collapse 的展开状态
+      activeNames: [], 
       page: {
         pageNo: 1,
         pageSize: 8,
@@ -300,35 +324,87 @@ export default {
     this.clearTimer()
   },
   methods: {
+    createChunk(isChildChunk){
+      this.$refs.createChunk.showDiglog(this.obj.id,isChildChunk)
+    },
+    updateChildData(){
+      setTimeout(() => {
+        this.handleParse();
+      }, 1000);
+    },
     formatScore(score) {
-      // 格式化得分，保留5位小数
       if (typeof score !== 'number') {
         return '0.00000';
       }
       return score.toFixed(5);
     },
      editSegment(row, index) {
-      // 编辑分段的逻辑
-      console.log('编辑分段:', row, index);
+      const key = `${row.contentId}-${index}`;
+      this.$set(this.editingSegments, key, true);
+      this.$set(this.editingContent, key, row.childContent[index].content);
+      
+      this.$nextTick(() => {
+        if (!this.activeNames.includes(index)) {
+          this.activeNames.push(index);
+        }
+      });
+    },
+    cancelEdit(row, index) {
+      const key = `${row.contentId}-${index}`;
+      this.$set(this.editingSegments, key, false);
+      this.$delete(this.editingContent, key);
+    },
+    confirmEdit(row, index) {
+      const key = `${row.contentId}-${index}`;
+      const newContent = this.editingContent[key];
+      
+      if (!newContent || newContent.trim() === '') {
+        this.$message.warning('内容不能为空');
+        return;
+      }
+      updateSegmentChild({
+        childChunk:{
+          content: newContent.trim(),
+          chunkNo:row['childContent'][index].childNum
+        },
+        docId: this.obj.id,
+        parentChunkNo: row.contentNum,
+        parentId: row.contentId
+      }).then(res => {
+        if (res.code === 0) {
+          this.$message.success('更新成功');
+          this.handleParse();
+          this.$set(this.editingSegments, key, false);
+          this.$delete(this.editingContent, key);
+        } else {
+          this.$message.error('更新失败');
+        }
+      }).catch(() => {
+        this.$message.error('更新失败');
+      });
     },
     handleParse(){
       getSegmentChild({contentId:this.cardObj[0]['contentId'],docId:this.obj.id}).then(res =>{
         if(res.code === 0){
           this.cardObj[0].childContent = res.data.contentList || [];
-          // 设置所有折叠项为展开状态
           this.activeNames = this.cardObj[0].childContent.map((_, index) => index);
         }
       }).catch(() =>{})
     },
     deleteSegment(row, index) {
-      // 删除分段的逻辑
-      this.$confirm('确定要删除这个分段吗？', '提示', {
+      this.$confirm('确定要删除这个子分段吗？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        row.segments.splice(index, 1);
-        this.$message.success('删除成功');
+        delSegmentChild({docId:this.obj.id,parentId:row['childContent'][index].parentId,parentChunkNo:row.contentNum,ChildChunkNoList:[row['childContent'][index].childNum]}).then(res =>{
+          if(res.code === 0){
+            this.$message.success('删除成功');
+            this.handleParse();
+          }
+        }).catch(() => {
+          this.$message.error('删除失败');
+        });
       });
     },
     updateDataBatch(){
@@ -353,7 +429,6 @@ export default {
       }
     },
     handleSubmit(){
-      // 检查是否有修改
       const hasChanges = this.oldContent !== this.cardObj[0]['content'];
       
       if(!hasChanges){
@@ -361,14 +436,13 @@ export default {
         return false;
       }
       
-      // 只处理有修改的内容
       this.submitLoading = true;
       editSegment({content:this.cardObj[0]['content'],contentId:this.cardObj[0]['contentId'],docId:this.obj.id}).then(res =>{
         if(res.code === 0){
           this.$message.success('操作成功');
-          this.dialogVisible = false;
-          this.submitLoading = false;
-          this.getList();
+            this.dialogVisible = false;
+            this.submitLoading = false;
+            this.getList();
         }
       }).catch(() =>{
         this.submitLoading = false;
@@ -389,9 +463,6 @@ export default {
           this.getList();
         }
       }).catch(() =>{})
-    },
-    createChunk(){
-      this.$refs.createChunk.showDiglog(this.obj.id)
     },
     sendList(data){
       const labels = data.map(item => item.tagName)
@@ -437,7 +508,6 @@ export default {
     filterData(data){
       return data.map(item => {
         let value = item.metaValue;
-        // 如果是时间类型且值为时间戳，转换为日期字符串
         if (item.metaValueType === 'time') {
           value = this.formatTimestamp(value);
         }
@@ -487,7 +557,6 @@ export default {
           this.handleParse();
         }
         this.activeStatus = obj.available;
-        // 默认展开所有折叠项
         this.activeNames = [];
       });
     },
@@ -563,7 +632,6 @@ export default {
         });
     },
     renderHeader(h, { column, $index }) {
-      // column列数据 $index当前列索引
       const columnHtml =
         this.$t('knowledgeManage.section') +
         this.cardObj[0].contentNum +
@@ -611,6 +679,11 @@ export default {
       border-left: none;
       border-right: none;
       border-top: none;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      width: 100%;
+      position: relative;
       
       &:hover {
         background-color: #f0f2f5;
@@ -625,32 +698,84 @@ export default {
       border-right: none;
       border-top: none;
     }
-    
+
+    /deep/ .el-collapse-item__header .el-collapse-item__arrow,
+    .el-collapse-item__arrow,
+    [class*="el-collapse-item__arrow"] {
+      display: none !important;
+    }
+
     /deep/ .el-collapse-item:last-child .el-collapse-item__content {
       border-bottom: none;
     }
     
-    /deep/ .el-collapse-item__header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 12px 20px;
-      position: relative;
-    }
     
-    /deep/ .el-collapse-item__arrow {
+    /deep/ .el-collapse-item__header::after {
       display: none !important;
     }
-    
+     
     .segment-badge {
       color: #384BF7;
       font-size: 12px;
       min-width: 40px;
       text-align: center;
       font-weight: 500;
-      margin-right: 120px; // 为右边的得分留出空间
+      margin-right: 120px;
     }
+    .segment-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex: 1;
+        justify-content: flex-end;
+        margin-right: 10px;
+        .action-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 8px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 12px;
+          transition: all 0.3s ease;
+          
+          i {
+            font-size: 14px;
+          }
+          
+          &.edit-btn {
+            color: #384BF7;
+            
+            &:hover {
+              color: #2a3cc7;
+            }
+          }
+          
+          &.delete-btn {
+            color: #384BF7;
+            
+            &:hover {
+              color: #2a3cc7;
+            }
+          }
+          
+          &.save-btn {
+            color: #384BF7;
+            
+            &:hover {
+              color: #2a3cc7;
+            }
+          }
+          
+          &.cancel-btn {
+            color: #909399;
+            
+            &:hover {
+              color: #606266;
+            }
+          }
+        }
+      }
     
     .segment-score {
       display: flex;
@@ -678,6 +803,21 @@ export default {
     .segment-content {
       padding: 10px;
       text-align: left;
+      
+      .content-display {
+        word-wrap: break-word;
+        line-height: 1.5;
+      }
+      
+      .content-edit {
+        .edit-input {
+          /deep/ .el-textarea__inner {
+            border: 1px solid #384BF7;
+            border-radius: 4px;
+            resize: vertical;
+          }
+        }
+      }
     }
     
     /deep/ .el-collapse-item__content {
@@ -702,26 +842,6 @@ export default {
         font-style: italic;
       }
       
-      .segment-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-        
-        .edit-icon,
-        .delete-icon {
-          font-size: 16px;
-          color: #666;
-          cursor: pointer;
-          
-          &:hover {
-            color: #409eff;
-          }
-        }
-        
-        .delete-icon:hover {
-          color: #f56c6c;
-        }
-      }
     }
   }
 }
@@ -768,7 +888,6 @@ export default {
   padding: 20px 20px 30px 20px;
   margin: auto;
   overflow: auto;
-  //background: #fafafa;
 
   .el-divider--horizontal {
     margin: 30px 0;
@@ -794,7 +913,6 @@ export default {
         width: 25%;
       }
       padding: 10px;
-      // font-size: 12px;
     }
     .btn {
       padding: 10px 0;
@@ -803,9 +921,6 @@ export default {
 
     .card {
       flex-wrap: wrap;
-      // display: flex;
-      // justify-content: space-between;
-
       .el-row {
         margin: 0 !important;
       }

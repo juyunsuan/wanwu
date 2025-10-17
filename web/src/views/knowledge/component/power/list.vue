@@ -1,0 +1,317 @@
+<template>
+  <div class="power-list-container">
+    <div class="table-content">
+      <el-table
+        :data="tableData"
+        style="width: 100%"
+        class="power-table"
+        :header-cell-style="{ background: '#f5f7fa', color: '#606266' }"
+        border
+      >
+        <el-table-column prop="userName" label="成员" width="200">
+          <template slot-scope="scope">
+            <div class="name-cell">
+              <span class="name-text">{{ scope.row.userName }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="organization" label="组织" width="200">
+          <template slot-scope="scope">
+            <div class="org-cell">
+              <span class="org-text">{{ scope.row.organization || '-' }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="permissionType" label="权限">
+          <template slot-scope="scope">
+            <div class="type-cell">
+              <span v-if="!scope.row.editing" class="type-text">{{ powerType[scope.row.permissionType] }}</span>
+              <el-select 
+                v-else 
+                v-model="scope.row.permissionType" 
+                size="small" 
+                @change="handlePermissionChange(scope.row)"
+                class="permission-select"
+              >
+                <el-option label="可读" :value="0"></el-option>
+                <el-option label="可编辑" :value="10"></el-option>
+                <el-option label="管理员" :value="20"></el-option>
+              </el-select>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="180" align="center">
+          <template slot-scope="scope">
+            <div class="action-buttons">
+              <!-- 管理员权限：只显示转让按钮 -->
+              <template v-if="scope.row.type === '管理员'">
+                <el-button
+                  type="text"
+                  size="small"
+                  icon="el-icon-s-promotion"
+                  @click="handleTransfer(scope.row)"
+                  class="action-btn transfer-btn"
+                >
+                  转让
+                </el-button>
+              </template>
+              
+              <!-- 非管理员权限：显示编辑和删除按钮 -->
+              <template v-else>
+                <el-button
+                  v-if="!scope.row.editing"
+                  type="text"
+                  size="small"
+                  icon="el-icon-edit"
+                  @click="handleEdit(scope.row)"
+                  class="action-btn edit-btn"
+                >
+                  编辑
+                </el-button>
+                <el-button
+                  v-if="scope.row.editing"
+                  type="text"
+                  size="small"
+                  icon="el-icon-check"
+                  @click="handleSave(scope.row)"
+                  class="action-btn save-btn"
+                >
+                  保存
+                </el-button>
+                <el-button
+                  v-if="scope.row.editing"
+                  type="text"
+                  size="small"
+                  icon="el-icon-close"
+                  @click="handleCancel(scope.row)"
+                  class="action-btn cancel-btn"
+                >
+                  取消
+                </el-button>
+                <el-button
+                  v-if="!scope.row.editing"
+                  type="text"
+                  size="small"
+                  icon="el-icon-delete"
+                  @click="handleDelete(scope.row)"
+                  class="action-btn delete-btn"
+                >
+                  删除
+                </el-button>
+              </template>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
+
+<script>
+import { getUserPower } from "@/api/knowledge";
+import { POWER_TYPE } from "@/views/knowledge/config";
+export default {
+  name: 'PowerList',
+  props: {
+    knowledgeId: {
+      type: String,
+      default: ''
+    }
+  },
+  data() {
+    return {
+      powerType: POWER_TYPE,
+      tableData: [
+        {
+          userName: '管理员权限',
+          organization: '技术部',
+          permissionType: 20,
+          editing: false
+        },
+        {
+          userName: '用户管理',
+          organization: '产品部',
+          permissionType: 10,
+          editing: false
+        },
+        {
+          userName: '数据查看',
+          organization: '运营部',
+          permissionType: 0,
+          editing: false
+        }
+      ]
+    }
+  },
+  methods: {
+    getUserPower() {
+      getUserPower({knowledgeId:this.knowledgeId}).then(res => {
+        if(res.code === 0){
+          this.tableData = res.data.knowledgeUserInfoList||[]
+        }
+      }).catch(() => {})
+    },
+    handleEdit(row) {
+      // 进入编辑模式
+      row.editing = true
+      row.originalType = row.type // 保存原始值
+    },
+    handleSave(row) {
+      // 保存编辑
+      row.editing = false
+      row.originalType = row.type
+      this.$message.success('权限修改成功')
+    },
+    handleCancel(row) {
+      // 取消编辑，恢复原始值
+      row.type = row.originalType
+      row.editing = false
+    },
+    handlePermissionChange(row) {
+      // 权限改变时的处理
+      console.log('权限已修改为:', row.type)
+    },
+    handleTransfer(row) {
+      // 显示确认提示
+      this.$confirm('确定要转让管理员权限吗？转让后您将失去管理员权限。', '转让确认', {
+        confirmButtonText: '确定转让',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        // 确认后触发转让事件，让父组件处理
+        this.$emit('transfer', row)
+      }).catch(() => {
+        this.$message.info('已取消转让')
+      })
+    },
+    handleDelete(row) {
+      this.$confirm('确定要删除这条记录吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        console.log('删除', row)
+        // 删除逻辑
+        this.$message.success('删除成功')
+      }).catch(() => {
+        this.$message.info('已取消删除')
+      })
+    }
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.power-list-container {
+  padding-top: 15px;
+  background: #fff;
+  border-radius: 4px;
+  
+  .table-content {
+    .power-table {
+      border: 1px solid #e4e7ed;
+      border-radius: 4px;
+      
+      /deep/ .el-table__header {
+        th {
+          background-color: #f5f7fa;
+          color: #606266;
+          font-weight: 500;
+          border-bottom: 1px solid #e4e7ed;
+          text-align: center;
+        }
+      }
+      
+      /deep/ .el-table__body {
+        tr {
+          &:hover {
+            background-color: #f5f7fa;
+          }
+        }
+        
+        td {
+          border-bottom: 1px solid #e4e7ed;
+          padding: 12px 0;
+        }
+      }
+      
+      /deep/ .el-table__empty-block {
+        background-color: #fafafa;
+      }
+    }
+    
+    .name-cell, .org-cell, .type-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .name-text, .org-text, .type-text {
+        color: #606266;
+        font-size: 14px;
+      }
+      
+      .permission-select {
+        width: 100%;
+      }
+    }
+    
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      
+      .action-btn {
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.3s;
+        
+        &.edit-btn {
+          color: #384BF7;
+          
+          &:hover {
+            color: #5a6cff;
+            background-color: #f0f2ff;
+          }
+        }
+        
+        &.transfer-btn {
+          color: #e6a23c;
+          
+          &:hover {
+            color: #ebb563;
+            background-color: #fdf6ec;
+          }
+        }
+        
+        &.save-btn {
+          color: #67c23a;
+          
+          &:hover {
+            color: #85ce61;
+            background-color: #f0f9ff;
+          }
+        }
+        
+        &.cancel-btn {
+          color: #909399;
+          
+          &:hover {
+            color: #a6a9ad;
+            background-color: #f5f7fa;
+          }
+        }
+        
+        &.delete-btn {
+          color: #f56c6c;
+          
+          &:hover {
+            color: #f78989;
+            background-color: #fef0f0;
+          }
+        }
+      }
+    }
+  }
+}
+</style>

@@ -38,7 +38,7 @@
           <div :class="['session-item','rl']">
             <img
               class="logo"
-              :src="require('@/assets/imgs/robot-icon.png')"
+              :src="'/user/api/'+ userAvatar"
             />
             <div class="answer-content">
               <div class="answer-content-query">
@@ -69,10 +69,10 @@
           v-if="n.responseLoading"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
-              :src="'/user/api/'+defaultUrl"
+              :src="'/user/api/'+ defaultUrl"
             />
             <div class="answer-content"><i class="el-icon-loading"></i></div>
           </div>
@@ -82,7 +82,7 @@
           v-if="n.pendingResponse"
           class="session-answer"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
               :src="'/user/api/'+ defaultUrl"
@@ -105,7 +105,7 @@
           class="session-answer"
           :id="'message-container'+i"
         >
-          <div :class="['session-item','rl']">
+          <div class="session-answer-wrapper">
             <img
               class="logo"
               :src="'/user/api/'+ defaultUrl"
@@ -128,9 +128,19 @@
               <!--内容-->
               <div
                 class="answer-content"
+                :id="i"
                 v-bind:class="{'ds-res':showDSBtn(n.response)}"
                 v-html="showDSBtn(n.response)?replaceHTML(n.response,n):n.response"
               ></div>
+              <!--loading-->
+              <div
+                v-if="n.finish === 0 && sessionStatus == 0 && i === session_data.history.length - 1"
+                class="text-loading"
+              >
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
               <!--出处-->
               <div
                 v-if="n.searchList && n.searchList.length && n.finish === 1"
@@ -184,6 +194,8 @@ import { marked } from "marked";
 import smoothscroll from "smoothscroll-polyfill";
 var highlight = require("highlight.js");
 import "highlight.js/styles/atom-one-dark.css";
+import commonMixin from "@/mixins/common";
+import { mapGetters } from "vuex";
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -201,6 +213,7 @@ marked.setOptions({
 
 export default {
   props: ["sessionStatus", "defaultUrl"],
+  mixins: [commonMixin],
   data() {
     return {
       autoScroll: true,
@@ -243,6 +256,9 @@ export default {
       audioConfig: ["mp3", "wav"],
     };
   },
+  computed: {
+    ...mapGetters('user', ['userAvatar'])
+  },
   watch: {
     sessionStatus: {
       handler(val, oldVal) {},
@@ -266,49 +282,18 @@ export default {
     clearTimeout(this.scrollTimeout);
   },
   methods: {
-    handleCitationClick(e) {
-      if (this.sessionStatus === 0) return;
-
-      const citationElement = e.target.closest(".citation");
-      if (!citationElement) return;
-
-      const tagIndex = parseInt(citationElement.textContent, 10);
-      if (isNaN(tagIndex) || tagIndex <= 0) return;
-
-      const allSubTag = document.querySelectorAll(".subTag");
-      if (allSubTag.length === 0) return;
-
-      if (tagIndex > allSubTag.length) return;
-
-      const targetElement = allSubTag[tagIndex - 1];
-      if (!targetElement) return;
-
-      const parentsIndex = targetElement.dataset.parentsIndex;
-      const collapse = targetElement.dataset.collapse;
-
-      // 第445行改为：
-      if (
-        !this.session_data ||
-        !this.session_data.history ||
-        !this.session_data.history[parentsIndex] ||
-        !this.session_data.history[parentsIndex].searchList ||
-        !this.session_data.history[parentsIndex].searchList[tagIndex - 1]
-      )
-        return;
-
-      if (collapse === "false") {
-        this.$set(
-          this.session_data.history[parentsIndex].searchList[tagIndex - 1],
-          "collapse",
-          true
-        );
-      }
-
-      const timeScrollElement = document.getElementById("timeScroll");
-      if (timeScrollElement) {
-        timeScrollElement.scrollTop = timeScrollElement.scrollHeight;
-      }
-      e.stopPropagation();
+      handleCitationClick(e) {
+      // 调用 common.js 中的通用方法
+      this.$handleCitationClick(e, {
+        sessionStatus: this.sessionStatus,
+        sessionData: this.session_data,
+        citationSelector: '.citation',
+        scrollElementId: 'timeScroll',
+        onToggleCollapse: (item, collapse) => {
+          // 使用 Vue.set 确保响应式更新
+          this.$set(item, 'collapse', collapse);
+        }
+      });
     },
     setCitations(index) {
       let citation = `#message-container${index} .citation`;
@@ -590,12 +575,6 @@ export default {
     },
     stopPending() {
       // this.session_data.history = this.session_data.history.filter(item =>{
-      //   if(item.pending){
-      //     item.responseLoading = false
-      //     item.pendingResponse = '本次回答已被终止'
-      //   }
-      //   return item;
-      // })
       this.session_data.history = this.session_data.history.map((item) => {
         if (item.pending) {
           return {
@@ -778,6 +757,7 @@ img.failed::after {
     white-space: pre-wrap !important;
   }
   .answer-content {
+    margin-top:5px !important;
     img {
       // height:100px;
       width: 100%;
@@ -846,8 +826,8 @@ img.failed::after {
         .answer-text {
           background: #7288fa;
           color: #fff;
-          border-radius: 0 10px 10px 10px;
-          padding: 10px 20px 10px 10px;
+          border-radius: 10px 0 10px 10px;
+          padding: 10px 10px 10px 20px;
         }
         .session-setting-id {
           color: rgba(98, 98, 98, 0.5);
@@ -885,8 +865,49 @@ img.failed::after {
     }
   }
   .session-answer {
-    background-color: #eceefe;
+    // background-color: #eceefe;
     border-radius: 10px;
+    
+    .session-answer-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px; /* 头像和内容之间10px距离 */
+      padding: 20px 20px 0 20px;
+      min-height: 80px;
+      background: none; /* 确保外层容器无背景色 */
+      
+      .logo {
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        object-fit: cover;
+        flex-shrink: 0; /* 防止头像被压缩 */
+        background: none; /* 头像无背景色 */
+      }
+      
+      .answer-content {
+        flex: 1;
+        background-color: #eceefe; /* 只有内容区域有背景色 */
+        border-radius: 0 10px 10px 10px;
+        padding: 20px;
+        line-height: 1.6;
+      }
+    }
+  }
+  
+  /* 问题在右侧，答案在左侧 */
+  .session-question {
+    .session-item {
+      flex-direction: row-reverse;
+      margin-left: auto;
+      width: auto;
+      gap: 10px; /* 问题和问题图标之间10px间距 */
+      display: flex;
+      align-items: flex-start;
+    }
+  }
+  
+  .session-answer {
     .answer-annotation {
       line-height: 0 !important;
       .annotation-img {
@@ -1079,6 +1100,59 @@ img.failed::after {
     font-weight: bold;
     margin-left: 6px;
     cursor: pointer;
+  }
+}
+
+.text-loading,
+.text-loading > div {
+  position: relative;
+  box-sizing: border-box;
+}
+
+.text-loading {
+  display: block;
+  font-size: 0;
+  color: #c8c8c8;
+}
+
+.text-loading.la-dark {
+  color: #e8e8e8;
+}
+
+.text-loading > div {
+  display: inline-block;
+  float: none;
+  background-color: currentColor;
+  border: 0 solid currentColor;
+}
+
+.text-loading {
+  width: 54px;
+  height: 18px;
+  margin-top: 6px;
+}
+
+.text-loading > div {
+  width: 8px;
+  height: 8px;
+  margin: 4px;
+  border-radius: 100%;
+  animation: ball-beat 0.7s -0.15s infinite linear;
+}
+
+.text-loading > div:nth-child(2n-1) {
+  animation-delay: -0.5s;
+}
+
+@keyframes ball-beat {
+  50% {
+    opacity: 0.2;
+    transform: scale(0.75);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 </style>

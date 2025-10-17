@@ -194,10 +194,12 @@ export default {
       }
       updateDocMeta(data).then(res =>{
         if(res.code === 0){
-            this.$message.success('操作成功成功');
+            this.$message.success('操作成功');
             this.$emit('updateData')
             this.isDisabled = true;
-            this.dialogVisible = false;
+            if(type === 'submit'){
+              this.dialogVisible = false;
+            }
         }
       }).catch(() =>{
         this.isDisabled = true;
@@ -229,6 +231,7 @@ export default {
     },
     delItem(index){
       index.option = "delete";
+      this.submitDialog('delete')
     },
     showDiglog(data,id) {
       this.dialogVisible = true;

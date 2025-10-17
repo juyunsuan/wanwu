@@ -23,7 +23,7 @@
               </el-radio-group>  
             </el-form-item>
             <el-form-item
-            label="敏感词表名"
+            label="敏感词"
             prop="word"
             v-if="ruleForm.importType === 'single'"
             >

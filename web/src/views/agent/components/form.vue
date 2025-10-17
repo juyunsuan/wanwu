@@ -1,13 +1,29 @@
 <template>
-  <div class="agent-from-content" :class="{ 'isDisabled': isPublish }">
+  <div
+    class="agent-from-content"
+    :class="{ 'isDisabled': isPublish }"
+  >
     <div class="form-header">
       <div class="header-left">
         <span
           class="el-icon-arrow-left btn"
           @click="goBack"
         ></span>
-        <span class="header-left-title">智能体编辑</span>
-        <LinkIcon type="agent" />
+        <!-- <span class="header-left-title">智能体编辑</span> -->
+        <div class="basicInfo">
+          <div class="img">
+            <img :src="editForm.avatar.path ? `/user/api`+ editForm.avatar.path : '@/assets/imgs/bg-logo.png'" />
+          </div>
+          <div class="basicInfo-desc">
+            <span class="basicInfo-title">{{(editForm.name || '无信息').length > 12 ? (editForm.name || '无信息').substring(0, 12) + '...' : (editForm.name || '无信息')}}</span>
+            <span
+              class="el-icon-edit-outline editIcon"
+              @click="editAgent"
+            ></span>
+            <LinkIcon type="agent" />
+            <p>{{editForm.desc || '无信息'}}</p>
+          </div>
+        </div>
       </div>
       <div class="header-right">
         <el-button
@@ -16,7 +32,7 @@
           style="padding:13px 12px;"
           @click="handlePublishSet"
         >
-         <span class="el-icon-setting"></span>
+          <span class="el-icon-setting"></span>
           发布配置
         </el-button>
         <el-button
@@ -55,25 +71,23 @@
       </div>
     </div>
     <div class="agent_form">
-      <div
-        class="drawer-form"
-        v-if="!showActionConfig"
-      >
-        <div class="block prompt-box">
-          <div class="basicInfo">
-            <div class="img">
-              <img :src="editForm.avatar.path ? `/user/api`+ editForm.avatar.path : '@/assets/imgs/bg-logo.png'" />
+      <!-- 智能体信息 -->
+      <div class="block prompt-box drawer-info">
+            <h3 class="labelTitle">系统提示词</h3>
+            <div class="rl" style="padding: 10px;">
+              <el-input
+                class="desc-input "
+                v-model="editForm.instructions"
+                maxlength="600"
+                placeholder="描述你想创建的应用，详细描述应用的详细功能及作用，以及对该应用生成结果的要求"
+                type="textarea"
+                show-word-limit
+                :rows="5"
+              ></el-input>
             </div>
-            <div class="basicInfo-desc">
-              <span class="basicInfo-title">{{editForm.name || '无信息'}}</span>
-              <span
-                class="el-icon-edit-outline editIcon"
-                @click="editAgent"
-              ></span>
-              <p>{{editForm.desc || '无信息'}}</p>
-            </div>
-          </div>
-        </div>
+      </div>
+      <!-- 智能体配置 -->
+      <div class="drawer-form">
         <div class="agnetSet">
           <h3 class="labelTitle">智能体配置</h3>
           <div class="block prompt-box">
@@ -113,7 +127,10 @@
                 >
                   <div class="model-option-content">
                     <span class="model-name">{{ item.displayName }}</span>
-                    <div class="model-select-tags" v-if="item.tags && item.tags.length > 0">
+                    <div
+                      class="model-select-tags"
+                      v-if="item.tags && item.tags.length > 0"
+                    >
                       <span
                         v-for="(tag, tagIdx) in item.tags"
                         :key="tagIdx"
@@ -123,7 +140,10 @@
                   </div>
                 </el-option>
               </el-select>
-              <div class="model-select-tips" v-if="editForm.visionsupport === 'support'">*您选择的是图文问答类模型，此类模型暂时无法调用知识库、联网检索及工具</div>
+              <div
+                class="model-select-tips"
+                v-if="editForm.visionsupport === 'support'"
+              >*您选择的是图文问答类模型，此类模型暂时无法调用知识库、联网检索及工具</div>
             </div>
           </div>
           <div class="block prompt-box">
@@ -143,19 +163,6 @@
                 type="textarea"
               ></el-input>
               <span class="el-input__count">{{editForm.prologue.length}}/100</span>
-            </div>
-          </div>
-          <div class="block prompt-box">
-            <p class="block-title ">系统提示词</p>
-            <div class="rl">
-              <el-input
-                class="desc-input "
-                v-model="editForm.instructions"
-                maxlength="600"
-                placeholder="描述你想创建的应用，详细描述应用的详细功能及作用，以及对该应用生成结果的要求"
-                type="textarea"
-              ></el-input>
-              <span class="el-input__count">{{editForm.instructions.length}}/600</span>
             </div>
           </div>
           <div class="block recommend-box">
@@ -194,7 +201,10 @@
             <p class="block-title tool-title">
               <span>关联知识库</span>
               <span>
-                <span class="common-add" @click="showKnowledgeDiglog">
+                <span
+                  class="common-add"
+                  @click="showKnowledgeDiglog"
+                >
                   <span class="el-icon-plus"></span>
                   <span class="handleBtn">添加</span>
                 </span>
@@ -209,19 +219,38 @@
             </p>
             <div class="rl tool-conent">
               <div class="tool-right tool">
-                  <div class="action-list">
-                    <div v-for="(n,i) in editForm.knowledgebases" class="action-item" :key="'knowledge'+ i">
-                       <div class="name" style="color: #333">
-                        <span>{{n.name || n.knowledgeName}}</span>
-                       </div>
-                        <div class="bt">
-                          <el-tooltip class="item" effect="dark" content="元数据过滤" placement="top-start">
-                            <span class="el-icon-setting del" @click="showMetaSet(n,i)" style="margin-right:10px;"></span>
-                          </el-tooltip>
-                          <span class="el-icon-delete del" @click="delKnowledge(i)"></span>
-                      </div>
+                <div class="action-list">
+                  <div
+                    v-for="(n,i) in editForm.knowledgebases"
+                    class="action-item"
+                    :key="'knowledge'+ i"
+                  >
+                    <div
+                      class="name"
+                      style="color: #333"
+                    >
+                      <span>{{n.name || n.knowledgeName}}</span>
+                    </div>
+                    <div class="bt">
+                      <el-tooltip
+                        class="item"
+                        effect="dark"
+                        content="元数据过滤"
+                        placement="top-start"
+                      >
+                        <span
+                          class="el-icon-setting del"
+                          @click="showMetaSet(n,i)"
+                          style="margin-right:10px;"
+                        ></span>
+                      </el-tooltip>
+                      <span
+                        class="el-icon-delete del"
+                        @click="delKnowledge(i)"
+                      ></span>
                     </div>
                   </div>
+                </div>
               </div>
             </div>
           </div>
@@ -322,15 +351,7 @@
           </p>
         </div>
       </div>
-      <div
-        class="actionConfig"
-        v-if="showActionConfig"
-      >
-        <ActionConfig
-          @closeAction="closeAction"
-          :assistantId="this.editForm.assistantId"
-        />
-      </div>
+      <!-- 问答调试 -->
       <div class="drawer-test">
         <Chat
           :editForm="editForm"
@@ -356,7 +377,6 @@
     <!-- 选择工作类型 -->
     <ToolDiaglog
       ref="toolDiaglog"
-      @selectTool="selectTool"
       @updateDetail="updateDetail"
       :assistantId="editForm.assistantId"
     />
@@ -367,27 +387,47 @@
       :linkform="editForm.onlineSearchConfig"
     />
     <!-- 敏感词设置 -->
-    <setSafety ref="setSafety" @sendSafety="sendSafety" />
+    <setSafety
+      ref="setSafety"
+      @sendSafety="sendSafety"
+    />
     <!-- 知识库召回参数配置 -->
-    <knowledgeSetDialog ref="knowledgeSetDialog" @setKnowledgeSet="setKnowledgeSet" />
+    <knowledgeSetDialog
+      ref="knowledgeSetDialog"
+      @setKnowledgeSet="setKnowledgeSet"
+    />
     <!-- 知识库选择 -->
-    <knowledgeSelect ref="knowledgeSelect" @getKnowledgeData="getKnowledgeData"/>
+    <knowledgeSelect
+      ref="knowledgeSelect"
+      @getKnowledgeData="getKnowledgeData"
+    />
     <!-- 元数据设置 -->
     <el-dialog
       :visible.sync="metaSetVisible"
       width="1050px"
       class="metaSetVisible"
-      :before-close="handleMetaClose">
+      :before-close="handleMetaClose"
+    >
       <template #title>
-         <div class="metaHeader">
+        <div class="metaHeader">
           <h3>配置元数据过滤</h3>
           <span>[ 通过设置的元数据，对知识库内信息进行更加细化的筛选与检索控制。]</span>
-         </div>
+        </div>
       </template>
-      <metaSet ref="metaSet" :knowledgeId="currentKnowledgeId" :currentMetaData="currentMetaData"/>
-      <span slot="footer" class="dialog-footer">
+      <metaSet
+        ref="metaSet"
+        :knowledgeId="currentKnowledgeId"
+        :currentMetaData="currentMetaData"
+      />
+      <span
+        slot="footer"
+        class="dialog-footer"
+      >
         <el-button @click="handleMetaClose">取 消</el-button>
-        <el-button type="primary" @click="submitMeta">确 定</el-button>
+        <el-button
+          type="primary"
+          @click="submitMeta"
+        >确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -412,38 +452,34 @@ import {
   enableWorkFlow,
   enableAction,
   deleteCustom,
-  enableCustom
+  enableCustom,
 } from "@/api/agent";
-import ActionConfig from "./action";
 import ToolDiaglog from "./toolDialog";
 import LinkDialog from "./linkDialog";
 import knowledgeSetDialog from "./knowledgeSetDialog";
-import {
-  readWorkFlow,
-} from "@/api/workflow";
+import { readWorkFlow } from "@/api/workflow";
 import Chat from "./chat";
 import LinkIcon from "@/components/linkIcon.vue";
-import knowledgeSelect from "@/components/knowledgeSelect.vue"
+import knowledgeSelect from "@/components/knowledgeSelect.vue";
 export default {
   components: {
     LinkIcon,
     Chat,
     CreateIntelligent,
     ModelSet,
-    ActionConfig,
     ToolDiaglog,
     LinkDialog,
     setSafety,
     knowledgeSetDialog,
     knowledgeSelect,
-    metaSet
+    metaSet,
   },
   watch: {
     editForm: {
       handler(newVal, oldVal) {
         // 如果是从详情设置的数据，不触发更新逻辑
         if (this.isSettingFromDetail) return;
-        
+
         if (this.debounceTimer) {
           clearTimeout(this.debounceTimer);
         }
@@ -456,15 +492,15 @@ export default {
             "instructions",
             "onlineSearchConfig",
             "safetyConfig",
-            "recommendQuestion"
-          ]
-          
+            "recommendQuestion",
+          ];
+
           const changed = props.some((prop) => {
             return (
               JSON.stringify(newVal[prop]) !==
               JSON.stringify((this.initialEditForm || {})[prop])
             );
-          })
+          });
 
           if (changed) {
             if (newVal["modelParams"] !== "" && newVal["prologue"] !== "") {
@@ -474,7 +510,7 @@ export default {
         }, 500);
       },
       deep: true,
-    }
+    },
   },
   computed: {
     ...mapGetters("app", ["cacheData"]),
@@ -482,21 +518,20 @@ export default {
   },
   data() {
     return {
-      limitMaxTokens:4096,
-      knowledgeIndex:-1,
-      currentKnowledgeId:'',
-      currentMetaData:{},
-      metaSetVisible:false,
-      knowledgeCheckData:[],
-      activeIndex:-1,
+      limitMaxTokens: 4096,
+      knowledgeIndex: -1,
+      currentKnowledgeId: "",
+      currentMetaData: {},
+      metaSetVisible: false,
+      knowledgeCheckData: [],
+      activeIndex: -1,
       showOperation: false,
       appId: "",
       scope: "public",
-      showActionConfig: false,
       rerankOptions: [],
       initialEditForm: null,
       editForm: {
-        visionsupport:'',
+        visionsupport: "",
         assistantId: "",
         avatar: {},
         name: "",
@@ -505,7 +540,7 @@ export default {
         modelParams: "",
         prologue: "", //开场白
         instructions: "", //系统提示词
-        knowledgebases:[],
+        knowledgebases: [],
         knowledgeConfig: {
           keywordPriority: 0.8, //关键词权重
           matchType: "mix", //vector（向量检索）、text（文本检索）、mix（混合检索：向量+文本）
@@ -516,7 +551,7 @@ export default {
           threshold: 0.4, //过滤分数阈值
           maxHistory: 0, //最长上下文
         },
-        recommendQuestion: [{ value: ""}],
+        recommendQuestion: [{ value: "" }],
         modelConfig: {
           temperature: 0.7,
           topP: 1,
@@ -608,85 +643,88 @@ export default {
       ? JSON.parse(accessCert).user.permission.orgPermission
       : "";
     this.hasPluginPermission = permission.indexOf("plugin") !== -1;
-
   },
   beforeDestroy() {
     store.dispatch("app/initState");
   },
   methods: {
-    handleModelChange(val){
+    handleModelChange(val) {
       this.setModelInfo(val);
     },
-    setModelInfo(val){
-       const selectedModel = this.modleOptions.find(item => item.modelId === val);
-        if (selectedModel) {
-          this.editForm.visionsupport = selectedModel.config.visionSupport;
-          const maxTokens = selectedModel.config.maxTokens;
-          this.limitMaxTokens = (maxTokens && maxTokens > 0) ? maxTokens : 4096;
-        }
-    },
-    submitMeta(){
-      const metaData  = this.$refs.metaSet.getMetaData();
-      if(this.$refs.metaSet.validateRequiredFields(metaData['metaDataFilterParams']['metaFilterParams'])){
-        this.$message.warning('存在未填信息,请补充')
-        return
+    setModelInfo(val) {
+      const selectedModel = this.modleOptions.find(
+        (item) => item.modelId === val
+      );
+      if (selectedModel) {
+        this.editForm.visionsupport = selectedModel.config.visionSupport;
+        const maxTokens = selectedModel.config.maxTokens;
+        this.limitMaxTokens = maxTokens && maxTokens > 0 ? maxTokens : 4096;
       }
-      this.$set(this.editForm.knowledgebases, this.knowledgeIndex, { ...this.editForm.knowledgebases[this.knowledgeIndex], ...metaData });
+    },
+    submitMeta() {
+      const metaData = this.$refs.metaSet.getMetaData();
+      if (
+        this.$refs.metaSet.validateRequiredFields(
+          metaData["metaDataFilterParams"]["metaFilterParams"]
+        )
+      ) {
+        this.$message.warning("存在未填信息,请补充");
+        return;
+      }
+      this.$set(this.editForm.knowledgebases, this.knowledgeIndex, {
+        ...this.editForm.knowledgebases[this.knowledgeIndex],
+        ...metaData,
+      });
       this.metaSetVisible = false;
     },
-    delKnowledge(index){
-      this.editForm.knowledgebases.splice(index,1)
+    delKnowledge(index) {
+      this.editForm.knowledgebases.splice(index, 1);
     },
-    getKnowledgeData(data){
-      const originalIds = new Set(this.editForm.knowledgebases.map(item => item.id));
-      const newItems = data.filter(item => !originalIds.has(item.id));
+    getKnowledgeData(data) {
+      const originalIds = new Set(
+        this.editForm.knowledgebases.map((item) => item.id)
+      );
+      const newItems = data.filter((item) => !originalIds.has(item.id));
       this.editForm.knowledgebases.push(...newItems);
     },
-    handleMetaClose(){
+    handleMetaClose() {
       this.metaSetVisible = false;
     },
-    showMetaSet(e,index){
-      this.currentKnowledgeId = e.id; 
-      this.currentMetaData = {}
-      this.$nextTick(() =>{
-         this.currentMetaData = e.metaDataFilterParams;
-      })
+    showMetaSet(e, index) {
+      this.currentKnowledgeId = e.id;
+      this.currentMetaData = {};
+      this.$nextTick(() => {
+        this.currentMetaData = e.metaDataFilterParams;
+      });
       this.knowledgeIndex = index;
       this.metaSetVisible = true;
     },
-    showKnowledgeDiglog(){
-      this.$refs.knowledgeSelect.showDialog(this.editForm.knowledgebases)
+    showKnowledgeDiglog() {
+      this.$refs.knowledgeSelect.showDialog(this.editForm.knowledgebases);
     },
-    handlePublishSet(){
-      this.$router.push({path:`/agent/publishSet`,query:{appId:this.editForm.assistantId,appType:'agent',name:this.editForm.name}})
+    handlePublishSet() {
+      this.$router.push({
+        path: `/agent/publishSet`,
+        query: {
+          appId: this.editForm.assistantId,
+          appType: "agent",
+          name: this.editForm.name,
+        },
+      });
     },
-    setKnowledgeSet(data){
+    setKnowledgeSet(data) {
       this.editForm.knowledgeConfig = data;
     },
     displayName(item) {
       const config = this.nameMap[item.type] || this.nameMap["default"];
-      return item[config.propName] + ' ' + `(${config.displayName})`;
+      return item[config.propName] + " " + `(${config.displayName})`;
     },
     updateDetail() {
       this.getAppDetail();
     },
     showKnowledgeSet() {
-      if(!this.editForm.knowledgebases.length) return;
+      if (!this.editForm.knowledgebases.length) return;
       this.$refs.knowledgeSetDialog.showDialog(this.editForm.knowledgeConfig);
-    },
-    //获取模型列表
-    //获取rerank模型
-    getRerankData() {
-      getRerankList().then((res) => {
-        if (res.code === 0) {
-          this.rerankOptions = res.data.map((item) => {
-            return {
-              label: item.name,
-              value: item.id,
-            };
-          });
-        }
-      });
     },
     showSafety() {
       this.$refs.setSafety.showDialog(this.editForm.safetyConfig.tables);
@@ -705,51 +743,58 @@ export default {
         }
       });
     },
-    toolSwitch(n,type,enable){
-      if(type === 'workflow'){
-        this.workflowSwitch(n.workFlowId,enable)
-      }else if(type === 'mcp'){
-        this.mcpSwitch(n.mcpId,enable)
-      }else{
-        this.customSwitch(n.customId,enable)
+    toolSwitch(n, type, enable) {
+      if (type === "workflow") {
+        this.workflowSwitch(n.workFlowId, enable);
+      } else if (type === "mcp") {
+        this.mcpSwitch(n.mcpId, enable);
+      } else {
+        this.customSwitch(n.customId, enable);
       }
     },
-    customSwitch(customToolId,enable){
-      enableCustom({assistantId:this.editForm.assistantId,customToolId,enable}).then(res =>{
-        if (res.code === 0) {
-          this.getAppDetail();
-        }
-      }).catch(() => {});
+    customSwitch(customToolId, enable) {
+      enableCustom({
+        assistantId: this.editForm.assistantId,
+        customToolId,
+        enable,
+      })
+        .then((res) => {
+          if (res.code === 0) {
+            this.getAppDetail();
+          }
+        })
+        .catch(() => {});
     },
-    mcpSwitch(mcpId,enable){
-      enableMcp({ assistantId:this.editForm.assistantId,mcpId,enable}).then((res) => {
-        if (res.code === 0) {
-          this.getAppDetail();
-        }
-      }).catch(() => {});
+    mcpSwitch(mcpId, enable) {
+      enableMcp({ assistantId: this.editForm.assistantId, mcpId, enable })
+        .then((res) => {
+          if (res.code === 0) {
+            this.getAppDetail();
+          }
+        })
+        .catch(() => {});
     },
-    workflowSwitch(id,enable) {
-      enableWorkFlow({ assistantId:this.editForm.assistantId,workFlowId: id,enable }).then((res) => {
-        if (res.code === 0) {
-          this.getAppDetail();
-        }
-      }).catch(() => {});
+    workflowSwitch(id, enable) {
+      enableWorkFlow({
+        assistantId: this.editForm.assistantId,
+        workFlowId: id,
+        enable,
+      })
+        .then((res) => {
+          if (res.code === 0) {
+            this.getAppDetail();
+          }
+        })
+        .catch(() => {});
     },
     showLinkDiglog() {
       this.$refs.linkDialog.showDialog();
-    },
-    selectTool(val) {
-      if (val === "action") {
-        this.preCreateAction();
-      } else {
-        this.preAddWorkflow();
-      }
     },
     addTool() {
       const data = {
         mcpInfos: this.mcpInfos,
         workFlowInfos: this.workFlowInfos,
-        customInfos:this.actionInfos
+        customInfos: this.actionInfos,
       };
       this.$refs.toolDiaglog.showDialog(data);
     },
@@ -817,30 +862,34 @@ export default {
     preAddWorkflow() {
       this.wfDialogVisible = true;
     },
-    toolRemove(n,type){
-      if(type === 'workflow'){
+    toolRemove(n, type) {
+      if (type === "workflow") {
         this.doDeleteWorkflow(n.workFlowId);
-      }else if(type === 'mcp'){
+      } else if (type === "mcp") {
         this.mcpRemove(n.mcpId);
-      }else{
-        this.customRemove(n.customId)
+      } else {
+        this.customRemove(n.customId);
       }
     },
-    customRemove(customToolId){
-      deleteCustom({assistantId:this.editForm.assistantId,customToolId}).then((res) =>{
+    customRemove(customToolId) {
+      deleteCustom({ assistantId: this.editForm.assistantId, customToolId })
+        .then((res) => {
           if (res.code === 0) {
-          this.$message.success("删除成功");
-          this.getAppDetail();
-        }
-      }).catch((err) =>{})
+            this.$message.success("删除成功");
+            this.getAppDetail();
+          }
+        })
+        .catch((err) => {});
     },
-    mcpRemove(mcpId){
-      deleteMcp({assistantId:this.editForm.assistantId,mcpId}).then((res) => {
-        if (res.code === 0) {
-          this.$message.success("删除成功");
-          this.getAppDetail();
-        }
-      }).catch((err) => {});
+    mcpRemove(mcpId) {
+      deleteMcp({ assistantId: this.editForm.assistantId, mcpId })
+        .then((res) => {
+          if (res.code === 0) {
+            this.$message.success("删除成功");
+            this.getAppDetail();
+          }
+        })
+        .catch((err) => {});
     },
     visibleChange(val) {
       //下拉框显示的时候请求模型列表
@@ -860,7 +909,10 @@ export default {
     async updateInfo() {
       //模型数据
       let modeInfo;
-      if (typeof this.editForm.modelParams === 'object' && this.editForm.modelParams) {
+      if (
+        typeof this.editForm.modelParams === "object" &&
+        this.editForm.modelParams
+      ) {
         modeInfo = this.editForm.modelParams;
       } else {
         modeInfo = this.modleOptions.find(
@@ -883,7 +935,7 @@ export default {
         instructions: this.editForm.instructions,
         knowledgeBaseConfig: {
           config: this.editForm.knowledgeConfig,
-          knowledgebases:this.editForm.knowledgebases
+          knowledgebases: this.editForm.knowledgebases,
         },
         modelConfig: {
           config: this.editForm.modelConfig,
@@ -906,7 +958,7 @@ export default {
           : {},
       };
       let res = await putAgentInfo(params);
-      if(res.code === 0){
+      if (res.code === 0) {
         this.getAppDetail();
       }
     },
@@ -928,10 +980,14 @@ export default {
       if (res.code === 0) {
         this.startLoading(100);
         let data = res.data;
-        this.editForm.knowledgeConfig = res.data.knowledgeBaseConfig.config.matchType === '' ? this.editForm.knowledgeConfig : res.data.knowledgeBaseConfig.config;
-        this.editForm.knowledgeConfig.rerankModelId = res.data.rerankConfig.modelId;
+        this.editForm.knowledgeConfig =
+          res.data.knowledgeBaseConfig.config.matchType === ""
+            ? this.editForm.knowledgeConfig
+            : res.data.knowledgeBaseConfig.config;
+        this.editForm.knowledgeConfig.rerankModelId =
+          res.data.rerankConfig.modelId;
         const knowledgeData = res.data.knowledgeBaseConfig.knowledgebases;
-        if(knowledgeData && knowledgeData.length > 0){
+        if (knowledgeData && knowledgeData.length > 0) {
           this.editForm.knowledgebases = knowledgeData;
         }
         this.editForm = {
@@ -974,7 +1030,7 @@ export default {
           ...this.mcpInfos.map((item) => ({ ...item, type: "mcp" })),
           ...this.actionInfos.map((item) => ({ ...item, type: "action" })),
         ];
-       
+
         this.$nextTick(() => {
           this.isSettingFromDetail = false;
         });
@@ -1006,16 +1062,7 @@ export default {
     clearRecommend(n, index) {
       if (this.editForm.recommendQuestion.length === 1) return;
       this.editForm.recommendQuestion.splice(index, 1);
-      this.activeIndex = -1; 
-    },
-    closeAction() {
-      this.showActionConfig = false;
-    },
-    preCreateAction() {
-      this.showActionConfig = true;
-    },
-    preUpdateAction(actionId) {
-      this.showActionConfig = true;
+      this.activeIndex = -1;
     },
     async preDelAction(actionId) {
       this.$confirm(
@@ -1041,9 +1088,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.isDisabled .header-right,.isDisabled .drawer-form > div{
+.isDisabled .header-right,
+.isDisabled .drawer-form > div {
   user-select: none;
-  pointer-events: none !important;      
+  pointer-events: none !important;
 }
 /deep/ {
   .apikeyBtn {
@@ -1056,27 +1104,27 @@ export default {
       height: 14px;
     }
   }
-  .metaSetVisible{
-    .el-dialog__header{
-      border-bottom:1px solid #dbdbdb;
+  .metaSetVisible {
+    .el-dialog__header {
+      border-bottom: 1px solid #dbdbdb;
     }
-    .el-dialog__body{
-      max-height:400px;
+    .el-dialog__body {
+      max-height: 400px;
       overflow-y: auto;
     }
   }
 }
-.metaHeader{
-  display:flex;
+.metaHeader {
+  display: flex;
   justify-content: flex-start;
-  h3{
-    font-size:18px;
+  h3 {
+    font-size: 18px;
   }
-  span{
-    margin-left:10px;
-    color:#666;
-    display:inline-block;
-    padding-top:5px;
+  span {
+    margin-left: 10px;
+    color: #666;
+    display: inline-block;
+    padding-top: 5px;
   }
 }
 //通用添加按钮
@@ -1120,6 +1168,43 @@ export default {
   color: #ccc;
   margin-left: 6px;
 }
+.basicInfo {
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  padding: 16px;
+  .img {
+    margin-right: 10px;
+    img {
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      object-fit: cover;
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+    }
+  }
+  .basicInfo-desc {
+    flex: 1;
+  }
+  .basicInfo-title {
+    display: inline-block;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f2937;
+  }
+  .editIcon {
+    font-size: 16px;
+    margin-left: 5px;
+    cursor: pointer;
+    color: #6b7280;
+  }
+  p {
+    color: #6b7280;
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.2;
+  }
+}
 .form-header {
   width: 100%;
   height: 60px;
@@ -1145,6 +1230,8 @@ export default {
     }
   }
   .header-left {
+    display: flex;
+    align-items: center;
     .btn {
       margin-right: 10px;
       font-size: 18px;
@@ -1170,25 +1257,34 @@ export default {
   padding: 0 10px;
   display: flex;
   justify-content: space-between;
-  gap: 20px;
+  gap: 10px;
   height: calc(100% - 60px);
+  .drawer-info {
+    width: 30%;
+    margin: 10px 0;
+    border-radius: 6px;
+    background: #f7f8fa;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
+    // padding: 10px;
+  }
+  .labelTitle {
+    font-size: 18px;
+    font-weight: 800;
+    padding: 10px 20px;
+  }
   .actionConfig {
     overflow-y: auto;
-    width: 40%;
+    width: 60%;
     padding: 0 40px;
   }
   .drawer-form {
-    width: 50%;
+    width: 30%;
+    margin: 10px 0;
     position: relative;
-    height: 100%;
+    height: calc(100% - 20px);
     padding: 0 10px;
     border-radius: 6px;
     overflow-y: auto;
-    .editIcon {
-      font-size: 16px;
-      margin-left: 5px;
-      cursor: pointer;
-    }
     /deep/.el-input__inner,
     /deep/.el-textarea__inner {
       background-color: transparent !important;
@@ -1233,42 +1329,10 @@ export default {
         padding: 5px 20px;
         margin-bottom: 0px !important;
       }
-      .labelTitle {
-        font-size: 18px;
-        font-weight: 800;
-        padding: 10px 20px;
-      }
     }
     /*通用*/
     .block {
       margin-bottom: 15px;
-      .basicInfo {
-        display: flex;
-        align-items: center;
-        background: #f7f8fa;
-        box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.15);
-        border-radius: 8px;
-        padding: 10px 0;
-        margin-top: 10px;
-        .img {
-          padding: 10px;
-          img {
-            border-radius: 50%;
-            border: 1px solid #eee;
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-          }
-          .basicInfo-desc {
-            flex: 1;
-          }
-        }
-        .basicInfo-title {
-          display: inline-block;
-          font-weight: 800;
-          font-size: 18px;
-        }
-      }
       .tool-title {
         display: flex;
         justify-content: space-between;
@@ -1317,6 +1381,7 @@ export default {
         .tool {
           width: 100%;
           max-height: 300px;
+          overflow-y: auto;
           .action-list {
             width: 100%;
             display: grid;
@@ -1328,7 +1393,7 @@ export default {
       .model-select {
         width: 100%;
       }
-      .model-select-tips{
+      .model-select-tips {
         margin-top: 10px;
         color: #dc6803;
       }
@@ -1454,7 +1519,8 @@ export default {
         justify-content: space-between;
         position: relative;
         .recommend--input {
-          width: 100%;
+          width: calc(100% - 30px);
+          margin-right: 30px;
         }
         .recommend-del {
           position: absolute;
@@ -1511,7 +1577,7 @@ export default {
     }
   }
   .drawer-test {
-    width: 50%;
+    width: calc((100% - 320px - 20px) / 2);
     background: #f7f8fa;
     border-radius: 8px;
     margin: 10px 0;
@@ -1629,18 +1695,17 @@ export default {
   border-top-color: #ccc !important;
 }
 
-
 .model-option-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  
+
   .model-name {
     flex-shrink: 0;
     font-weight: 500;
   }
-  
+
   .model-select-tags {
     display: flex;
     flex-wrap: nowrap;

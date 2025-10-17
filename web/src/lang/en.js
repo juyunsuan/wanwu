@@ -12,6 +12,18 @@ export default {
         forgetPassword: '忘记密码？',
         button: '登 录',
     },
+    twoFA: {
+        title: '两步验证',
+        form: {
+            oldPassword: '旧密码',
+            newPassword: '新密码',
+            email: '邮箱',
+            code: '验证码'
+        },
+        bind: '绑定',
+        action: '获取',
+        button: '确 认'
+    },
     register: {
         title: '注 册',
         form: {
@@ -158,6 +170,7 @@ export default {
             coryText: '副本'
         },
         noData: '暂无数据',
+        noBindEmail: '暂无邮箱',
         loading: '正在加载数据...',
         gpuDialog: {
             placeholder: '请选择GPU',
@@ -166,6 +179,11 @@ export default {
             noSource: '若没有可选资源，请先释放卡资源',
             hint: '一次启动一个实例(一个实例可以占多张卡)',
             reload: '刷新数据'
+        },
+        info:{
+            delInfo:'删除成功',
+            edit:'编辑成功',
+            create:'创建成功'
         }
     },
     docDownload: {
@@ -765,6 +783,7 @@ export default {
             slogan:'可绑定已发布的应用，创建自己的MCP server，并对外提供服务。',
             search:'请输入MCP名称进行搜索',
             create:'创建MCP',
+            avatar:'MCP图标',
             name:'服务名称',
             desc:'服务描述',
             bind: {

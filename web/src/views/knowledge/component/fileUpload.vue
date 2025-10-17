@@ -155,7 +155,7 @@
                     :disable-transitions="false"
                     class="splitterTag"
                   >
-                    {{tag.splitterName}}
+                    {{tag.splitterName.replace(/\n/g, '\\n')}}
                   </el-tag>
                   <el-button
                     class="button-new-tag"
@@ -231,7 +231,7 @@
                       :disable-transitions="false"
                       class="splitterTag"
                     >
-                      {{tag.splitterName}}
+                      {{tag.splitterName.replace(/\n/g, '\\n')}}
                     </el-tag>
                     <el-button
                       class="button-new-tag"
@@ -489,12 +489,14 @@ export default {
         docPreprocess: ["replaceSymbols"], //'deleteLinks','replaceSymbols'
         docSegment: {
           segmentType: "0",
-          splitter: ["！", "。", "？", "?", "!", ".", "......"],
+          // splitter: ["！", "。", "？", "?", "!", ".", "......"],
+          splitter:["\n\n"],
           maxSplitter: 1024,
           overlap: 0.2,
           segmentMethod:"0",//0是通用分段，1是父子分段
           subMaxSplitter:200,//父子分段必填
-          subSplitter:["！", "。", "？", "?", "!", ".", "......"]//父子分段必填
+          // subSplitter:["！", "。", "？", "?", "!", ".", "......"]//父子分段必填
+          subSplitter:["\n"]
         },
         docInfoList: [],
         docImportType: 0,
@@ -576,12 +578,17 @@ export default {
       }
     },
     custom() {
-      const splitter = this.ruleForm.docSegment.splitter;
-      const data = this.splitOptions.filter((item) => {
-        return splitter.includes(item.splitterValue) && item.type === "preset";
+      this.$nextTick(() => {
+        const { splitter, subSplitter } = this.ruleForm.docSegment;
+        const filterByType = (values) => 
+          this.splitOptions.filter(item => 
+            values.includes(item.splitterValue) && item.type === "preset"
+          );
+        this.checkSplitter = {
+          splitter: filterByType(splitter),
+          subSplitter: filterByType(subSplitter)
+        };
       });
-      this.checkSplitter['splitter'] = data;
-      this.checkSplitter['subSplitter'] = data;
     },
     updateMeata(data) {
       this.ruleForm.docMetaData = data;

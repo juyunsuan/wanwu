@@ -76,7 +76,7 @@
         word-break: break-all;
         height: 100%;
         overflow-y: auto;
-        padding: 0 20px;
+        // padding: 0 !important;
         width:auto;
         .session-item{
             min-height: 80px;
@@ -116,7 +116,8 @@
                     color: #425466 ;
                     text-align: left;
                     cursor: pointer;
-                    width:100%;
+                    width:85%;
+                    margin:0 auto;
                     .recommend-p{
                         width:100%;
                         margin: 10px 0;

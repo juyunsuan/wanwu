@@ -246,7 +246,7 @@ export const getOpenurlInfo = (suffix,config={})=>{
         url: `/service/url/openurl/v1/agent/${suffix}`,
         method: 'get',
         ...config,
-        isOpeanUrl:true
+        isOpenUrl:true
     })
 }
 //智能体openurl创建智能体对话
@@ -256,7 +256,7 @@ export const openurlConversation = (data,suffix,config={})=>{
         method: 'post',
         data,
         ...config,
-        isOpeanUrl:true
+        isOpenUrl:true
     })
 }
 //删除智能体openurl创建智能体对话
@@ -266,7 +266,7 @@ export const delOpenurlConversation = (data,suffix,config={})=>{
         method: 'delete',
         data,
         ...config,
-        isOpeanUrl:true
+        isOpenUrl:true
     })
 }
 //智能体openurl详情历史列表
@@ -276,7 +276,7 @@ export const OpenurlConverHistory = (data,suffix,config={})=>{
         method: 'get',
         params:data,
         ...config,
-        isOpeanUrl:true
+        isOpenUrl:true
     })
 }
 //智能体openurl对话列表
@@ -285,7 +285,7 @@ export const OpenurlConverList = (suffix,config={})=>{
         url: `/service/url/openurl/v1/agent/${suffix}/conversation/list`,
         method: 'get',
         ...config,
-        isOpeanUrl:true
+        isOpenUrl:true
     })
 }
 //智能体openurl流式对话
@@ -295,6 +295,6 @@ export const OpenurlStream = (data,suffix,config={})=>{
         method: 'post',
         data,
         ...config,
-        isOpeanUrl:true
+        isOpenUrl:true
     })
 }

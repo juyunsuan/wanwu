@@ -26,38 +26,21 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import {mapState, mapActions} from 'vuex'
 import ChangeLang from "@/components/changeLang.vue"
-import {replaceTitle, replaceIcon} from "@/utils/util";
+import {replaceTitle, replaceIcon, avatarSrc} from "@/utils/util";
 import { getCommonInfo } from '@/api/user'
 
 export default {
   components: {ChangeLang},
   data() {
     return {
-      commonInfo: {
-        login: {
-          logo: {},
-          loginButtonColor: '#384BF7',
-        },
-        home: {},
-        tab: {},
-        register: {
-          email: {
-            status: false,
-          },
-        },
-        resetPassword: {
-          email: {
-            status: false,
-          },
-        },
-      },
       backgroundSrc: require('@/assets/imgs/auth_bg.png'),
       basePath: this.$basePath
     }
   },
   computed: {
+    ...mapState('login', ['commonInfo']),
     ...mapState('user', ['lang'])
   },
   watch: {
@@ -72,16 +55,19 @@ export default {
     }
   },
   created() {
-    getCommonInfo().then(res => {
-      if(res.code === 0) {
-        this.commonInfo = res.data
-        this.setAuthBg(this.commonInfo.login.background.path)
-        replaceTitle(this.commonInfo.tab.title)
-        replaceIcon(this.commonInfo.tab.logo.path)
-      }
+    this.getCommonInfo().then(() => {
+      const { tab = {}, login = {} } = this.commonInfo || {}
+      const { logo = {}, title = '' } = tab || {}
+      const { background = {} } = login || {}
+
+      background.path && this.setAuthBg(background.path)
+      title && replaceTitle(title)
+      logo.path && replaceIcon(logo.path)
+      this.$emit('getCommonInfo', this.commonInfo)
     })
   },
   methods: {
+    ...mapActions('login', ['getCommonInfo']),
     setDefaultImage() {
       this.backgroundSrc = require('@/assets/imgs/auth_bg.png')
     },
@@ -90,13 +76,14 @@ export default {
         this.setDefaultImage()
         return
       }
-      this.backgroundSrc = this.$basePath + '/user/api' + backgroundPath
+      this.backgroundSrc = avatarSrc(backgroundPath)
     },
   }
 }
 </script>
 
 <style lang="scss" scoped>
+@import "@/style/auth.scss";
 .overview {
   position: relative;
   height: 100%;
@@ -203,174 +190,6 @@ export default {
     justify-content: center;
     color: #fff;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
-  }
-
-  .auth-box {
-    position: absolute;
-    width: 400px;
-    min-width: 400px;
-    height: 460px;
-    top: 0;
-    bottom: 0;
-    right: 13%;
-    margin: auto;
-    background: rgba(244, 247, 255, 0.5);
-    border-radius: 4px;
-    //box-shadow: 0px 5px 30px 0px rgba(5,8,27,0.1);
-    //border: 1px solid;
-    //border-image: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.8)) 1 1;
-    backdrop-filter: blur(10px);
-
-    .auth-header {
-      color: $color_title;
-      text-align: left;
-      padding: 30px 30px 0 30px;
-      //border-bottom: 1px solid rgba(235,235,235,0.8);
-      span {
-        display: inline-block;
-        vertical-align: bottom;
-        font-size: 24px;
-      }
-    }
-
-    .auth-form {
-      padding: 30px;
-
-      /deep/ {
-        .el-input {
-          height: 30px;
-          line-height: 36px;
-        }
-
-        .el-input__prefix {
-          left: 14px;
-        }
-
-        .el-form-item__label {
-          font-size: 12px !important;
-          padding: 0 !important;
-          margin-left: 0 !important;
-          line-height: 26px !important;
-          color: #425466;
-        }
-
-        .el-input__inner {
-          font-size: 12px !important;
-          background: #fff;
-          border: none !important;
-          padding-left: 50px;
-        }
-
-        i {
-          color: #666 !important;
-        }
-
-        .el-icon-lock, .el-icon-user, .el-icon-key {
-          font-size: 18px;
-        }
-
-        input[type=input]::placeholder {
-          color: #B3B1BC;
-        }
-
-        input::-webkit-input-placeholder {
-          color: #B3B1BC;
-        }
-
-        input::-moz-placeholder { /* Mozilla Firefox 19+ */
-          color: #B3B1BC;
-        }
-
-        input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-          color: #B3B1BC;
-        }
-
-        input:-ms-input-placeholder { /* Internet Explorer 10-11 */
-          color: #B3B1BC;
-        }
-      }
-
-      .auth-form-item {
-        position: relative;
-      }
-
-      /deep/ .auth-icon {
-        position: absolute;
-        width: 17px;
-        z-index: 10;
-        top: 13.5px;
-        left: 17px;
-      }
-
-      /deep/ .pwd-icon {
-        position: absolute;
-        width: 17px;
-        z-index: 10;
-        top: 13.5px;
-        right: 17px;
-        cursor: pointer;
-      }
-
-      .nav-bt {
-        width: 100%;
-        height: 1px;
-        line-height: 30px;
-        font-size: 14px;
-        margin-top: -20px;
-      }
-
-      .auth-bt {
-        width: 100%;
-        height: 40px;
-        line-height: 30px;
-        font-size: 14px;
-        margin-top: 40px;
-
-        .primary-bt {
-          padding: 13px 0;
-          height: 40px;
-          //background: $color;
-          border: none;
-          font-size: 14px;
-          border-radius: 3px !important;
-        }
-
-        .disabled.primary-bt {
-          opacity: 0.5;
-          cursor: not-allowed;
-          border-color: #e9e9eb;
-        }
-
-        .operation {
-          /*color: #fff;*/
-          color: #8d8d8d;
-          display: flex;
-          margin: 30px 70px;
-
-          span {
-            display: block;
-            flex: 1;
-            text-align: center;
-            font-size: 12px;
-            cursor: pointer;
-          }
-        }
-      }
-
-      .bottom-text {
-        text-align: center;
-        font-weight: normal;
-        color: #888;
-        margin-top: 6px;
-        font-size: 12px;
-      }
-    }
-
-    .auth-pwd-input /deep/ {
-      .el-input__inner {
-        padding-right: 46px;
-      }
-    }
   }
 }
 </style>

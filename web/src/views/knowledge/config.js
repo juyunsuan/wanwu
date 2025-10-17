@@ -73,3 +73,8 @@ export const MODEL_TYPE_TIP = {
         desc:'若需使用，请前往模型管理-联通元景-添加pdf文档解析模型'
     }
 }
+export const POWER_TYPE = {
+    0:'可读',
+    10:'可编辑',
+    20:'管理员'
+}

@@ -100,10 +100,10 @@ export function isSub(data){
     return /\【([0-9]{0,2})\^\】/.test(data)
 }
 
-export function parseSub(data){
+export function parseSub(data,index){
     return data.replace(/\【([0-9]{0,2})\^\】/g,(item)=>{
         let result = item.match(/\【([0-9]{0,2})\^\】/)[1]
-        return `<sup class='citation'>${result}</sup>`
+        return `<sup class='citation' data-parents-index='${index}'>${result}</sup>`
     })
 }
 
@@ -152,4 +152,21 @@ export const formatTools = (tools) => {
         }
     })
     return newTools
+}
+
+/**
+ * 格式化得分，保留5位小数
+ * @param {number|string} score - 得分值
+ * @returns {string} 格式化后的得分字符串
+ */
+export function formatScore(score) {
+    // 格式化得分，保留5位小数
+    if (typeof score !== 'number') {
+        return '0.00000';
+    }
+    return score.toFixed(5);
+}
+
+export function avatarSrc(path){
+    return basePath + '/user/api/' + path
 }
