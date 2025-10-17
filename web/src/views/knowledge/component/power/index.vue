@@ -70,6 +70,7 @@ export default {
       currentView: "list",
       dialogVisible: false,
       knowledgeId:'',
+      knowledgeName:'',
       transferData: null,
     };
   },
