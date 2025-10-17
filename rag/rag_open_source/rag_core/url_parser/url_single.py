@@ -9,6 +9,8 @@ from flask import Flask, jsonify, request, make_response
 # from knowledge_base_utils import *
 from flask_cors import CORS
 from bs4 import BeautifulSoup
+from readability import Document
+from playwright.sync_api import sync_playwright
 from urllib.parse import unquote_plus 
 import argparse
 import re
@@ -33,7 +35,7 @@ app.config['JSONIFY_MIMETYPE'] ='application/json;charset=utf-8'
 
 MINIO_URL = 'http://localhost:15000/upload'
 MINIO_BUCKET_NAME = 'rag-doc'
-
+CHROME_PATH = "/opt/chrome-linux/chrome"
 
 def clean_text(text):
     """清除文本中的特殊字符和多余的空白，以及HTML标签。"""
@@ -50,12 +52,28 @@ def is_text_garbled(text):
     return non_displayable_char_ratio > 0.5    
 
 
+def fetch_html_with_chromium(url: str, wait_until="networkidle"):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            executable_path=CHROME_PATH,
+            headless=True,
+            args=["--no-sandbox", "--disable-dev-shm-usage"]
+        )  # 启动无头浏览器
+        page = browser.new_page()
+        page.goto(url, wait_until=wait_until)
+        html_text = page.content()
+        browser.close()
+        doc = Document(html_text)
+        title = doc.title()
+        summary_html = doc.summary()
+        text = BeautifulSoup(summary_html, "lxml").get_text()
+        return text.strip(), title
+
+
 #解析服务
 @app.route('/url_pra', methods=["POST","GET"])
 def url_add():
-    a = ''
     data = request.json
-    #url = unescape_unicode(data.get('url', '')) 
     url = data.get('url')
     logger.info(f"入参是: {data}")
     url = unquote_plus(url) 
@@ -64,36 +82,31 @@ def url_add():
     if not url:
         return jsonify({'error': 'URL is required'}), 400
     try:
-
-
         headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'
-    }
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'
+        }
 
-        response = requests.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
-        encoding = chardet.detect(response.content)['encoding']
-        response.encoding = encoding if encoding else 'utf-8'# 设置编码，确保中文显示正常
-        soup = BeautifulSoup(response.content, 'html.parser')
-        a = clean_text(soup.get_text())
-        logger.info(f"解析出的内容是: {a}")
+        text= ""
+        title=""
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            response.raise_for_status()
+            encoding = chardet.detect(response.content)['encoding']
+            response.encoding = encoding if encoding else 'utf-8'# 设置编码，确保中文显示正常
+            soup = BeautifulSoup(response.content, 'html.parser')
+            text = clean_text(soup.get_text())
+            title = soup.find('title').get_text()
+            logger.info(f"解析出的内容是: {text}")
+        except Exception as e:
+            logger.info(f"error: {str(e)}")
+            logger.info(f"retry fetch url with chromium, url: {url}")
 
+        if len(text) < 30 or is_text_garbled(text):
+            text, title = fetch_html_with_chromium(url)
+            logger.info(f"解析出的内容是: {text}")
 
         #解析有问题，在这里返回
-        if is_text_garbled(a):
-            response_data = {  
-                "file_name": '',
-                "old_name":url,# 添加原始name和文件名到响应数据中  
-                "response_info": {
-                    "code": 1,
-                    "message": "该网站不支持抓取解析"                
-                }   
-            }
-            logger.info(f"codewrong: {url}")
-            json_str = json.dumps(response_data, ensure_ascii=False)
-            response = make_response(json_str) 
-            return response
-        if len(a) < 30:
+        if len(text) < 30:
             response_data = {  
                 "file_name": '',
                 "old_name":url,# 添加原始name和文件名到响应数据中  
@@ -106,32 +119,35 @@ def url_add():
             json_str = json.dumps(response_data, ensure_ascii=False)
             response = make_response(json_str) 
             return response
+        if is_text_garbled(text):
+            response_data = {
+                "file_name": '',
+                "old_name":url,# 添加原始name和文件名到响应数据中
+                "response_info": {
+                    "code": 1,
+                    "message": "该网站不支持抓取解析"
+                }
+            }
+            logger.info(f"content_garbled: {url}")
+            json_str = json.dumps(response_data, ensure_ascii=False)
+            response = make_response(json_str)
+            return response
 
-        b = ''
-        logger.info(f"normal: {url}")
-        title_tag = soup.find('title')
-        logger.info(f"原来标题是: {title_tag.text}")
-        c = title_tag.text
-        b = c.replace('|', '_').replace(':', '_').replace(' ', '_')
-        
-        if len(b) >= 50:
-            b = b[:30]
-        else:
-            b = b
-        title_text = b if title_tag else '无标题'
-        logger.info(f"标题是: {title_text}")
+        title = title.replace('|', '_').replace(':', '_').replace(' ', '_')
+        if len(title) >= 50:
+            title = title[:30]
+        title = title if title else '无标题'
+        logger.info(f"标题是: {title}")
 
-        name = title_text+'.txt'
-        logger.info(f"解析文件名是: {name}")
-        file_path = os.path.join(TEMP_URL_FILES_DIR, name)
+        title_name = title+'.txt'
+        logger.info(f"解析文件名是: {title_name}")
+        file_path = os.path.join(TEMP_URL_FILES_DIR, title_name)
         with open(file_path, 'w', encoding='utf-8') as file:
-            file.write(a)
-        with open(file_path, 'r', encoding='utf-8') as file:  
-            content = file.read() 
+            file.write(text)
         file_size = os.path.getsize(file_path)
         file_size_kb = file_size / 1024
         response_data = {  
-            "file_name": title_text,
+            "file_name": title,
             "old_name":url,# 添加原始name和文件名到响应数据中  
             "file_size":file_size_kb,
             "response_info": {
@@ -144,17 +160,7 @@ def url_add():
         response = make_response(json_str)       
     except Exception as e:
         logger.info(f"error: {str(e)}")
-        logger.info(f"error类型: {type(str(e))}")
         if "HTTPSConnectionPoolstr" in str(e):
-            response_data = {  
-                "file_name": '',
-                "old_name":url,# 添加原始name和文件名到响应数据中  
-                "response_info": {
-                    "code": 1,
-                    "message": "该网站不支持抓取解析"                
-                }  
-            } 
-        else:            
             response_data = {  
                 "file_name": '',
                 "old_name":url,# 添加原始name和文件名到响应数据中  
@@ -166,9 +172,7 @@ def url_add():
         
         json_str = json.dumps(response_data, ensure_ascii=False)
         response = make_response(json_str)
-        logger.info(f"错误在: {response_data}")
     return response,200
-
 
 
 #解析出内容入库
@@ -185,7 +189,6 @@ def url_insert_data():
     # is_enhanced = data.get("is_enhanced", 'false')
     # separators = data.get("separators", ['。'])
     task_id = data.get("task_id")
-    logger.info('*********!!!')
     try:
         name = file_name+'.txt'
         old_file_path = os.path.join(TEMP_URL_FILES_DIR, name)
@@ -235,10 +238,8 @@ def url_insert_data():
 
 
 if __name__ == '__main__':
-    
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int)
     args = parser.parse_args()
     app.run(host='0.0.0.0', port=args.port)
-    
 

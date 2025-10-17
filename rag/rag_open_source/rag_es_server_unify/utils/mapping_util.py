@@ -100,6 +100,7 @@ cc_mappings = {
         "status": {"type": "boolean"},  # 指定为 keyword，方便用于排序和聚合
         "labels": {"type": "keyword"},
         "content": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart"},  # 指定分词方式
+        "child_chunk_total_num": {"type": "long"},
         "meta_data": {
             "properties": {
                 "doc_meta": {

@@ -635,6 +635,11 @@ def get_content_list():
         logger.info(
             f"用户:{userId},请求的kb_name为:{kb_name},file_name:{file_name},page_size:{page_size},search_after:{search_after}")
         content_result = es_ops.get_cc_file_content_list(content_index_name, kb_name, file_name, page_size, search_after)
+        content_list = content_result["content_list"]
+        for content in content_list:
+            if "is_parent" in content and content["is_parent"]:
+                child_result = es_ops.get_child_contents(index_name, kb_name, content["content_id"])
+                content["child_chunk_total_num"] = child_result["child_chunk_total_num"]
         result = {
             "code": 0,
             "message": "success",
@@ -692,6 +697,70 @@ def get_child_content_list():
         return jsonarr
 
 
+@app.route('/rag/kn/update_child_chunk', methods=['POST'])
+def update_child_chunk():
+    logger.info("--------------------------更新知识库子段数据---------------------------\n")
+    data = request.get_json()
+    userId = data.get("userId")
+    index_name = INDEX_NAME_PREFIX + userId
+    display_kb_name = data.get("kb_name")  # 显示的名字
+    embedding_model_id = es_ops.get_uk_kb_emb_model_id(userId, display_kb_name)
+    snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId.replace('-', '_')
+    chunk_id = data.get("chunk_id")
+    child_chunk = data.get("child_chunk")
+    chunk_current_num = data.get("chunk_current_num")
+    try:
+        child_content = child_chunk["child_content"]
+        child_chunk_current_num = child_chunk["child_chunk_current_num"]
+        index_update_data = {
+            "embedding_content": child_content,
+        }
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        logger.info(f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name}, chunk_id: {chunk_id}, "
+                    f"chunk_current_num: {chunk_current_num}, child_chunk: {child_chunk}")
+
+        res = es_ops.get_embs([child_content], embedding_model_id=embedding_model_id)
+        dense_vector_dim = len(res["result"][0]["dense_vec"]) if res["result"] else 1024
+        field_name = f"q_{dense_vector_dim}_content_vector"
+        if dense_vector_dim == 1024:
+            # 兼容老索引，避免创建两个1024 dim的向量字段
+            content_vector_exist, mapping_properties = es_ops.is_field_exist(index_name, "content_vector")
+            if content_vector_exist:
+                logger.info(f"es 索引 {index_name} 字段 {field_name} 存在，回退到默认字段 content_vector")
+                field_name = "content_vector"
+
+        index_update_data[field_name] = res["result"][0]["dense_vec"]
+        snippet_index_update_data = {
+            "snippet": child_content,
+        }
+
+        # cc index的content id == chunk id
+        index_update_actions = es_ops.get_index_update_content_actions(index_name, kb_name, chunk_id, chunk_current_num,
+                                                                       child_chunk_current_num, index_update_data)
+
+        snippet_index_update_actions = es_ops.get_index_update_content_actions(snippet_index_name, kb_name, chunk_id,
+                                                                               chunk_current_num, child_chunk_current_num, snippet_index_update_data)
+
+        update_actions = {
+            index_name: index_update_actions,
+            snippet_index_name: snippet_index_update_actions
+        }
+        result = es_ops.update_index_data(update_actions)
+        json_arr = json.dumps(result, ensure_ascii=False)
+        logger.info(
+            f"当前用户:{userId},知识库:{kb_name},更新知识库元数据的接口返回结果为：{json_arr}")
+        return json_arr
+    except Exception as e:
+        logger.info(f"更新知识库元数据时发生错误：{e}")
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        json_arr = json.dumps(result, ensure_ascii=False)
+        logger.info(
+            f"当前用户:{userId},知识库:{display_kb_name},更新知识库元数据的接口返回结果为：{json_arr}")
+        return json_arr
+
 
 @app.route('/rag/kn/update_file_metas', methods=['POST'])
 def update_file_metas():
@@ -734,7 +803,7 @@ def batch_delete_chunks():
     file_name = data.get("file_name")
     chunk_ids = data.get("chunk_ids")
     content_index_name = 'content_control_' + index_name
-    snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId
+    snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId.replace('-', '_')
     try:
         kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
         logger.info(
@@ -782,6 +851,66 @@ def batch_delete_chunks():
         jsonarr = json.dumps(result, ensure_ascii=False)
         logger.info(f"当前用户:{userId},知识库:{kb_name},chunks:{chunk_ids}, 分段删除的接口返回结果为：{jsonarr}")
         return jsonarr
+
+@app.route('/rag/kn/delete_child_chunks', methods=['POST'])
+def delete_child_chunks():
+    logger.info("--------------------------删除子分段---------------------------\n")
+    data = request.get_json()
+    userId = data.get("userId")
+    index_name = INDEX_NAME_PREFIX + userId
+    display_kb_name = data.get("kb_name")  # 显示的名字
+    file_name = data.get("file_name")
+    chunk_id = data.get("chunk_id")
+    chunk_current_num = data.get("chunk_current_num")
+    child_chunk_current_nums = data.get("child_chunk_current_nums")
+    snippet_index_name = SNIPPET_INDEX_NAME_PREFIX + userId.replace('-', '_')
+
+    try:
+        kb_name = es_ops.get_uk_kb_id(userId, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        logger.info(
+            f"用户:{userId},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, "
+            f"chunk_id: {chunk_id}, chunk_current_num: {chunk_current_num}, "
+            f"child_chunk_current_nums: {child_chunk_current_nums}")
+
+        es_result = es_ops.delete_child_chunks(index_name, kb_name, chunk_id, chunk_current_num, child_chunk_current_nums)
+        es_snippet_result = es_ops.delete_child_chunks(snippet_index_name, kb_name, chunk_id, chunk_current_num, child_chunk_current_nums)
+        if es_result["success"] and es_snippet_result["success"]:
+            logger.info(f"用户{index_name},对应的知识库{kb_name}, chunk: {chunk_id}, "
+                        f"child_chunk_current_nums: {child_chunk_current_nums} 记录子分段删除成功")
+            result = {
+                "code": 0,
+                "message": "success"
+            }
+            jsonarr = json.dumps(result, ensure_ascii=False)
+            logger.info(
+                f"当前用户:{userId},知识库:{kb_name},chunk:{chunk_id}, child_chunk_current_nums: {child_chunk_current_nums} "
+                f"子分段删除的接口返回结果为：{jsonarr},{es_result},{es_snippet_result}")
+            return jsonarr
+        else:
+            logger.info(
+                f"当前用户:{userId},知识库:{kb_name},chunk:{chunk_id}, child_chunk_current_nums: {child_chunk_current_nums} "
+                f"子分段删除时发生错误：{es_result},{es_snippet_result}")
+            result = {
+                "code": 1,
+                "message": es_result.get("error", "") + es_snippet_result.get("error", ""),
+            }
+            jsonarr = json.dumps(result, ensure_ascii=False)
+            logger.info(f"当前用户:{userId},知识库:{kb_name},chunk:{chunk_id}, "
+                        f"child_chunk_current_nums: {child_chunk_current_nums} 子分段删除的接口返回结果为：{jsonarr}")
+            return jsonarr
+
+    except Exception as e:
+        logger.info(f"用户{index_name},对应的知识库:{kb_name},chunk:{chunk_id}, "
+                    f"child_chunk_current_nums: {child_chunk_current_nums} 子分段删除时发生错误：{e}")
+        result = {
+            "code": 1,
+            "message": str(e),
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(f"当前用户:{userId},知识库:{kb_name},chunk:{chunk_id}, "
+                    f"child_chunk_current_nums: {child_chunk_current_nums} 子分段删除的接口返回结果为：{jsonarr}")
+        return jsonarr
+
 
 @app.route('/rag/kn/update_chunk_labels', methods=['POST'])
 def update_chunk_labels():
@@ -1085,6 +1214,40 @@ def allocate_chunks():
         jsonarr = json.dumps(result, ensure_ascii=False)
         logger.info(
             f"当前用户:{user_id},知识库:{kb_name},file_name:{file_name},新增分段分配chunk返回结果为：{jsonarr}")
+        return jsonarr
+
+
+@app.route('/api/v1/rag/es/allocate_child_chunks', methods=['POST'])
+def allocate_child_chunks():
+    logger.info("--------------------------新增子分段时分配chunk---------------------------\n")
+    data = request.get_json()
+    user_id = data.get("user_id")
+    index_name = INDEX_NAME_PREFIX + user_id
+    display_kb_name = data.get("kb_name")  # 显示的名字
+    file_name = data.get("file_name")
+    chunk_id = data.get("chunk_id")
+    count = data.get("count")
+    content_index_name = 'content_control_' + index_name
+    try:
+        kb_name = es_ops.get_uk_kb_id(user_id, display_kb_name)  # 从映射表中获取 kb_id ，这是真正的名字
+        logger.info(
+            f"用户:{user_id},display_kb_name: {display_kb_name},请求的kb_name为:{kb_name},file_name:{file_name}, insert chunk count: {count}")
+
+        es_ops.create_index_if_not_exists(content_index_name, mappings=es_mapping.cc_mappings)
+        result = es_ops.allocate_child_chunk_nums(content_index_name, kb_name, file_name, chunk_id, count)
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(
+            f"当前用户:{user_id},知识库:{kb_name},file_name:{file_name},新增子分段分配chunk的接口返回结果为：{jsonarr}")
+        return jsonarr
+    except Exception as e:
+        logger.info(f"新增子分段分配chunk时发生错误：{e}")
+        result = {
+            "code": 1,
+            "message": str(e)
+        }
+        jsonarr = json.dumps(result, ensure_ascii=False)
+        logger.info(
+            f"当前用户:{user_id},知识库:{kb_name},file_name:{file_name},新增子分段分配chunk返回结果为：{jsonarr}")
         return jsonarr
 
 

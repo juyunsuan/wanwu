@@ -60,7 +60,23 @@ def remove_leading_punctuation(s, punctuation_list):
 
     # 如果没有找到匹配的标点符号，则返回原始字符串  
 
-    return s 
+    return s
+
+
+def generate_regex(punc_list):
+    escaped_punc = [re.escape(p) for p in punc_list]
+    # return r'([' + ''.join(escaped_punc) + r'])'
+    return re.compile('(' + '|'.join(escaped_punc) + ')')
+
+
+def replace_k_consecutive_nl(separator: str, text: str) -> (str, str):
+    normalized = separator.replace('\\n', '\n')
+    k = len(normalized) if re.fullmatch(r'\n+', normalized) else 0
+    if k == 0:
+        return separator, text
+
+    pattern = re.compile(rf'\n{{{k}}}')
+    return '<NLS>', pattern.sub('<NLS>', text)
 
 
 class ChineseTextSplitter(CharacterTextSplitter):
@@ -70,29 +86,7 @@ class ChineseTextSplitter(CharacterTextSplitter):
         self.chunk_type = chunk_type
         self.overlap_size = overlap_size if overlap_size else 0
         self.separators = separators if separators else ["。", "！", "？", ".", "!", "?", "……"]
-
-    def merge_splits(self, splits) -> list[str]:
-        docs = []
-        current_doc = []
-        total = 0
-        index = 0
-        for d in splits:
-            doc_len = len(d)
-            if total + doc_len > self.chunk_size:
-                if len(current_doc) > 0:
-                    doc = "".join(current_doc).strip()
-                    if len(doc) != 0:
-                        docs.append(doc)
-                    while total > self.chunk_overlap or (total + doc_len > self.chunk_size and total > 0):
-                        total -= len(current_doc[0])
-                        current_doc = current_doc[1:]
-            current_doc.append(d)
-            total += doc_len
-            index += 1
-        doc = "".join(current_doc).strip()
-        if len(doc) != 0:
-            docs.append(doc)
-        return docs
+        self.default_separators = ["。", "！", "？", ".", "!", "?", "……"]
 
     def split_text1(self, text: str) -> List[str]:
         # logger.info('走到通用切分')
@@ -275,13 +269,142 @@ class ChineseTextSplitter(CharacterTextSplitter):
 
         return result
 
+
+    def merge_splits(self, splits) -> list[str]:
+        merged_chunks = []
+        temp_splits  = []
+        total = 0
+        for split in splits:
+            if len(temp_splits) > 0 and total + len(split)  > self.sentence_size:
+                text = "".join(temp_splits).strip()
+                if text != "" and text is not None:
+                    merged_chunks.append(text)
+                while total > self.overlap_size or (total + len(split) > self.sentence_size and total > 0):
+                    total -= len(temp_splits[0])
+                    temp_splits = temp_splits[1:]
+            temp_splits.append(split)
+            total += len(split)
+        text = "".join(temp_splits).strip()
+        if text != "" and text is not None:
+            merged_chunks.append(text)
+        return merged_chunks
+
+
+    def split_text_recursive(self, text: str, separators: List[str]) -> list[str]:
+        finale_splits = []
+        if not separators:
+            splits = list(text)
+            finale_splits = [s for s in splits if (s not in {"", "\n"})]
+            return finale_splits
+
+        separator = separators[0]
+        new_separators = separators[1:]
+
+        if separator == " ":
+            splits = text.split()
+        else:
+            splits = text.split(separator)
+            splits = [item + separator if index < (len(splits)-1) else item for index, item in enumerate(splits)]
+
+        splits = [s for s in splits if (s not in {"", "\n"})]
+
+        for split in splits:
+            if len(split) < self.sentence_size:
+                finale_splits.append(split)
+            else:
+                next_splits = self.split_text_recursive(split, new_separators)
+                finale_splits.extend(next_splits)
+
+        return finale_splits
+
+
+    def split_text_by_hierarchy(self, text: str, separators: List[str]) -> list[str]:
+        separator = ""
+        new_separators = []
+        if separators:
+            separator = separators[0]
+            new_separators = separators[1:]
+
+        if separator:
+            if separator == " ":
+                splits = text.split()
+            else:
+                splits = text.split(separator)
+                splits = [item + separator if index < (len(splits)-1) else item for index, item in enumerate(splits)]
+        else:
+            splits = list(text)
+        splits = [s for s in splits if (s not in {"", "\n"})]
+        final_chunks = []
+
+        if separator != "":
+            for split in splits:
+                if len(split) < self.sentence_size:
+                    final_chunks.append(split)
+                else:
+                    other_info = self.split_text_by_hierarchy(split, new_separators)
+                    final_chunks.extend(other_info)
+        else:
+            current_text = ""
+            total = 0
+            overlap_text = ""
+            overlap_text_length = 0
+            for split_item in splits:
+                split_item_length = len(split_item)
+                if total + split_item_length >= self.sentence_size:
+                    final_chunks.append(current_text)
+                    current_text = overlap_text + split_item
+                    total = split_item_length + overlap_text_length
+                    overlap_text = ""
+                    overlap_text_length = 0
+                else:
+                    current_text += split_item
+                    total += split_item_length
+                    if total > self.sentence_size - self.overlap_size:
+                        overlap_text += split_item
+                        overlap_text_length += split_item_length
+
+            if current_text:
+                final_chunks.append(current_text)
+
+        return final_chunks
+
+
+    def split_text_by_custom_separators(self, text: str) -> list[str]:
+        new_separators = []
+        for separator in self.separators:
+            separator, text = replace_k_consecutive_nl(separator, text)
+            if separator not in new_separators:
+                new_separators.append(separator)
+        # 如果分隔符里没有\n，先把原文中的\n替换为特殊标记
+        if "\n" not in self.separators and "\\n" not in self.separators:
+            text = text.replace("\n", "<NL>")
+        regex_replacements = [
+            (generate_regex(new_separators), r"\1\n")
+        ]
+        for pattern, replacement in regex_replacements:
+            text = re.sub(pattern, replacement, text)
+        text = text.rstrip().replace(r'\u3000', ' ')
+        splits = [s for s in text.split("\n") if (s not in {"", "\n"})]
+
+        final_chunks = []
+        for s in splits:
+            s= s.replace("<NLS>", "")
+            s = s.replace("<NL>", "\n")
+            if len(s) < self.sentence_size:
+                final_chunks.append(s)
+            else:
+                temp_splits = self.split_text_recursive(s, self.default_separators)
+                merged_chunks = self.merge_splits(temp_splits)
+                final_chunks.extend(merged_chunks)
+
+        return final_chunks
+
+
     def split_text(self, text: str) -> List[str]:
-        # print("==========>chinese_text_splitter,split_text,chunk_type=%s" % self.chunk_type)
         if self.chunk_type == 'split_by_default':
             return self.split_text1(text)
         elif self.chunk_type == 'split_by_design':
-            return self.split_text2(text)
-            # return self.split_text3(text, self.separators)
+            return self.split_text_by_custom_separators(text)
         else:
             return self.split_text1(text)
 
