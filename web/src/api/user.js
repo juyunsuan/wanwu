@@ -12,6 +12,41 @@ export const login = (data) => {
     });
 };
 
+// 2FA登录
+// 第一级验证：密码
+export const login2FA1 = (data) => {
+    return service({
+        url: `${BASE_URL}/base/login/email`,
+        method: "post",
+        data
+    });
+};
+// 第二级验证：验证码
+// 邮箱验证码
+export const login2FA2Code = (data) => {
+    return service({
+        url: `${BASE_URL}/user/login/email/code`,
+        method: "post",
+        data,
+    });
+};
+// 首次登录
+export const login2FA2new = (data) => {
+    return service({
+        url: `${BASE_URL}/user/login`,
+        method: "put",
+        data
+    });
+}
+// 非首次登录
+export const login2FA2exist = (data) => {
+    return service({
+        url: `${BASE_URL}/user/login`,
+        method: "post",
+        data
+    });
+}
+
 // 获取图形验证码
 export const getImgVerCode = () => {
     return service({
