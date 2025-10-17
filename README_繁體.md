@@ -237,7 +237,7 @@
 |                             功能                             |                           詳細描述                           |
 | :----------------------------------------------------------: | :----------------------------------------------------------: |
 | [模型管理](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/1.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86.md) | 支援使用者匯入包括聯通元景、OpenAI-API-compatible、Ollama、通義千問、火山引擎等模型供應商的 LLM、Embedding、Rerank 模型。[ 模型匯入方式-詳細版](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/%E6%A8%A1%E5%9E%8B%E5%AF%BC%E5%85%A5%E6%96%B9%E5%BC%8F-%E8%AF%A6%E7%BB%86%E7%89%88.md) |
-| [知識庫](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93) | 在文件解析能力方面：支援12種文件類型的上傳，支援 URL 解析；文件解析方式支援 OCR 和[ 高精度模型解析（標題/表格/公式）](https://github.com/UnicomAI/DocParserServer/tree/main)，文件分段設定支援通用分段和父子分段。在調優能力方面：支援元數據管理及元數據過濾查詢，支援分段內容增刪改，支援對分段設定關鍵字標籤提升召回效果，支援分段啟停操作，支援命中測試等功能。在檢索能力方面：支援向量檢索、全文檢索、混合檢索等多種檢索模式；在問答能力方面：支援自動引用出處，支援圖文並茂的生成答案。 |
+| [知識庫](https://github.com/UnicomAI/wanwu/tree/main/configs/microservice/bff-service/static/manual/2.%E7%9F%A5%E8%AF%86%E5%BA%93) | 在文件解析能力方面：支援12種文件類型的上傳，支援 URL 解析；文件解析方式支援 OCR 與[**MinerU 模型解析（適用於標題、表格、公式等場景）**](https://github.com/UnicomAI/DocParserServer/tree/main)的私有化部署與接入，文件分段設定支援通用分段和父子分段。在調優能力方面：支援元數據管理及元數據過濾查詢，支援分段內容增刪改，支援對分段設定關鍵字標籤提升召回效果，支援分段啟停操作，支援命中測試等功能。在檢索能力方面：支援向量檢索、全文檢索、混合檢索等多種檢索模式；在問答能力方面：支援自動引用出處，支援圖文並茂的生成答案。 |
 | [資源庫](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/3.%E5%B7%A5%E5%85%B7%E5%B9%BF%E5%9C%BA.md) | 同時支援匯入自己的 MCP 服務或自訂工具，並在工作流和智能體中使用。 |
 | [安全護欄](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/4.%E5%AE%89%E5%85%A8%E6%8A%A4%E6%A0%8F.md) |      使用者可以建立敏感詞表，控制模型回饋結果的安全性。      |
 | [文本問答](https://github.com/UnicomAI/wanwu/blob/main/configs/microservice/bff-service/static/manual/5.%E6%96%87%E6%9C%AC%E9%97%AE%E7%AD%94.md) | 基於私人知識庫的專屬知識顧問，支援知識庫管理、知識問答、知識總結、個性參數配置、安全護欄、檢索配置等功能，提高知識管理與學習的效率。支援公開或私密發布文本問答應用，支援發布為 API。 |
@@ -264,13 +264,17 @@
 ### &#128172; Q & A
 
 - **【Q】Linux系統Elastic(elastic-wanwu)啟動報錯：Memory limited without swap.**
+    
     【A】關閉服務，執行 `sudo sysctl -w vm.max_map_count=262144` 後，重啟服務
     
 - **【Q】系統服務正常啟動後，mysql-wanwu-setup和elastic-wanwu-setup容器退出：狀態碼為Exited (0)**
+    
     【A】正常，這兩個容器用於完成一些初始化任務，執行完成後會自動退出
     
 - **【Q】模型導入相關**
+    
     【A】以導入聯通元景LLM為例（導入OpenAI-API-compatible或導入Embedding、Rerank類型類似）：
+    
     ```
     1. 聯通元景MaaS雲LLM的Open API接口例如：https://maas.ai-yuanjing.com/openapi/compatible-mode/v1/chat/completions
     
