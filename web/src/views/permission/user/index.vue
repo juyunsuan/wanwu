@@ -40,7 +40,7 @@
             </template>
           </el-table-column>
           <el-table-column prop="createdAt" :label="$t('user.table.createAt')" align="left" />
-          <el-table-column align="left" :label="$t('user.table.status')">
+          <el-table-column v-if="isAdmin" align="left" :label="$t('user.table.status')">
             <template slot-scope="scope">
               <div style="height: 26px">
                 <el-switch
