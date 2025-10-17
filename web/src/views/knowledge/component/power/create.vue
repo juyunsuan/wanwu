@@ -138,46 +138,13 @@ export default {
       searchKeyword: '',
       selectedOrganization: '',
       selectedPermission: '可读',
-      organizationList: [
-        { id: 'org1', name: '组织1' },
-        { id: 'group1', name: '群组1' },
-        { id: 'group1_user1', name: '群组1-用户1' },
-        { id: 'group1_user2', name: '群组1-用户2' },
-        { id: 'org2', name: '技术部' },
-        { id: 'org3', name: '产品部' },
-        { id: 'org4', name: '运营部' }
-      ],
+      organizationList: [],
       originalTreeData: null,
       treeProps: {
         children: 'children',
-        label: 'name'
+        label: 'orgName'
       },
-      treeData: [
-        {
-          id: 'org1',
-          name: '组织1',
-          type: 'organization',
-          children: [
-            { id: 'user1_org1', name: '用户1', type: 'user', organization: '组织1', selected: false },
-            { id: 'user2_org1', name: '用户2', type: 'user', organization: '组织1', selected: false },
-            { id: 'user3_org1', name: '用户3', type: 'user', organization: '组织1', selected: false },
-            { id: 'user4_org1', name: '用户4', type: 'user', organization: '组织1', selected: false },
-            { id: 'user5_org1', name: '用户5', type: 'user', organization: '组织1', selected: false }
-          ]
-        },
-        {
-          id: 'group1',
-          name: '群组1',
-          type: 'group',
-          children: [
-            { id: 'user1_group1', name: '用户1', type: 'user', organization: '群组1', selected: false },
-            { id: 'user2_group1', name: '用户2', type: 'user', organization: '群组1', selected: false },
-            { id: 'user3_group1', name: '用户3', type: 'user', organization: '群组1', selected: false },
-            { id: 'user4_group1', name: '用户4', type: 'user', organization: '群组1', selected: false }
-          ]
-        }
-
-      ],
+      treeData: [],
       selectedUsers: []
     }
   },
@@ -208,11 +175,6 @@ export default {
          }
       })
     },
-    getOrgUser(){
-      getOrgUser().then(res => {
-        console.log(res)
-      })
-    },
     isNodeSelected(nodeId) {
       return this.selectedUsers.some(user => user.id === nodeId)
     },
@@ -222,12 +184,20 @@ export default {
     },
     handleOrgChange(orgId) {
       // 当组织选择改变时，过滤树形数据
-      this.filterTreeByOrganization(orgId);
+      this.getOrgUser(orgId);
       
       // 如果清空了组织选择，同时清空用户名搜索
       if (!orgId) {
         this.searchKeyword = '';
       }
+    },
+    getOrgUser(orgId){
+      if (!orgId) return
+      getOrgUser({knowledgeId:this.knowledgeId,orgId}).then(res => {
+        if(res.code === 0){
+           this.treeData = res.data || []
+        }
+      })
     },
     handleInputFocus() {
       // 当用户名输入框获得焦点时，如果没有选择组织，给出提示
@@ -237,34 +207,10 @@ export default {
     },
     filterTreeByOrganization(orgId) {
       if (!orgId) {
-        // 如果没有选择组织，显示所有数据
         this.$refs.tree.filter('');
         return;
       }
-      
-      // 根据选择的组织过滤树形数据
-      const filterData = (nodes) => {
-        return nodes.filter(node => {
-          if (node.id === orgId) {
-            return true; // 显示选中的组织节点
-          }
-          if (node.children) {
-            const filteredChildren = filterData(node.children);
-            if (filteredChildren.length > 0) {
-              return {
-                ...node,
-                children: filteredChildren
-              };
-            }
-          }
-          return false;
-        });
-      };
-      
-      // 临时保存原始数据
-      if (!this.originalTreeData) {
-        this.originalTreeData = JSON.parse(JSON.stringify(this.treeData));
-      }
+
       
       // 应用过滤
       this.treeData = filterData(this.originalTreeData);

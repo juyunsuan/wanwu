@@ -1260,7 +1260,7 @@ export default {
   gap: 10px;
   height: calc(100% - 60px);
   .drawer-info {
-    width: 300px;
+    width: 30%;
     margin: 10px 0;
     border-radius: 6px;
     background: #f7f8fa;
@@ -1274,11 +1274,11 @@ export default {
   }
   .actionConfig {
     overflow-y: auto;
-    width: calc((100% - 300px - 20px) / 2);
+    width: 60%;
     padding: 0 40px;
   }
   .drawer-form {
-    width: calc((100% - 300px - 20px) / 2);
+    width: 30%;
     margin: 10px 0;
     position: relative;
     height: calc(100% - 20px);
