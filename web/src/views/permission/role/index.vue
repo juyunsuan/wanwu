@@ -21,7 +21,7 @@
           <el-table-column prop="name" :label="$t('role.table.name')" align="left" />
           <el-table-column prop="creator.name" :label="$t('role.table.creator')" align="left" />
           <el-table-column prop="createdAt" :label="$t('role.table.createAt')" align="left" />
-          <el-table-column align="left" :label="$t('role.table.status')">
+          <el-table-column v-if="isAdmin" align="left" :label="$t('role.table.status')">
             <template slot-scope="scope">
               <div style="height: 26px">
                 <el-switch
