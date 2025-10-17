@@ -81,7 +81,7 @@ func GetWorkflowToolSelect(ctx *gin.Context, userId, orgId, toolType, name strin
 			Total: int64(len(list)),
 		}, nil
 	}
-	return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "todo", "unsupported tool type")
+	return nil, grpc_util.ErrorStatusWithKey(errs.Code_BFFGeneral, "bff_workflow_tool_select", "unsupported tool type")
 }
 
 func GetWorkflowToolDetail(ctx *gin.Context, userId, orgId, toolId, toolType, operationId string) (*response.ToolDetail4Workflow, error) {

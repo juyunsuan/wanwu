@@ -65,6 +65,7 @@
 {"code":110000,"key":"bff_workflow_upload_file","langs":{"zh":"工作流上传文件错误: %v"}}
 {"code":110000,"key":"bff_workflow_import_file","langs":{"zh":"工作流导入文件错误: %v"}}
 {"code":110000,"key":"bff_workflow_export","langs":{"zh":"工作流导出错误: %v"}}
+{"code":110000,"key":"bff_workflow_tool_select","langs":{"zh":"获取工作流工具列表错误:%v"}}
 {"code":0,"key":"------ doc ------","langs":{}}
 {"code":110000,"key":"bff_doc_center_file_unescape","langs":{"en":"path unescape error: %v","zh":"路径去除转义错误: %v"}}
 {"code":110000,"key":"bff_doc_center_file_md","langs":{"en":"no markdown files found: %v","zh":"未含有md文件: %v"}}
@@ -251,13 +252,14 @@
 {"code":310013,"key":"mcp_create_mcp_server_err","langs":{"zh":"创建MCP服务异常:%v"}}
 {"code":310013,"key":"mcp_create_duplicate_mcp_server_err","langs":{"zh":"创建MCP服务异常:已存在同名"}}
 {"code":310014,"key":"mcp_delete_mcp_server_err","langs":{"zh":"删除MCP服务异常:%v"}}
-{"code":310015,"key":"mcp_get_mcp_server_info_err","langs":{"zh":"获取MCP服务详情异常:%v"}}
-{"code":310016,"key":"mcp_get_mcp_server_list_err","langs":{"zh":"获取MCP服务列表异常:%v"}}
-{"code":310017,"key":"mcp_create_mcp_server_tool_err","langs":{"zh":"创建MCP服务工具异常:%v"}}
-{"code":310018,"key":"mcp_update_mcp_server_tool_err","langs":{"zh":"更新MCP服务工具异常:%v"}}
-{"code":310019,"key":"mcp_delete_mcp_server_tool_err","langs":{"zh":"删除MCP服务工具异常:%v"}}
-{"code":310020,"key":"mcp_get_mcp_server_tool_info_err","langs":{"zh":"获取MCP服务工具详情异常:%v"}}
-{"code":310021,"key":"mcp_get_mcp_server_tool_list_err","langs":{"zh":"获取MCP服务工具列表异常:%v"}}
+{"code":310015,"key":"mcp_update_mcp_server_err","langs":{"zh":"更新MCP服务异常:%v"}}
+{"code":310016,"key":"mcp_get_mcp_server_info_err","langs":{"zh":"获取MCP服务详情异常:%v"}}
+{"code":310017,"key":"mcp_get_mcp_server_list_err","langs":{"zh":"获取MCP服务列表异常:%v"}}
+{"code":310018,"key":"mcp_create_mcp_server_tool_err","langs":{"zh":"创建MCP服务工具异常:%v"}}
+{"code":310019,"key":"mcp_update_mcp_server_tool_err","langs":{"zh":"更新MCP服务工具异常:%v"}}
+{"code":310020,"key":"mcp_delete_mcp_server_tool_err","langs":{"zh":"删除MCP服务工具异常:%v"}}
+{"code":310021,"key":"mcp_get_mcp_server_tool_info_err","langs":{"zh":"获取MCP服务工具详情异常:%v"}}
+{"code":310022,"key":"mcp_get_mcp_server_tool_list_err","langs":{"zh":"获取MCP服务工具列表异常:%v"}}
 {"code":150001,"key":"rag_role_err","langs":{"zh":"角色权限错误：%v"}}
 {"code":150002,"key":"rag_info_not_exist","langs":{"zh":"文本问答信息不存在：%v"}}
 {"code":150003,"key":"rag_delete_err","langs":{"zh":"删除文本问答错误：%v"}}

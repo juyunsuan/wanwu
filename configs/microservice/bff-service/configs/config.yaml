@@ -127,6 +127,8 @@ doc-center:
       val: 6.工作流/HTTP请求.md
     - key: workflow-58
       val: 6.工作流/JSON序列化.md
+    - key: workflow-1004
+      val: 6.工作流/工具.md
     - key: workflow-1006
       val: 6.工作流/知识库.md
     - key: workflow-1007
