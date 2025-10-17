@@ -377,7 +377,7 @@ class ChineseTextSplitter(CharacterTextSplitter):
                 new_separators.append(separator)
         # 如果分隔符里没有\n，先把原文中的\n替换为特殊标记
         if "\n" not in self.separators and "\\n" not in self.separators:
-            text = text.replace("\n", "NL")
+            text = text.replace("\n", "<NL>")
         regex_replacements = [
             (generate_regex(new_separators), r"\1\n")
         ]
