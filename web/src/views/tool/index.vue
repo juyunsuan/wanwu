@@ -23,7 +23,7 @@ import toolIndex from './toolIndex'
 export default {
   data() {
     return {
-      tabActive: 1
+      tabActive: 0
     };
   },
   watch: {
