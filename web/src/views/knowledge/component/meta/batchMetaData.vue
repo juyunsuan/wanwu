@@ -281,8 +281,8 @@ export default {
             this.getMetaList();
             if (type === "submit") {
               this.handleClose();
-              this.loading = false;
             }
+            this.loading = false;
           }
         })
         .catch(() => {});

@@ -496,7 +496,7 @@ export default {
           segmentMethod:"0",//0是通用分段，1是父子分段
           subMaxSplitter:200,//父子分段必填
           // subSplitter:["！", "。", "？", "?", "!", ".", "......"]//父子分段必填
-          subSplitter:["\n\n"]
+          subSplitter:["\n"]
         },
         docInfoList: [],
         docImportType: 0,
