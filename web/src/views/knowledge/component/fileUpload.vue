@@ -579,13 +579,15 @@ export default {
     },
     custom() {
       this.$nextTick(() => {
-        const splitter = this.ruleForm.docSegment.splitter;
-        const data = this.splitOptions.filter((item) => {
-          return splitter.includes(item.splitterValue) && item.type === "preset";
-        });
-        this.checkSplitter['splitter'] = data;
-        this.checkSplitter['subSplitter'] = data;
-        console.log(this.checkSplitter);
+        const { splitter, subSplitter } = this.ruleForm.docSegment;
+        const filterByType = (values) => 
+          this.splitOptions.filter(item => 
+            values.includes(item.splitterValue) && item.type === "preset"
+          );
+        this.checkSplitter = {
+          splitter: filterByType(splitter),
+          subSplitter: filterByType(subSplitter)
+        };
       });
     },
     updateMeata(data) {
