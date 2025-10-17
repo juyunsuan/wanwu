@@ -32,7 +32,7 @@
           String(res.maxSegmentSize)
         }}</el-descriptions-item>
         <el-descriptions-item :label="$t('knowledgeManage.markSplit')">{{
-          res.splitter.replace(/\n/g, '\\n')
+          String(res.splitter).replace(/\n/g, '\\n')
         }}</el-descriptions-item>
         <el-descriptions-item label="元数据">
           <template v-if="metaDataList && metaDataList.length > 0">
